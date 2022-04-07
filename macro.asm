@@ -3,13 +3,14 @@ mVariables macro
     mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
     ;enter para avanzar
     espEnter db 0A,"(Presionar enter para poder avanzar): $"
-    ;MENU
+    ;MENU 1
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
+    ;Menu 2
+    Menu2 db "F2. Play game",0A,"F3. Show top 10 scoreboard",0A,"F5. Show my top 10 scoreboard",0A,"F9. Logout",0A,"$"
     ; Opcion incorrecta
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
-
 
     ; Opcion escogida del menu
     opcion db 0 
@@ -18,16 +19,6 @@ mVariables macro
     stringNumactual db 20 dup (24)
     Numactual dw 0 
     auxs db "$"
-    lfconsola db 20 dup (" "),"$" ;limpiar fila de la consola
-    nfilas  db 0
-    salto db 0A,"$"
-    Numero1 dw 0
-    naux db "$"
-    Numero2 dw 0
-    naux2 db "$"
-    rnegativo dw 0
-    auxElevado dw 0
-    deseaImprimir db 0
 
     ;ARCHIVO
     handler dw  0
@@ -39,17 +30,11 @@ mVariables macro
     carbad  db 0A,"Fallo la carga! (presione cualquier tecla)","$"
     estadocarga db 0 ;si se logro cargar algo o no
     archError db 0A,"El archivo posee errores! $"
-    eleActual db 0 ;variable que contendra cada elemento leido por el programa
-    auxele db "$"
-    idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
-    posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
-    ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
-    
 
     ;PARA LA COMPARACION DE CADENAS
     cadIguales db 0
+    ;DEBUGER
     eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
-    
 endm 
 
 mFlujoProyecto2 macro
@@ -70,10 +55,18 @@ mFlujoProyecto2 macro
 endm 
 
 mFlujoMenu macro
+    ciclomenu: 
+    mov opcion,0
     mMostrarString Menu
     mov ah,01
     int 21
-
+    mov opcion,al 
+    mMostrarString eProgram
+    mMostrarString opcion 
+    cmp opcion,0
+    je salir
+    jne ciclomenu
+    salir: 
 endm
 
 
@@ -221,4 +214,15 @@ mCompararStrings macro var1, var2
         mov cadIguales,0
         jmp salir 
     salir: 
+endm 
+
+;COMPARA VARIABLES
+mComparar macro var1,var2
+    push ax 
+    push bx 
+    mov al,var1
+    mov bl,var2
+    cmp al,bl
+    pop bx
+    pop ax
 endm 
