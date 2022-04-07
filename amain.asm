@@ -1,4 +1,4 @@
-include Mep4.asm 
+include macro.asm   
 .MODEL small
 .STACK
 .RADIX 16
