@@ -7,6 +7,10 @@ mVariables macro
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
     ; Opcion incorrecta
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
+    ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
+    blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
+
+
     ; Opcion escogida del menu
     opcion db 0 
     dollar db '$'
@@ -60,8 +64,19 @@ mFlujoProyecto2 macro
             cmp al,0dh
             jne EsperaEnter ; SI NO ES UN ENTER SE REPETIRA, CUANDO YA VENGA LA MACRO SEGUIRA SU CURSO NORMAL
             ;---------------------------------------------------
+        mLimpiarConsola
+        mFlujoMenu
     mRetControl
 endm 
+
+mFlujoMenu macro
+    mMostrarString Menu
+    mov ah,01
+    int 21
+
+endm
+
+
 
 ;LIMPIA CONSOLA 
 mLimpiarConsola macro
