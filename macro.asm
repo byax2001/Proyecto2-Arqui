@@ -13,8 +13,13 @@ mVariables macro
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
     ;REGISTRO DE USUARIOS
+    ;adminG db "Nombre",01,"Contraseña",01,"Bloqueado/n","Admin/n",enter (0A)
+    adminG db "201800534BADM",01,"435008102",01,"N",01,"A",0A," "
+    rU db "Ingrese usuario",58t," $"
+    rP db "Password",58t," $"
+
     UsuarioRegis db 20 dup (24) ;nombre de usuario a registrar
-    Password db 20 dup (24)   ;contraseña a registrar 
+    PasswordRegis db 20 dup (24)   ;contraseña a registrar 
     validador db 0              ;validador 
         ActionR db "Accion rechazada! $" 
         ;MENSAJES DE NOMBRE DE USUARIO CONE ESTRUCTURA INCORRECTA
@@ -26,7 +31,30 @@ mVariables macro
         unaM db "Password  debe de tener al menos una mayuscula$"
         unN db "Password debe de tener al menos un Numero$"
         unS db "Password  debe de tener al menos una !>%",59t,"*$"
-        lengtherror2 db "Tamanio de contrasenia no entre el rango (8-15 caracteres)$"
+        lengtherror2 db "Tamanio de password no entre el rango (16-20 caracteres)$"
+        ;GUARDAR USUARIO
+        separador db 01
+        enterg db 0A
+        Bloqdef db "N"
+        admindef  db "N"
+        ;ERRORES USUARIO
+        numinicio db 0
+        largoe db 0
+        existee db 0
+        caracteresP db 0
+        ;CARACTERISTICAS PASSWORD
+        mayuse db 0
+        nume db 0
+        caracteresE db 0
+        largoe2 db 0
+        ;EXISTE ERROR
+        eerror db 0
+
+        saveUserSucces db "Registro exitoso",0A,"$"
+
+        
+        ;SIZE PILA 
+        sizepila db 0
 
     ; Opcion escogida del menu
     opcion db 0 
@@ -37,17 +65,28 @@ mVariables macro
     auxs db "$"
     espacio db " ","$"
     retroceso db 08, "$"
+    asterisco db "*","$"
 
     ;ARCHIVO
+    eleActual db 0 ;variable que contendra cada elemento leido por el programa
     handler dw  0
     msgcargar db 0A,"Ingrese el nombre del archivo a cargar: ",'$'
     nameFile db 20 dup(0)
     nfcaux db '$'
-    ;nameArchivo db "prueba.txt",0
     cargood db 0A,"Cargo con exito! (presione cualquier tecla)","$" 
     carbad  db 0A,"Fallo la carga! (presione cualquier tecla)","$"
     estadocarga db 0 ;si se logro cargar algo o no
-    archError db 0A,"El archivo posee errores! $"
+    savegood db 0A,"Guardado con exito!", "$"
+    savebad db 0A, "No se guardo el archivo!","$"
+    creacionCorrecta db 0       ;si se creo  con exito un nuevo documento su valor sera 1, caso contrario sera 0
+    posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
+    ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
+
+        ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS
+        usersb db "users.gal",0
+        scoresb db "scores.gal",0
+
+
     ;FECHA 
     dia db 4 dup (0)
     mes db 4 dup (0)
@@ -72,6 +111,7 @@ endm
 
 mFlujoProyecto2 macro
     call pAjustarMemoria
+        call pBaseDatos
         call pLimpiarConsola
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
@@ -92,19 +132,40 @@ mFlujoMenu macro
     ciclomenu: 
         mov opcion,0
         mMostrarString Menu
-        mMostrarString eProgram
         mov ah,01
         int 21
-        mov opcion,al 
+        mov ah,01
+        int 21
+        mov opcion,al
+        cmp opcion,59t
+        je Login
+        cmp opcion,"<"
+        je Register
         cmp opcion,"C"
         je salir
+        mMostrarString opi
         jmp ciclomenu
     Login:
 
     Register:
-
+       
+        jmp ciclomenu
     salir: 
 endm
+
+mRegistrar macro
+    mLimpiar UsuarioRegis,20,24
+    mLimpiar PasswordRegis,20,24
+    call pLimpiarConsola
+    mMostrarString rU
+    mCapturarString UsuarioRegis
+    mMostrarString rP
+    mCapturarPassword PasswordRegis
+
+    call pAlmacenaruser
+endm 
+
+
 
 
 ;Imprime variables
@@ -119,9 +180,6 @@ mMostrarString macro var
     pop ax
     pop dx 
 endm
-
-
-
 ;MACRO PARA CONVERTIR STRINGS A NUMEROS
 String2Num macro stringToRead,whereToStore
     local readStringValue
@@ -169,6 +227,8 @@ endm
 ;MACRO PARA CAPTURAR STRINGS EN UNA VARIABLE
 mCapturarString macro variableAlmacenadora 
     local salir,capturarLetras,deletCaracter
+    push ax
+    push si 
     mov si,0
     capturarLetras:
         mov ah,01h
@@ -189,7 +249,38 @@ mCapturarString macro variableAlmacenadora
         mMostrarString retroceso ;"<-"
         jmp capturarLetras
     salir:
-   
+        pop si
+        pop ax 
+endm 
+;CAPTURAR CONTRASEÑA
+mCapturarPassword macro variableAlmacenadora 
+    local salir,capturarLetras,deletCaracter
+    push ax
+    push si 
+    mov si,0
+    capturarLetras:
+        mov ah,01h
+        int 21h
+        cmp al, 0dh ;es igual a enter?
+        je salir ; una vez dado enter y capturado todo el nombre, pasar al siguiente procedimiento
+        cmp al, 08 ;es igual a retroceso?
+        je deletCaracter
+        mMostrarString retroceso ;"<-"
+        mMostrarString asterisco ; "*"
+        mov variableAlmacenadora[si],al
+        inc si
+        jmp capturarLetras
+    deletCaracter:
+        cmp si,0
+        je capturarLetras
+        mov variableAlmacenadora[si],24
+        dec si 
+        mMostrarString espacio ; " "
+        mMostrarString retroceso ;"<-"
+        jmp capturarLetras
+    salir:
+        pop si
+        pop ax 
 endm 
 ;LIMPIA UNA VARIABLE
 mLimpiar macro lista,numero,signo
@@ -210,7 +301,6 @@ MovVariables macro var1,var2
     mov var1, dl ; SE INGRESA A LA NUEVA POSICION EL SIMBOLO ACTUAL
     mov dl,0
 endm
-
 ;COMPARAR STRINGS 
 mCompararStrings macro var1, var2
     local salir,Iguales,noIguales,comparar,pfvar1,pfvar2
@@ -237,7 +327,6 @@ mCompararStrings macro var1, var2
         jmp salir 
     salir: 
 endm 
-
 ;COMPARA VARIABLES
 mComparar macro var1,var2
     push ax 
@@ -250,7 +339,6 @@ mComparar macro var1,var2
     pop bx
     pop ax
 endm 
-
 mSumar macro var1,var2
     push ax 
     xor ax,ax 
@@ -281,9 +369,6 @@ mMultiplicacion macro var1,var2
     pop bx
     pop ax 
 endm 
-
-
-
 ;Division
 mModdb macro var1,var2
 ;CUANDO SE LEEN ARCHIVOS LOS 4 REGISTROS SON AFECTADOS 
@@ -298,8 +383,6 @@ mModdb macro var1,var2
     pop bx 
     pop ax 
 endm
-
-
 MovVariablesDw macro var1,var2
     push dx
     mov dx,0
@@ -307,7 +390,6 @@ MovVariablesDw macro var1,var2
     mov var1, dx ; SE INGRESA A LA NUEVA POSICION EL SIMBOLO ACTUAL
     pop dx 
 endm
-
 mDelay macro  
     local salir,ciclodelay 
     mov cdelay,0
@@ -324,7 +406,6 @@ mDelay macro
     push ax 
     push dx 
 endm 
-
 ;macro para rellenar las variables de tiempo
 mFechaTime macro
     push bx 
@@ -356,3 +437,117 @@ mFechaTime macro
     Num2String seconds,segun 
     pop bx 
 endm
+;ARCHIVOS 
+mCrearFile macro nameFile
+    local falloCT,salidaCT,salir 
+    push ax
+    mov cx,0    
+    lea dx, nameFile
+    mov ah, 3C
+    int 21
+    jc falloCT    
+    mov handler, ax
+    jmp salidaCT
+    falloCT:
+        mMostrarString savebad
+        mov creacionCorrecta,0
+        jmp salir
+    salidaCT: ;sale del bucle
+        mMostrarString savegood
+        mov creacionCorrecta,1
+        jmp salir
+    salir:
+    pop ax 
+endm
+;para escribir en un archivo externo
+mWriteToFile macro palabra
+    push ax 
+    mov bx, handler
+    mov cx, LENGTHOF palabra 
+    mov dx, offset palabra
+    mov ah,40
+    int 21
+    pop ax 
+endm
+mReadFile macro varAlmacenadora
+    push ax 
+    mov bx, handler
+    mov cx, 1 
+    lea dx, varAlmacenadora ; esto seria igual a:  mov dx, offset lectura, "EN LA POSICION DE LECTURA GRABAR LO LEIDO"
+    mov ah, 3F
+    int 21
+    mov posLectura, ax 
+    pop ax 
+endm
+mCloseFile macro
+    mov bx, handler
+    mov ah, 3Eh
+    int 21
+endm
+;ARCHIVO
+mOpenFile macro fileName
+    local errorOpen,Opencorrecto,salidaOpen
+    mov estadocarga,0
+    mov al,0
+    lea dx, fileName
+    mov ah,3Dh
+    int 21
+    jc errorOpen
+    mov handler, ax
+    jmp Opencorrecto
+    errorOpen:
+        mMostrarString carbad
+        mov estadocarga,0
+        ;ESPERAR ENTER PARA VOLVER AL MENU
+        mov ah, 01
+        int 21 
+        jmp salidaOpen
+    Opencorrecto:
+        mMostrarString cargood
+        mov estadocarga,1
+        ;ESPERAR ENTER PARA EMPEZAR A JUGAR
+        mov ah, 01
+        int 21 
+        jmp salidaOpen
+    salidaOpen:
+endm
+
+mOpenFile2Write macro fileName
+    local errorOpen,Opencorrecto,salidaOpen
+    mov estadocarga,0
+    mov al,2
+    lea dx, fileName
+    mov ah,3Dh
+    int 21
+    jc errorOpen
+    mov handler, ax
+    jmp Opencorrecto
+    errorOpen:
+        mMostrarString carbad
+        mov estadocarga,0
+        ;ESPERAR ENTER PARA VOLVER AL MENU
+        mov ah, 01
+        int 21 
+        jmp salidaOpen
+    Opencorrecto:
+        mMostrarString cargood
+        mov estadocarga,1
+        ;ESPERAR ENTER PARA EMPEZAR A JUGAR
+        mov ah, 01
+        int 21 
+        jmp salidaOpen
+    salidaOpen:
+endm
+
+
+mHallarSimbolo macro simbolo 
+    local buscar,salir 
+    buscar:
+    mReadFile eleActual 
+    cmp posLectura,0  ;"LLEGO AL FINAL DEL DOCUMENTO?"
+    je salir; si llego, salir del metodo sino seguir comparando 
+    mComparar eleActual,simbolo ;buscando el simbolo buscado, si se hallo ya no se manda al ciclo buscar y se sale
+    jne buscar
+    salir:
+endm 
+
