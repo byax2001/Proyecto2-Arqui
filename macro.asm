@@ -178,6 +178,10 @@ mUserInicial macro
         mov numinicio,0
     salir: 
 endm 
+
+
+
+
 mSizeWord macro variable,limizq,limder
     local ciclosize,comparaciones,sentenciagood,salir 
     mov contadoraux,0
@@ -190,11 +194,10 @@ mSizeWord macro variable,limizq,limder
         mComparar contadoraux,20
         jne ciclosize
     comparaciones:
-    mComparar variable, limizq  ; limizq es el tamaño minimo de la sentencia 
-    jb sentenciabad ;es menor al limite izquierdo? entonces malo si no sigue 
-    mComparar variable,limder ;es menor o igual al tamaño maximo permitido?
-    jbe setencia good ;si  setencia buena, no sentencia mala 
-    jmp sentenciabad ; si no es buena pasara a ser sentencia mala 
+        mEnRango contadoraux, 8t,15t
+        mComparar enrango,0
+        je sentenciagood
+        jne sentenciabad
     sentenciagood:
         mov largoe, 0
         jmp salir 
@@ -203,6 +206,58 @@ mSizeWord macro variable,limizq,limder
         mov eerror,1
     salir: 
 endm 
+
+RequisitoCletra macro
+    local ciclo,sicumpleR,nocumpleR,salir 
+    push si 
+    mov si,-1
+    ciclo: 
+        inc si 
+        cmp si,20t
+        je sicumpleR
+        mEnRangoEsp UsuarioRegis[si]
+        cmp enrango,1
+        jne nocumpleR
+        je ciclo 
+    sicumpleR:
+        mov caracteresP,0
+        jmp salir 
+    nocumpleR:
+        mov caracteresP,1
+        mov eerror,1
+    salir: 
+    pop si 
+endm 
+
+mEnRangoEsp macro dato
+    local enrango,noenrango,salir
+    mEnRango dato, 41h,5Ah  ;de A-Z
+    cmp enrango,1
+    je enrango
+
+    mEnRango dato, 61h, 7ah ; de a-z
+    cmp enrango,1
+    je enrango
+
+    mEnRango dato, 45t,46t   ; "-","."
+    cmp enrango,1
+    je enrango
+
+    mComparar dato,"$"
+    je enrango
+
+    mComparar dato,"_"
+    je enrango
+    jne noenrango
+    enrango:
+        mov enrango,1
+        jmp salir 
+    noenrango:
+        mov enrango,0
+    salir:
+endm 
+
+
 ;MACRO PARA VERIFICAR SI ESTA EN RANGO O NO UN DATO 
 mEnRango macro dato,limif, limsup
     local enElrango,noEnelrango,salir
