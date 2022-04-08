@@ -1,3 +1,4 @@
+
 mVariables macro
     ;Mensaje de Bienvenida
     mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
@@ -11,6 +12,21 @@ mVariables macro
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
+    ;REGISTRO DE USUARIOS
+    UsuarioRegis db 20 dup (24) ;nombre de usuario a registrar
+    Password db 20 dup (24)   ;contraseña a registrar 
+    validador db 0              ;validador 
+        ActionR db "Accion rechazada! $" 
+        ;MENSAJES DE NOMBRE DE USUARIO CONE ESTRUCTURA INCORRECTA
+        initialbad db "Se debe de iniciar por una letra$"
+        lengtherror db "Tamanio del nombre de usuario no entre el rango (8-15 caracteres)$"
+        UnExist  db  "El usuario no debe de existir$"
+        CaracteresP db "Los unicos caracteres permitidos fuera del alfabeto son -_.$"
+        ;MENSAJES DE CONTRASEÑA CON ESTRUCTURA INCORRECTA
+        unaM db "Password  debe de tener al menos una mayuscula$"
+        unN db "Password debe de tener al menos un Numero$"
+        unS db "Password  debe de tener al menos una !>%",59t,"*$"
+        lengtherror2 db "Tamanio de contrasenia no entre el rango (8-15 caracteres)$"
 
     ; Opcion escogida del menu
     opcion db 0 
@@ -55,8 +71,8 @@ mVariables macro
 endm 
 
 mFlujoProyecto2 macro
-    mAjustarMemoria
-        mLimpiarConsola
+    call pAjustarMemoria
+        call pLimpiarConsola
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
             EsperaEnter:
@@ -66,12 +82,9 @@ mFlujoProyecto2 macro
             cmp al,0dh
             jne EsperaEnter ; SI NO ES UN ENTER SE REPETIRA, CUANDO YA VENGA LA MACRO SEGUIRA SU CURSO NORMAL
             ;---------------------------------------------------
-        mLimpiarConsola
-        mCapturarString stringNumactual
-        mMostrarString stringNumactual
-        mFlujoMenu
-        mLimpiarConsola  
-    mRetControl
+        call pLimpiarConsola
+        mFlujoMenu 
+    call pRetControl
 endm 
 
 mFlujoMenu macro
@@ -94,33 +107,6 @@ mFlujoMenu macro
 endm
 
 
-
-
-;LIMPIA CONSOLA 
-mLimpiarConsola macro
-    push ax
-    push bx
-    push cx
-    push dx 
-    ;Limpia la consola 
-    mov ax,0600h ; es igual a mov ah,06 (scroll up windows con el int 10)  y mov al,00
-    mov bh, 07   
-    mov cx, 00000  ; es igual a mov ch,0   mov cl, 0 , filas y coumnas de derecha a izquierda
-    mov dx, 184FH  ;filas y columnas de both 
-    int 10
-    ;posiciona el cursor en la pos 0
-    mov ah, 02
-    mov bh,0  ;nuero de pagina
-    mov dl,0   ;columna
-    mov dh,0   ;fila 
-    int 10
-    pop dx
-    pop cx
-    pop bx
-    pop ax 
-endm
-
-
 ;Imprime variables
 mMostrarString macro var 
     push dx
@@ -133,18 +119,9 @@ mMostrarString macro var
     pop ax
     pop dx 
 endm
-;Ajusta la memoria
-mAjustarMemoria macro
-    mov dx, @DATA
-    mov ds,dx
-    mov es,dx
-endm
-;Devuelve al sistema el control
-mRetControl macro
-    mov al, 10  
-    mov ah, 4C  
-    int 21
-endm
+
+
+
 ;MACRO PARA CONVERTIR STRINGS A NUMEROS
 String2Num macro stringToRead,whereToStore
     local readStringValue
