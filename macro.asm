@@ -15,10 +15,12 @@ mVariables macro
     ; Opcion escogida del menu
     opcion db 0 
     dollar db '$'
-    ;CALCULADORA
+    ;STRING DE UN NUMERO Y NUMERO DE UN STRING 
     stringNumactual db 20 dup (24)
     Numactual dw 0 
     auxs db "$"
+    espacio db " ","$"
+    retroceso db 08, "$"
 
     ;ARCHIVO
     handler dw  0
@@ -30,6 +32,21 @@ mVariables macro
     carbad  db 0A,"Fallo la carga! (presione cualquier tecla)","$"
     estadocarga db 0 ;si se logro cargar algo o no
     archError db 0A,"El archivo posee errores! $"
+    ;FECHA 
+    dia db 4 dup (0)
+    mes db 4 dup (0)
+    anio db 4 dup (0)
+    hora db 4 dup (0)
+    min db 4 dup (0)
+    segun db 4 dup (0)
+    year dw 0
+    month dw 0
+    day  dw 0
+    hours dw 0
+    minutes dw 0
+    seconds dw 0
+    ;CONTADOR DELAY
+    cdelay db 0
 
     ;PARA LA COMPARACION DE CADENAS
     cadIguales db 0
@@ -50,29 +67,41 @@ mFlujoProyecto2 macro
             jne EsperaEnter ; SI NO ES UN ENTER SE REPETIRA, CUANDO YA VENGA LA MACRO SEGUIRA SU CURSO NORMAL
             ;---------------------------------------------------
         mLimpiarConsola
+        mCapturarString stringNumactual
+        mMostrarString stringNumactual
         mFlujoMenu
+        mLimpiarConsola  
     mRetControl
 endm 
 
 mFlujoMenu macro
+    local ciclomenu,salir    
     ciclomenu: 
-    mov opcion,0
-    mMostrarString Menu
-    mov ah,01
-    int 21
-    mov opcion,al 
-    mMostrarString eProgram
-    mMostrarString opcion 
-    cmp opcion,0
-    je salir
-    jne ciclomenu
+        mov opcion,0
+        mMostrarString Menu
+        mMostrarString eProgram
+        mov ah,01
+        int 21
+        mov opcion,al 
+        cmp opcion,"C"
+        je salir
+        jmp ciclomenu
+    Login:
+
+    Register:
+
     salir: 
 endm
 
 
 
+
 ;LIMPIA CONSOLA 
 mLimpiarConsola macro
+    push ax
+    push bx
+    push cx
+    push dx 
     ;Limpia la consola 
     mov ax,0600h ; es igual a mov ah,06 (scroll up windows con el int 10)  y mov al,00
     mov bh, 07   
@@ -85,6 +114,10 @@ mLimpiarConsola macro
     mov dl,0   ;columna
     mov dh,0   ;fila 
     int 10
+    pop dx
+    pop cx
+    pop bx
+    pop ax 
 endm
 
 
@@ -92,6 +125,8 @@ endm
 mMostrarString macro var 
     push dx
     push ax
+    xor ax,ax
+    mov dx,ax 
     lea dx, var
     mov ah, 09
     int 21
@@ -156,15 +191,25 @@ Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el 
 endm 
 ;MACRO PARA CAPTURAR STRINGS EN UNA VARIABLE
 mCapturarString macro variableAlmacenadora 
-    local salir,capturarLetras
+    local salir,capturarLetras,deletCaracter
     mov si,0
     capturarLetras:
         mov ah,01h
         int 21h
         cmp al, 0dh ;es igual a enter?
         je salir ; una vez dado enter y capturado todo el nombre, pasar al siguiente procedimiento
+        cmp al, 08 ;es igual a retroceso?
+        je deletCaracter
         mov variableAlmacenadora[si],al
         inc si
+        jmp capturarLetras
+    deletCaracter:
+        cmp si,0
+        je capturarLetras
+        mov variableAlmacenadora[si],24
+        dec si 
+        mMostrarString espacio ; " "
+        mMostrarString retroceso ;"<-"
         jmp capturarLetras
     salir:
    
@@ -220,9 +265,117 @@ endm
 mComparar macro var1,var2
     push ax 
     push bx 
+    xor ax,ax
+    mov bx,ax 
     mov al,var1
     mov bl,var2
     cmp al,bl
     pop bx
     pop ax
 endm 
+
+mSumar macro var1,var2
+    push ax 
+    xor ax,ax 
+    mov ax,var1
+    add ax,var2
+    mov var1,ax 
+    pop ax 
+endm 
+;Resta dos variables
+mResta macro var1,var2
+    push ax 
+    xor ax,ax 
+    mov ax, var1 
+    sub ax, var2
+    mov var1, ax 
+    pop ax 
+endm 
+;Multiplicacion
+mMultiplicacion macro var1,var2
+    push ax
+    push bx 
+    xor ax,ax 
+    xor bx,bx 
+    mov ax,var1
+    mov bx, var2
+    mul bx
+    mov var1,ax  
+    pop bx
+    pop ax 
+endm 
+
+
+
+;Division
+mModdb macro var1,var2
+;CUANDO SE LEEN ARCHIVOS LOS 4 REGISTROS SON AFECTADOS 
+    push ax
+    push bx 
+    xor ax,ax
+    mov bx,ax 
+    mov al, var1
+    mov bl, var2
+    div bl
+    mov var2, ah 
+    pop bx 
+    pop ax 
+endm
+
+
+MovVariablesDw macro var1,var2
+    push dx
+    mov dx,0
+    mov dx,var2
+    mov var1, dx ; SE INGRESA A LA NUEVA POSICION EL SIMBOLO ACTUAL
+    pop dx 
+endm
+
+mDelay macro  
+    local salir,ciclodelay 
+    mov cdelay,0
+    pop ax 
+    pop dx 
+    ciclodelay:
+        mov ah,2Ch
+        int 21h
+        mov cdelay,dh ;SEGUNDOS  
+        cmp cdelay,30t ; dara 0 en el mod si CDELAY ES UN MULTIPLO DE 30 POR LO CUAL PASARON 30 SEGUNDOS
+        je salir   
+        jmp ciclodelay 
+    salir: 
+    push ax 
+    push dx 
+endm 
+
+;macro para rellenar las variables de tiempo
+mFechaTime macro
+    push bx 
+    xor bx,bx
+    ;dia,mes,anio,hora,min,segun
+    mov ah,2Ah   
+    int 21h 
+    mov year,cx  ;valor numerico de año
+    mov bl, dh   ;valor numerico de mes
+    mov month,bx  
+    mov bl, dl   ;valor numerico de dia
+    mov day,bx   
+
+    mov ah,2Ch
+    int 21h
+    mov bl, ch  ;valor numerico de horas
+    mov hours,bx 
+    mov bl, cl   ;valor numerico de minutos
+    mov minutes,bx 
+    mov bl, dh   ;valor numerico de segundos
+    mov seconds,bx 
+    
+    ;CONVERSION DE NUMEROS A VARIABLES
+    Num2String year, anio
+    Num2String month, mes
+    Num2String day, dia
+    Num2String hours, hora
+    Num2String minutes,min
+    Num2String seconds,segun 
+    pop bx 
+endm
