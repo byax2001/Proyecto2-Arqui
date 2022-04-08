@@ -1,4 +1,3 @@
-
 mVariables macro
     ;Mensaje de Bienvenida
     mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
@@ -23,20 +22,21 @@ mVariables macro
     validador db 0              ;validador 
         ActionR db "Accion rechazada! $" 
         ;MENSAJES DE NOMBRE DE USUARIO CONE ESTRUCTURA INCORRECTA
-        initialbad db "Se debe de iniciar por una letra$"
-        lengtherror db "Tamanio del nombre de usuario no entre el rango (8-15 caracteres)$"
-        UnExist  db  "El usuario no debe de existir$"
-        CaracteresP db "Los unicos caracteres permitidos fuera del alfabeto son -_.$"
+        msginitialbad db "Se debe de iniciar por una letra$"
+        msglengtherror db "Tamanio del nombre de usuario no entre el rango (8-15 caracteres)$"
+        msgUnExist  db  "El usuario no debe de existir$"
+        msgCaractP db "Los unicos caracteres permitidos fuera del alfabeto son -_.$"
         ;MENSAJES DE CONTRASEÑA CON ESTRUCTURA INCORRECTA
-        unaM db "Password  debe de tener al menos una mayuscula$"
-        unN db "Password debe de tener al menos un Numero$"
-        unS db "Password  debe de tener al menos una !>%",59t,"*$"
-        lengtherror2 db "Tamanio de password no entre el rango (16-20 caracteres)$"
+        msgunaM db "Password  debe de tener al menos una mayuscula$"
+        msgunN db "Password debe de tener al menos un Numero$"
+        msgunS db "Password  debe de tener al menos una !>%",59t,"*$"
+        msglengtherror2 db "Tamanio de password no entre el rango (16-20 caracteres)$"
         ;GUARDAR USUARIO
         separador db 01
         enterg db 0A
         Bloqdef db "N"
         admindef  db "N"
+        
         ;ERRORES USUARIO
         numinicio db 0
         largoe db 0
@@ -48,10 +48,11 @@ mVariables macro
         caracteresE db 0
         largoe2 db 0
         ;EXISTE ERROR
+        enrango db 0
         eerror db 0
-
+        contadoraux db 0
         saveUserSucces db "Registro exitoso",0A,"$"
-
+       
         
         ;SIZE PILA 
         sizepila db 0
@@ -164,6 +165,61 @@ mRegistrar macro
 
     call pAlmacenaruser
 endm 
+
+mUserInicial macro
+    mEnRango UsuarioRegis[0],30h,39h
+    cmp enrango,0
+    je iniLetra
+    iniNumero:
+        mov numinicio,1
+        mov eerror,1 
+        jmp salir
+    iniLetra:
+        mov numinicio,0
+    salir: 
+endm 
+mSizeWord macro variable,limizq,limder
+    local ciclosize,comparaciones,sentenciagood,salir 
+    mov contadoraux,0
+    mov si, 0
+    ciclosize:
+        mComparar variable[si],$
+        jne ciclosize
+        je comparaciones
+        mSumardb contadoraux,1
+        mComparar contadoraux,20
+        jne ciclosize
+    comparaciones:
+    mComparar variable, limizq  ; limizq es el tamaño minimo de la sentencia 
+    jb sentenciabad ;es menor al limite izquierdo? entonces malo si no sigue 
+    mComparar variable,limder ;es menor o igual al tamaño maximo permitido?
+    jbe setencia good ;si  setencia buena, no sentencia mala 
+    jmp sentenciabad ; si no es buena pasara a ser sentencia mala 
+    sentenciagood:
+        mov largoe, 0
+        jmp salir 
+    sentenciabad:
+        mov largoe,1
+        mov eerror,1
+    salir: 
+endm 
+;MACRO PARA VERIFICAR SI ESTA EN RANGO O NO UN DATO 
+mEnRango macro dato,limif, limsup
+    local enElrango,noEnelrango,salir
+    ;ja >,jb <,  jbe<=
+    mComparar dato,limif
+    jb noEnelrango ; si es menor al limite inferior no esa en el rango
+    mComparar dato,limsup
+    jbe enElrango ; si es menor o igual al limite superior esta en el rango
+    ja noEnelrango; si es mayor no esta en el rango 
+    enElrango:
+        MovVariables enrango,1
+        jmp salir 
+    noEnelrango:
+        MovVariables enrango,0
+    salir:
+endm 
+
 
 
 
@@ -339,12 +395,13 @@ mComparar macro var1,var2
     pop bx
     pop ax
 endm 
-mSumar macro var1,var2
+;SUMAR DB 
+mSumardb macro var1,var2
     push ax 
     xor ax,ax 
-    mov ax,var1
-    add ax,var2
-    mov var1,ax 
+    mov al,var1
+    add al,var2
+    mov var1,al
     pop ax 
 endm 
 ;Resta dos variables
@@ -538,8 +595,6 @@ mOpenFile2Write macro fileName
         jmp salidaOpen
     salidaOpen:
 endm
-
-
 mHallarSimbolo macro simbolo 
     local buscar,salir 
     buscar:

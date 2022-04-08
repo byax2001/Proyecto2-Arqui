@@ -113,20 +113,9 @@ pdecSizePila proc
     ret
 pdecSizePila endp 
 
-;VERIFICACION DE LAS CARACTERISTICAS PEDIDAS PARA USER 
-pNonumeroI proc
-    ;ja > jb <  jbe<=
-    mComparar UsuarioRegis[0],30h
-    jb uscorrecto
-    mComparar UsuarioRegis[0],39h
-    ja uscorrecto
-    usincorrecto:
-        mov numinicio,1 
-    uscorrecto:
-        mov numincio, 0
-    ret 
-pNonumeroI endp 
-    
+
+
+
 ;VERIFICACION DE LAS CARACTERISTICAS PEDIDAS PARA PASSWORD
 
 END start 
