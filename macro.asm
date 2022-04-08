@@ -165,7 +165,7 @@ mRegistrar macro
 
     call pAlmacenaruser
 endm 
-
+;REQUISITOS PARA EL USUARIO 
 mUserInicial macro
     mEnRango UsuarioRegis[0],30h,39h
     cmp enrango,0
