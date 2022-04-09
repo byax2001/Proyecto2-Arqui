@@ -79,8 +79,7 @@ pDelayLetras endp
 
 pAlmacenaruser proc
     mOpenFile2Write usersb
-    mHallarSimbolo 0A ;primer enter por el admin
-    mReadFile eleActual
+    mHallarSimbolo " " ;hallar el espacio (ultimo valor del registro) para posicionarse ahi
     mWriteToFile UsuarioRegis
     mWriteToFile separador
     mWriteToFile PasswordRegis

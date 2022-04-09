@@ -11,14 +11,15 @@ mVariables macro
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
+    
     ;REGISTRO DE USUARIOS
     ;adminG db "Nombre",01,"Contraseña",01,"Bloqueado/n","Admin/n",enter (0A)
     adminG db "201800534BADM",01,"435008102",01,"N",01,"A",0A," "
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
 
-    UsuarioRegis db 20 dup (24) ;nombre de usuario a registrar
-    PasswordRegis db 20 dup (24)   ;contraseña a registrar 
+    UsuarioRegis db 25 dup (24) ;nombre de usuario a registrar
+    PasswordRegis db 25 dup (24)   ;contraseña a registrar 
     validador db 0              ;validador 
         ActionR db "Accion rechazada! $" 
         ;MENSAJES DE NOMBRE DE USUARIO CONE ESTRUCTURA INCORRECTA
@@ -33,7 +34,7 @@ mVariables macro
         msglengtherror2 db "Tamanio de password no entre el rango (16-20 caracteres)$"
         ;GUARDAR USUARIO
         separador db 01
-        enterg db 0A
+        enterg db 0A, " "
         Bloqdef db "N"
         admindef  db "N"
         
@@ -41,18 +42,19 @@ mVariables macro
         numinicio db 0
         largoe db 0
         existee db 0
-        caracteresP db 0
+        caractNp db 0 ;caracteres no permitidos para el usuario
         ;CARACTERISTICAS PASSWORD
         mayuse db 0
         nume db 0
-        caracteresE db 0
+        sinCaractE db 0 ;caracteres especiales faltantes en la contraseña
         largoe2 db 0
         ;EXISTE ERROR
         enrango db 0
         eerror db 0
         contadoraux db 0
         saveUserSucces db "Registro exitoso",0A,"$"
-       
+            ;MENSAJE SUCCES
+            msgRegistroSucces db "Se registro el usuario de forma exitosa"
         
         ;SIZE PILA 
         sizepila db 0
@@ -82,6 +84,7 @@ mVariables macro
     creacionCorrecta db 0       ;si se creo  con exito un nuevo documento su valor sera 1, caso contrario sera 0
     posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
     ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
+    idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
 
         ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS
         usersb db "users.gal",0
@@ -133,9 +136,11 @@ mFlujoMenu macro
     ciclomenu: 
         mov opcion,0
         mMostrarString Menu
+        ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+        ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
         mov ah,01
         int 21
-        mov ah,01
+        mov ah,01  ;atrapa la tecla fn 
         int 21
         mov opcion,al
         cmp opcion,59t
@@ -149,107 +154,240 @@ mFlujoMenu macro
     Login:
 
     Register:
-       
+        mRegistrar
         jmp ciclomenu
     salir: 
 endm
 
 mRegistrar macro
-    mLimpiar UsuarioRegis,20,24
-    mLimpiar PasswordRegis,20,24
+    mLimpiar UsuarioRegis,25,24
+    mLimpiar PasswordRegis,25,24
     call pLimpiarConsola
     mMostrarString rU
     mCapturarString UsuarioRegis
     mMostrarString rP
     mCapturarPassword PasswordRegis
+    ;RESTRICCIONES 
+    mUserInicial
+    mSizeUser
+    mUserExiste
+    mRequisitoCletra
+    mAMayus
+    mANum
+    mASigno
+    mSizePassword 
+    ;EXISTE ERROR?
+    mComparar eerror,1
+    je ErrorRegistro
+    jne noErrorRegistro
+    ErrorRegistro:
+        ;NUMERO INICIAL
+        mComparar numinicio,0
+        je nNinicial
+        yNinicial:;error posee un numero en su caracter incial
+            mMostrarString msginitialbad 
+        nNinicial:; no posee error de este tipo
+        
+        mComparar largoe,0
+        je nLerornea
+        ;LONGITUD ERRONEA
+        yLerronea: ; posee error 
+        nLerornea:; no posee error de este tipo
+        
+        ;USUARIO EXISTENTE
+        mComparar existee,0
+        je nUexist
+        yUexist:;usuario existe
+        nUexist:; no posee error de este tipo
+        
+        ;CARACTERES ESPECIALES NO PERMITIDOS PRESENTES
+        mComparar caractNp,0
+        je nCnexist
+        yCnexist: ; error carateres especiales no permitidos presentes
+        nCnexist: ; no posee error de este tipo
+        
+        ;PASSWORD SIN AL MENOS UNA MAYUSCULA
+        mComparar mayuse,0
+        je nPsm
+        yPsm:; Password sin mayuscula
+        nPsm:; no posee error de este tipo
+        
+        ;PASSWORD SIN AL MENOS UN NUMERO
+        mComparar nume,0
+        je nPsn
+        yPsn: ; Password sin numero
+        nPsn:; no posee error de este tipo
+        
+        ;PASWORD SI AL MENOS UN SIMBOLO ESPECIAL(!>%;*)
+        mComparar sinCaractE,0
+        je nPss
+        yPss: ;password sin simbolos
+        nPss:; no posee error de este tipo
+        
+        ;PASSWORD CON LONGITUD ERRONEA
+        mComparar largoe2,0
+        je nPlongitud
+        yPlongitud:; hay error respecto a la longitud 
+        nPlongitud:; no posee error de este tipo
 
+    noErrorRegistro:
     call pAlmacenaruser
+    salir: 
 endm 
+
+
+
 ;REQUISITOS PARA EL USUARIO 
+;NO DEBE DE TENER UN NUMERO AL INICIO
 mUserInicial macro
-    mEnRango UsuarioRegis[0],30h,39h
-    cmp enrango,0
-    je iniLetra
-    iniNumero:
-        mov numinicio,1
-        mov eerror,1 
-        jmp salir
-    iniLetra:
-        mov numinicio,0
+    mEnRango UsuarioRegis[0],30h,39h  ; el dato se encuentra entre 0-9 del codigo ascii?
+    cmp enrango,0     ;no
+    je iniLetra       ;inicia con una letra y otro caracter, no hay error
+    iniNumero:        ;inicia con un numero, si hay error 
+        mov numinicio,1  ;marca con 1 la variable la variable global que indica un error sobre un numero inicial
+        mov eerror,1 ;indica que hay un error en el usuario o en la contraseña por tal razon no se registra
+        jmp salir       
+    iniLetra:   
+        mov numinicio,0 ;marca que no hubo error 
     salir: 
 endm 
-
-
-
-
-mSizeWord macro variable,limizq,limder
-    local ciclosize,comparaciones,sentenciagood,salir 
-    mov contadoraux,0
-    mov si, 0
+;EL TAMAÑO DEL USUARIO DEBE DE ESTAR ENTRE 8-15 LETRAS
+mSizeUser macro
+    local ciclosize,comparaciones,sentenciagood,salir,sentenciabad
+    push si 
+    mov contadoraux,0 ;inicializa variable que contendra el tamaño del nombre user 
+    mov si, 0 
     ciclosize:
-        mComparar variable[si],$
-        jne ciclosize
-        je comparaciones
-        mSumardb contadoraux,1
-        mComparar contadoraux,20
-        jne ciclosize
+        cmp si, 25t ;si ya llego a 25? (el tamaño maximo de la variable)
+        je comparaciones ; si, pase a comprobar el tamaño del nombre user con los rangos
+        mComparar UsuarioRegis[si],"$" ;cuando llegue a $ es que llego al fin del nombre usuario
+        je comparaciones ;si es asi pasa a comparar el tamaño con los margenes permitidos
+        mSumardb contadoraux,1 ;si no, suma uno al tamaño del nombre user 
+        inc si ;incrementa uno al index si 
+        jmp ciclosize ; repite el ciclo 
     comparaciones:
-        mEnRango contadoraux, 8t,15t
-        mComparar enrango,0
-        je sentenciagood
-        jne sentenciabad
+        mEnRango contadoraux, 8t,15t ; el tamaño esta entre 8 -15  ?
+        mComparar enrango,1  ; esta en rango?
+        je sentenciagood     ;si, la sentencia es correcta
+        jne sentenciabad     ;no, la sentencia no es correcta 
     sentenciagood:
-        mov largoe, 0
-        jmp salir 
+        mov largoe, 0        ; no hay error respecto al rango 
+        jmp salir            ; sale 
     sentenciabad:
-        mov largoe,1
-        mov eerror,1
+        mov largoe,1         ; si hay error respecto al rango
+        mov eerror,1         ; si hay error en name user o password 
     salir: 
+    pop si 
+endm 
+;NO DEBE DE EXISTIR EL USUARIO
+mUserExiste macro
+    local Existe,Noexiste,salir,cicloexiste
+    ;SE VERIFICA SI NO ES EL ADMIN
+    mOpenFile usersb  ;abre el archivo en modo lectura 
+    mEncontrarId UsuarioRegis;lo primero en el documento de usuarios es el admin, que siempre estara aca
+    cmp idEncontrado,1 ; se encontro usuario? 
+    je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
+    cicloexiste: ;caso contrario se procedera a un ciclo de lectura del archivo hasta hallar o un espacio o el id buscado
+        mHallarSimbolo 0A  ;se salta hasta el enter hasta la posicion donde esta 0A
+        mReadFile eleActual ; se corre una vez el elemento 
+        cmp eleActual," " ;si hay un espacio es que ya se llego al fin del documento y el usuario no existe
+        ;CADA VEZ QUE SE CREA UN USUARIO SE ELIMINA EL ULTIMO ESPACIO QUE DEJA LA CREACION DEL USUARIO ANTERIOR
+        je Noexiste ; no existe usuario
+        mEncontrarId UsuarioRegis ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
+        cmp idEncontrado,1 ; si, entonces existe 
+        je Existe 
+        jne cicloexiste 
+    Existe:
+        mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
+        mov eerror,1  ;se reporta error general al registro
+        mCloseFile
+        jmp salir 
+    Noexiste:
+        mov existee, 0 ; no existe usuario, no hay error
+        mCloseFile
+    salir:
 endm 
 
-RequisitoCletra macro
+;MACRO QUE VERIFICA SI EXISTE UN ID EN EL DOCUMENTO 
+mEncontrarId macro id
+    local salir ,comparar,idhallado,idNohallado
+    push si 
+    mov idEncontrado,0 ;limpiar idEncontrado
+    mov si,0
+    comparar:
+    mComparar id[si],"$" ;llego al final del id escogido   
+    je idhallado
+    mReadFile eleActual ;obtiene una letra 
+    mComparar id[si],eleActual   ; la letra obtenida es igual al elemento actual del id?
+    jne idNohallado ; no, entonces no son el mismo id, id no se hallo
+    ;si, se procede a seguir recorriendo
+    inc si 
+    jmp comparar
+    idhallado:
+        mReadFile eleActual ;PARA QUE LEA EL " DE CIERRE Y LUEGO PASE DE EL 
+        MovVariables eleActual,0;LIMPIEZA DE VARIABLE 
+        mov idEncontrado,1 ;INDICA SI EL ID FUE ENCONTRADO 
+        jmp salir 
+    idNohallado:
+        MovVariables eleActual,0;LIMPIEZA DE VARIABLE 
+        mov idEncontrado,0 ;INDICA SI EL ID FUE ENCONTRADO 
+    salir:
+    pop si 
+endm 
+
+
+
+;VERIFICA QUE CADA LETRA DEL USER SEAN CARACTERES PERMITIDOS USANDO EL METODO MENRANGOESP
+mRequisitoCletra macro
     local ciclo,sicumpleR,nocumpleR,salir 
     push si 
-    mov si,-1
+    mov si,0 ;inicializa si 
     ciclo: 
-        inc si 
-        cmp si,20t
-        je sicumpleR
-        mEnRangoEsp UsuarioRegis[si]
-        cmp enrango,1
-        jne nocumpleR
-        je ciclo 
+        cmp si,25t  ;si llego hasta 25? (el tamaño maximo deuna variable)
+        je sicumpleR ;si, entonces no paso ningun error por lo tanto todas las letras en el username cumplen con las restricciones
+        mComparar UsuarioRegis[si], "$" ; llego hasta $?
+        je sicumpleR ;si llego hasta $ significa que no hay errores en los caracteres del name user
+        mEnRangoEsp UsuarioRegis[si] ;revisa que esta letra cumpla con los requisitos de los margenes
+        cmp enrango,1 ;esta en rango, entre los caracteres permitidos 
+        jne nocumpleR ;no, no lo esta 
+        inc si  ;si , si lo esta
+        jmp ciclo 
     sicumpleR:
-        mov caracteresP,0
+        mov caractNp,0 ; no hay errores entre los caracteres permitidos
         jmp salir 
     nocumpleR:
-        mov caracteresP,1
-        mov eerror,1
+        mov caractNp,1 ;hay error y hay caracteres no permitidos
+        mov eerror,1    ; error general 
     salir: 
     pop si 
 endm 
 
+;MUESTRA SI LA LETRA MANDADA ESTA ENTRE EL RANGO DE LETRAS Y SIMBOLOS ESPECIALES PEDIDOS 
 mEnRangoEsp macro dato
-    local enrango,noenrango,salir
+    local enrangoEsp,noenrango,salir
     mEnRango dato, 41h,5Ah  ;de A-Z
     cmp enrango,1
-    je enrango
+    je enrangoEsp
 
     mEnRango dato, 61h, 7ah ; de a-z
     cmp enrango,1
-    je enrango
+    je enrangoEsp
+
+    mEnRango dato, 30h,39h   ; de 0-9
+    cmp enrango,1
+    je enrangoEsp
 
     mEnRango dato, 45t,46t   ; "-","."
     cmp enrango,1
-    je enrango
+    je enrangoEsp
 
     mComparar dato,"$"
-    je enrango
+    je enrangoEsp
 
     mComparar dato,"_"
-    je enrango
-    jne noenrango
-    enrango:
+    je enrangoEsp
+    jne noenrango ; si no cuplio con ninguna entonces hay algun simbolo que no esta dentro de los permitidos
+    enrangoEsp:
         mov enrango,1
         jmp salir 
     noenrango:
@@ -257,6 +395,110 @@ mEnRangoEsp macro dato
     salir:
 endm 
 
+
+
+;OPCIONES PARA CONTRASEÑA 
+;QUE TENGA AL MENOS UNA MAYUSCULA
+mAMayus macro 
+    local ciclopassword, salir, tieneMayus,noTieneMayus
+    push si 
+    mov si, 0 ; se inicializa si 
+    ciclopassword:   
+        cmp si,25t ; si llego a 25 es que no habia ningun caracter con mayusculas
+        je noTieneMayus
+        mEnRango PasswordRegis[si],41h,5Ah  ; esta esta letra entre el rango de las mayusculas
+        cmp enrango,1 ;esta en el rango?
+        je tieneMayus ; si  se pasa a indicar que si tiene mayusculas por lo tanto no hay error
+        inc si 
+        jmp ciclopassword   
+    tieneMayus:
+        mov mayuse,0 ; se procede a decir que o hay error en la falta  de mayusculas
+        jmp salir 
+    noTieneMayus:
+        mov mayuse,1 ;falta mayusculas
+        mov eerror,1 ;hay error en usuario o password
+    salir: 
+    pop si 
+endm 
+;QUE TENGA LA MENOS UN NUMERO
+mANum macro 
+    local ciclopassword, salir, tieneCaracter,noTieneCAracter
+    push si 
+    mov si, 0 ; se inicializa si 
+    ciclopassword:   
+        cmp si,25t ; si llego a 25 es que no habia ningun caracter con numero
+        je noTieneCAracter ; se salta a indicar que hay error y no cumple con tener al menos un numero
+        mEnRango PasswordRegis[si],30h,39h  ;esta en el rango de numeros?
+        cmp enrango,1 ;Si
+        je tieneCaracter ;se procede a indicar que existe al menos un numero
+        inc si  ;se busca si y se compara el siguiente elemento
+        jmp ciclopassword   
+    tieneCaracter:
+        mov nume ,0 ;hay al menos un numero
+        jmp salir 
+    noTieneCAracter:
+        mov nume,1 ;no hay numeros
+        mov eerror,1 ;error 
+    salir: 
+    pop si 
+endm 
+; QUE TENGA AL MENOS UN !>%;*
+mASigno macro 
+    local ciclopassword, salir, tieneCaracter,noTieneCAracter
+    push si 
+    mov si, 0
+    ciclopassword:   
+        cmp si,25t ; si llego a 25 es que no habia al menos un caracter especificado en el password
+        je noTieneCAracter
+        mComparar PasswordRegis[si],"!"
+        je tieneCaracter 
+        mComparar PasswordRegis[si],">"
+        je tieneCaracter
+        mComparar PasswordRegis[si],"%"
+        je tieneCaracter
+        mComparar PasswordRegis[si],59t ;59t = puntoycoma
+        je tieneCaracter
+        mComparar PasswordRegis[si],"*"
+        je tieneCaracter
+        inc si 
+        jmp ciclopassword   
+    tieneCaracter:
+        mov sinCaractE ,0
+        jmp salir 
+    noTieneCAracter:
+        mov sinCaractE,1
+        mov eerror,1
+    salir: 
+    pop si 
+endm 
+;TAMAÑO DE ENTRE 16 A 20
+mSizePassword macro 
+    local ciclosize,comparaciones,sentenciagood,salir,sentenciabad 
+    push si  
+    mov contadoraux,0 ; se inicializa la variable que contendra el tamaño del password
+    mov si, 0
+    ciclosize:
+        cmp si,25t ; si llego a 25 (maximo tamaño para una password ) pasa a proceder a verificar el tamaño
+        je comparaciones ;pasa a comparar con los margenes
+        mComparar PasswordRegis[si],"$" ;llego hasta $, significa que llego al fin del tamaño del password
+        je comparaciones ;pasa a comparar con los margenes
+        mSumardb contadoraux,1
+        inc si 
+        jmp ciclosize
+    comparaciones:
+        mEnRango contadoraux, 16t,20t ;el tamaño esta entre 16 y 20 caracteres?
+        mComparar enrango,1 
+        je sentenciagood ;si, longitud de password correcta
+        jne sentenciabad ;no, longitud de password incorrecta
+    sentenciagood:
+        mov largoe2 , 0 ;no hay error en el rango
+        jmp salir 
+    sentenciabad:
+        mov largoe2 ,1 ;si hay eror en el rango
+        mov eerror,1 ; hay error en usuario o contraseña
+    salir: 
+    pop si 
+endm 
 
 ;MACRO PARA VERIFICAR SI ESTA EN RANGO O NO UN DATO 
 mEnRango macro dato,limif, limsup
@@ -274,10 +516,6 @@ mEnRango macro dato,limif, limsup
         MovVariables enrango,0
     salir:
 endm 
-
-
-
-
 
 ;Imprime variables
 mMostrarString macro var 
