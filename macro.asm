@@ -157,6 +157,7 @@ endm
 
 mRegistrar macro
     local salir 
+    mov eerror,0
     mLimpiar UsuarioRegis,25,24
     mLimpiar PasswordRegis,25,24
     call pLimpiarConsola
@@ -234,8 +235,10 @@ mRegistrar macro
         yPlongitud:; hay error respecto a la longitud 
             mMostrarString msglengtherror2
         nPlongitud:; no posee error de este tipo
+
         call pEspEnter
         jmp salir 
+
     noErrorRegistro: ;registro sin error
         call pAlmacenaruser
         mMostrarString RUSucces
@@ -255,6 +258,8 @@ mUserInicial macro
         mov numinicio,1  ;marca con 1 la variable la variable global que indica un error sobre un numero inicial
         mov eerror,1 ;indica que hay un error en el usuario o en la contraseña por tal razon no se registra
         jmp salir       
+        mMostrarString eProgram
+        call pEspEnter
     iniLetra:   
         mov numinicio,0 ;marca que no hubo error 
     salir: 
@@ -282,6 +287,8 @@ mSizeUser macro
         mov largoe, 0        ; no hay error respecto al rango 
         jmp salir            ; sale 
     sentenciabad:
+        mMostrarString eProgram
+        call pEspEnter
         mov largoe,1         ; si hay error respecto al rango
         mov eerror,1         ; si hay error en name user o password 
     salir: 
@@ -308,6 +315,8 @@ mUserExiste macro
     Existe:
         mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
         mov eerror,1  ;se reporta error general al registro
+        mMostrarString eProgram
+        call pEspEnter
         mCloseFile
         jmp salir 
     Noexiste:
@@ -364,6 +373,8 @@ mRequisitoCletra macro
         mov caractNp,0 ; no hay errores entre los caracteres permitidos
         jmp salir 
     nocumpleR:
+        mMostrarString eProgram
+        call pEspEnter
         mov caractNp,1 ;hay error y hay caracteres no permitidos
         mov eerror,1    ; error general 
     salir: 
@@ -423,6 +434,8 @@ mAMayus macro
         mov mayuse,0 ; se procede a decir que o hay error en la falta  de mayusculas
         jmp salir 
     noTieneMayus:
+        mMostrarString eProgram
+        call pEspEnter
         mov mayuse,1 ;falta mayusculas
         mov eerror,1 ;hay error en usuario o password
     salir: 
@@ -445,6 +458,8 @@ mANum macro
         mov nume ,0 ;hay al menos un numero
         jmp salir 
     noTieneCAracter:
+        mMostrarString eProgram
+        call pEspEnter
         mov nume,1 ;no hay numeros
         mov eerror,1 ;error 
     salir: 
@@ -474,6 +489,8 @@ mASigno macro
         mov sinCaractE ,0
         jmp salir 
     noTieneCAracter:
+        mMostrarString eProgram
+        call pEspEnter
         mov sinCaractE,1
         mov eerror,1
     salir: 
@@ -502,6 +519,8 @@ mSizePassword macro
         mov largoe2 , 0 ;no hay error en el rango
         jmp salir 
     sentenciabad:
+        mMostrarString eProgram
+        call pEspEnter
         mov largoe2 ,1 ;si hay eror en el rango
         mov eerror,1 ; hay error en usuario o contraseña
     salir: 
@@ -901,3 +920,6 @@ mHallarSimbolo macro simbolo
     salir:
 endm 
 
+;debug
+;mMostrarString eProgram
+;call pEspEnter 
