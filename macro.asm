@@ -883,16 +883,10 @@ mOpenFile2Write macro fileName
     errorOpen:
         mMostrarString carbad
         mov estadocarga,0
-        ;ESPERAR ENTER PARA VOLVER AL MENU
-        mov ah, 01
-        int 21 
         jmp salidaOpen
     Opencorrecto:
-        mMostrarString cargood
+        ;mMostrarString cargood
         mov estadocarga,1
-        ;ESPERAR ENTER PARA EMPEZAR A JUGAR
-        mov ah, 01
-        int 21 
         jmp salidaOpen
     salidaOpen:
 endm
