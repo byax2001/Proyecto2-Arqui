@@ -23,15 +23,15 @@ mVariables macro
     validador db 0              ;validador 
         ActionR db "Accion rechazada! $" 
         ;MENSAJES DE NOMBRE DE USUARIO CONE ESTRUCTURA INCORRECTA
-        msginitialbad db "Se debe de iniciar por una letra$"
-        msglengtherror db "Tamanio del nombre de usuario no entre el rango (8-15 caracteres)$"
-        msgUnExist  db  "El usuario no debe de existir$"
-        msgCaractP db "Los unicos caracteres permitidos fuera del alfabeto son -_.$"
+        msginitialbad db 0A,"Se debe de iniciar por una letra$"
+        msglengtherror db 0A,"Tamanio del nombre de usuario no entre el rango (8-15 caracteres)$"
+        msgUExist  db 0A, "El Usuario ya ha sido registrado previamente$"
+        msgCaractP db 0A,"Los unicos caracteres permitidos fuera del alfabeto son -_.$"
         ;MENSAJES DE CONTRASEÑA CON ESTRUCTURA INCORRECTA
-        msgunaM db "Password  debe de tener al menos una mayuscula$"
-        msgunN db "Password debe de tener al menos un Numero$"
-        msgunS db "Password  debe de tener al menos una !>%",59t,"*$"
-        msglengtherror2 db "Tamanio de password no entre el rango (16-20 caracteres)$"
+        msgunaM db 0A,"Password  debe de tener al menos una mayuscula$"
+        msgunN db 0A,"Password debe de tener al menos un Numero$"
+        msgunS db 0A,"Password  debe de tener al menos una !>%",59t,"*$"
+        msglengtherror2 db 0A, "Tamanio de password no entre el rango (16-20 caracteres)$"
         ;GUARDAR USUARIO
         separador db 01
         enterg db 0A, " "
@@ -52,7 +52,7 @@ mVariables macro
         enrango db 0
         eerror db 0
         contadoraux db 0
-        saveUserSucces db "Registro exitoso",0A,"$"
+        RUSucces db "Registro exitoso",0A,"$"
             ;MENSAJE SUCCES
             msgRegistroSucces db "Se registro el usuario de forma exitosa"
         
@@ -119,13 +119,8 @@ mFlujoProyecto2 macro
         call pLimpiarConsola
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
-            EsperaEnter:
-            mMostrarString espEnter
-            mov ah,01
-            int 21
-            cmp al,0dh
-            jne EsperaEnter ; SI NO ES UN ENTER SE REPETIRA, CUANDO YA VENGA LA MACRO SEGUIRA SU CURSO NORMAL
-            ;---------------------------------------------------
+            call pEspEnter
+        ;---------------------------------------------------
         call pLimpiarConsola
         mFlujoMenu 
     call pRetControl
@@ -155,11 +150,13 @@ mFlujoMenu macro
 
     Register:
         mRegistrar
-        jmp ciclomenu
+        call pLimpiarConsola
+        jmp ciclomenu   
     salir: 
 endm
 
 mRegistrar macro
+    local salir 
     mLimpiar UsuarioRegis,25,24
     mLimpiar PasswordRegis,25,24
     call pLimpiarConsola
@@ -181,6 +178,7 @@ mRegistrar macro
     je ErrorRegistro
     jne noErrorRegistro
     ErrorRegistro:
+        mMostrarString ActionR
         ;NUMERO INICIAL
         mComparar numinicio,0
         je nNinicial
@@ -192,46 +190,56 @@ mRegistrar macro
         je nLerornea
         ;LONGITUD ERRONEA
         yLerronea: ; posee error 
+            mMostrarString msglengtherror
         nLerornea:; no posee error de este tipo
         
         ;USUARIO EXISTENTE
         mComparar existee,0
         je nUexist
         yUexist:;usuario existe
+            mMostrarString msgUExist
         nUexist:; no posee error de este tipo
-        
+
         ;CARACTERES ESPECIALES NO PERMITIDOS PRESENTES
         mComparar caractNp,0
         je nCnexist
         yCnexist: ; error carateres especiales no permitidos presentes
+            mMostrarString msgCaractP
         nCnexist: ; no posee error de este tipo
         
         ;PASSWORD SIN AL MENOS UNA MAYUSCULA
         mComparar mayuse,0
         je nPsm
         yPsm:; Password sin mayuscula
+            mMostrarString msgunaM
         nPsm:; no posee error de este tipo
         
         ;PASSWORD SIN AL MENOS UN NUMERO
         mComparar nume,0
         je nPsn
         yPsn: ; Password sin numero
+            mMostrarString msgunN
         nPsn:; no posee error de este tipo
         
         ;PASWORD SI AL MENOS UN SIMBOLO ESPECIAL(!>%;*)
         mComparar sinCaractE,0
         je nPss
         yPss: ;password sin simbolos
+            mMostrarString msgunS
         nPss:; no posee error de este tipo
         
         ;PASSWORD CON LONGITUD ERRONEA
         mComparar largoe2,0
         je nPlongitud
         yPlongitud:; hay error respecto a la longitud 
+            mMostrarString msglengtherror2
         nPlongitud:; no posee error de este tipo
-
-    noErrorRegistro:
-    call pAlmacenaruser
+        call pEspEnter
+        jmp salir 
+    noErrorRegistro: ;registro sin error
+        call pAlmacenaruser
+        mMostrarString RUSucces
+        call pEspEnter
     salir: 
 endm 
 
@@ -853,7 +861,7 @@ mOpenFile macro fileName
         int 21 
         jmp salidaOpen
     Opencorrecto:
-        mMostrarString cargood
+        ;mMostrarString cargood
         mov estadocarga,1
         ;ESPERAR ENTER PARA EMPEZAR A JUGAR
         mov ah, 01

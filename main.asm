@@ -113,7 +113,17 @@ pdecSizePila proc
 pdecSizePila endp 
 
 
-
+pEspEnter proc
+    push ax 
+    cicloEspEnter:
+        mMostrarString espEnter
+        mov ah,01
+        int 21
+        cmp al,0dh
+        jne cicloEspEnter ; SI NO ES UN ENTER SE REPETIRA EL CICLO
+    pop ax 
+    ret 
+pEspEnter endp
 
 ;VERIFICACION DE LAS CARACTERISTICAS PEDIDAS PARA PASSWORD
 
