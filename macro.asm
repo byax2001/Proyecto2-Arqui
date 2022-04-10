@@ -15,8 +15,8 @@ mVariables macro
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
     UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
     PasswordI db 25 dup (24)   ;contraseña a ingresar
-    msgUnE  db 0A,"Usuario no Existe ",0A,"$"
-    msgPinc  db 0A,"Contraseña Incorrecta ",0A,"$"
+    msgUnE  db 0A,"===Usuario no Existe===",0A,"$"
+    msgPinc  db 0A,"===Password Incorrecta===",0A,"$"
         ;MENU DE USUARIO
         msgMenuU db "Menu de usuario",0A,"$"
 
@@ -26,7 +26,7 @@ mVariables macro
     ;REGISTRO DE USUARIOS
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
-    adminG db "201800534BADM",01,"435008102",01,"0",01,"N",01,"A",0A," "
+    adminG db "201800534BADM$$$$$$$$$$$$",01,"435008102",01,"0",01,"N",01,"A",0A," "
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
 
@@ -185,6 +185,8 @@ mLogin macro
     mCapturarString UsuarioI
     mMostrarString rP 
     mCapturarPassword PasswordI
+    ;ES EL ADMIN PRINCIPAL? 
+    mReadFile eleActual
     mEncontrarId UsuarioI
     cmp idEncontrado,0
     je noesadmin
@@ -193,28 +195,28 @@ mLogin macro
         mReadFile eleActual;se salta el separador
         mEncontrarId PasswordI;verificar si la contraseña es la correcta 
         cmp idEncontrado,0
-        je cAdminInc
+        je PasswordIncorrect
         cAdminCor:;password de admin correcta
             mMostrarString msgMenuAdmin
             call pEspEnter
             jmp salir 
-        cAdminInc:;pasword de admin incorrecta 
-            mMostrarString msgPinc
-            call pIncVEquivoco
-            call pDarbloqueo
-            call pEspEnter
-            jmp salir 
-    noesadmin:
-    mUserExiste UsuarioI
-    cmp existee,1 ;EXISTE USUARIO?
-    jne Noexiste  ;NO EXISTE
-    ;EXISTE?
+    noesadmin: ;ENTONCES ES UN USUARIO NORMAL o ADMIN SECUNDARIO 
+        mUserExiste UsuarioI
+        cmp existee,1 ;EXISTE USUARIO?
+        jne Noexiste  ;NO EXISTE
+        ;luego del metodo mUserExiste  estara posicionado justo en la linea deseada
+        mHallarSimbolo 01 ;Separador alapar de contraseña 
+        mReadFile eleActual ;Primer elemento de contraseña 
+        mEncontrarId PasswordRegis 
+        cmp idEncontrado,1
+        jne PasswordIncorrect
+        ;EXISTE?
     PasswordCorrect:
         ;MUESTRA MENU DE JUEGO 
         mMostrarString msgMenuU
         call pEspEnter
         jmp salir 
-    PasswordIcorrect:
+    PasswordIncorrect:
         ;LE SUMA UNO AL NUMERO DE ERRORES 
         mMostrarString msgPinc
         call pIncVEquivoco
@@ -229,6 +231,34 @@ mLogin macro
     salir:
     mCloseFile
 endm 
+
+mUserExiste macro Username 
+    local Existe,Noexiste,salir,cicloexiste
+    ;SE VERIFICA SI NO ES EL ADMIN
+    mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
+    mEncontrarId Username;lo primero en el documento de usuarios es el admin, que siempre estara aca
+    cmp idEncontrado,1 ; se encontro usuario? 
+    je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
+    cicloexiste: ;caso contrario se procedera a un ciclo de lectura del archivo hasta hallar o un espacio o el id buscado
+        mHallarSimbolo 0A  ;se salta hasta el enter hasta la posicion donde esta 0A
+        mReadFile eleActual ; se corre una vez el elemento 
+        cmp eleActual," " ;si hay un espacio es que ya se llego al fin del documento y el usuario no existe
+        ;CADA VEZ QUE SE CREA UN USUARIO SE ELIMINA EL ULTIMO ESPACIO QUE DEJA LA CREACION DEL USUARIO ANTERIOR
+        je Noexiste ; no existe usuario
+        mEncontrarId Username ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
+        cmp idEncontrado,1 ; si, entonces existe 
+        je Existe 
+        jne cicloexiste 
+    Existe:
+        mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
+        mov eerror,1  ;se reporta error general al registro
+        mCloseFile
+        jmp salir 
+    Noexiste:
+        mov existee, 0 ; no existe usuario, no hay error
+    salir:
+endm 
+
 
 
 
@@ -246,7 +276,7 @@ mRegistrar macro
     ;RESTRICCIONES 
     mUserInicial
     mSizeUser
-    mUserExiste UsuarioRegis
+    mUserExisteR
     mRequisitoCletra
     mAMayus
     mANum
@@ -370,13 +400,14 @@ mSizeUser macro
     salir: 
     pop si 
 endm 
+
 ;NO DEBE DE EXISTIR EL USUARIO
-mUserExiste macro Username 
+mUserExisteR macro 
     local Existe,Noexiste,salir,cicloexiste
     ;SE VERIFICA SI NO ES EL ADMIN
     mOpenFile usersb  ;abre el archivo en modo lectura 
     mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
-    mEncontrarId Username;lo primero en el documento de usuarios es el admin, que siempre estara aca
+    mEncontrarId UsuarioRegis;lo primero en el documento de usuarios es el admin, que siempre estara aca
     cmp idEncontrado,1 ; se encontro usuario? 
     je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
     cicloexiste: ;caso contrario se procedera a un ciclo de lectura del archivo hasta hallar o un espacio o el id buscado
@@ -385,7 +416,7 @@ mUserExiste macro Username
         cmp eleActual," " ;si hay un espacio es que ya se llego al fin del documento y el usuario no existe
         ;CADA VEZ QUE SE CREA UN USUARIO SE ELIMINA EL ULTIMO ESPACIO QUE DEJA LA CREACION DEL USUARIO ANTERIOR
         je Noexiste ; no existe usuario
-        mEncontrarId Username ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
+        mEncontrarId UsuarioRegis ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
         cmp idEncontrado,1 ; si, entonces existe 
         je Existe 
         jne cicloexiste 
@@ -402,21 +433,24 @@ endm
 
 ;MACRO QUE VERIFICA SI EXISTE UN ID EN EL DOCUMENTO 
 mEncontrarId macro id
-    local salir ,comparar,idhallado,idNohallado
+    local salir ,comparar,idhallado,idNohallado,finid
     push si 
     mov idEncontrado,0 ;limpiar idEncontrado
     mov si,0
     comparar:
     mComparar id[si],"$" ;llego al final del id escogido   
-    je idhallado
+    je finid 
     mComparar id[si],eleActual   ; la letra obtenida es igual al elemento actual del id?
     jne idNohallado ; no, entonces no son el mismo id, id no se hallo
     ;si, se procede a seguir recorriendo
     mReadFile eleActual
     inc si 
     jmp comparar
+    finid: ;llego al fin del id, pero llego al fin del usuario leido en el doc?
+        cmp eleActual,"$"
+        je idhallado ;si entonces si es ese el id 
+        jne idNohallado ; los id no son iguales 
     idhallado:
-        mReadFile eleActual ;PARA QUE LEA EL " DE CIERRE Y LUEGO PASE DE EL 
         MovVariables eleActual,0;LIMPIEZA DE VARIABLE 
         mov idEncontrado,1 ;INDICA SI EL ID FUE ENCONTRADO 
         jmp salir 
