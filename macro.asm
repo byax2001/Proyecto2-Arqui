@@ -11,7 +11,12 @@ mVariables macro
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
-    
+    ;INGRESO DE USUARIO
+    msgLogin db "'Login':",0A,"$"
+    UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
+    PasswordI db 25 dup (24)   ;contraseña a ingresar
+
+
     ;REGISTRO DE USUARIOS
     ;adminG db "Nombre",01,"Contraseña",01,"Bloqueado/n","Admin/n",enter (0A)
     adminG db "201800534BADM",01,"435008102",01,"N",01,"A",0A," "
@@ -72,6 +77,7 @@ mVariables macro
 
     ;ARCHIVO
     eleActual db 0 ;variable que contendra cada elemento leido por el programa
+    a db "$"
     handler dw  0
     msgcargar db 0A,"Ingrese el nombre del archivo a cargar: ",'$'
     nameFile db 20 dup(0)
@@ -85,12 +91,11 @@ mVariables macro
     posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
     ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
     idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
-
         ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS
         usersb db "users.gal",0
         scoresb db "scores.gal",0
-
-
+        auxarchivo db 0
+        aux1 db "$"
     ;FECHA 
     dia db 4 dup (0)
     mes db 4 dup (0)
@@ -149,11 +154,37 @@ mFlujoMenu macro
     Login:
 
     Register:
+        call pResetFlagsE ;RESETEA LAS BANDERAS QUE DETECTAN DE ERRORES A LA HORA DE REGISTRAR
         mRegistrar
         call pLimpiarConsola
         jmp ciclomenu   
     salir: 
 endm
+
+mLogin macro
+    call pLimpiarConsola
+    mMostrarString rU
+    mCapturarString UsuarioI
+    mMostrarString rP 
+    mCapturarPassword PasswordI
+    ;es el admin??
+    ;no es el admin
+    ;
+
+    ;EXISTE?
+    existe:
+    PasswordCorrect:
+        ;MUESTRA MENU DE JUEGO 
+    PasswordIcorrect:
+        ;LE SUMA UNO AL NUMERO DE ERRORES 
+    Noexiste:
+    jmp noLogin
+    ;NO EXISTE
+    Login: 
+    noLogin:
+endm 
+
+
 
 mRegistrar macro
     local salir 
@@ -258,8 +289,7 @@ mUserInicial macro
         mov numinicio,1  ;marca con 1 la variable la variable global que indica un error sobre un numero inicial
         mov eerror,1 ;indica que hay un error en el usuario o en la contraseña por tal razon no se registra
         jmp salir       
-        mMostrarString eProgram
-        call pEspEnter
+      
     iniLetra:   
         mov numinicio,0 ;marca que no hubo error 
     salir: 
@@ -287,8 +317,6 @@ mSizeUser macro
         mov largoe, 0        ; no hay error respecto al rango 
         jmp salir            ; sale 
     sentenciabad:
-        mMostrarString eProgram
-        call pEspEnter
         mov largoe,1         ; si hay error respecto al rango
         mov eerror,1         ; si hay error en name user o password 
     salir: 
@@ -299,6 +327,7 @@ mUserExiste macro
     local Existe,Noexiste,salir,cicloexiste
     ;SE VERIFICA SI NO ES EL ADMIN
     mOpenFile usersb  ;abre el archivo en modo lectura 
+    mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
     mEncontrarId UsuarioRegis;lo primero en el documento de usuarios es el admin, que siempre estara aca
     cmp idEncontrado,1 ; se encontro usuario? 
     je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
@@ -315,8 +344,6 @@ mUserExiste macro
     Existe:
         mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
         mov eerror,1  ;se reporta error general al registro
-        mMostrarString eProgram
-        call pEspEnter
         mCloseFile
         jmp salir 
     Noexiste:
@@ -334,10 +361,10 @@ mEncontrarId macro id
     comparar:
     mComparar id[si],"$" ;llego al final del id escogido   
     je idhallado
-    mReadFile eleActual ;obtiene una letra 
     mComparar id[si],eleActual   ; la letra obtenida es igual al elemento actual del id?
     jne idNohallado ; no, entonces no son el mismo id, id no se hallo
     ;si, se procede a seguir recorriendo
+    mReadFile eleActual
     inc si 
     jmp comparar
     idhallado:
@@ -373,8 +400,6 @@ mRequisitoCletra macro
         mov caractNp,0 ; no hay errores entre los caracteres permitidos
         jmp salir 
     nocumpleR:
-        mMostrarString eProgram
-        call pEspEnter
         mov caractNp,1 ;hay error y hay caracteres no permitidos
         mov eerror,1    ; error general 
     salir: 
@@ -434,8 +459,6 @@ mAMayus macro
         mov mayuse,0 ; se procede a decir que o hay error en la falta  de mayusculas
         jmp salir 
     noTieneMayus:
-        mMostrarString eProgram
-        call pEspEnter
         mov mayuse,1 ;falta mayusculas
         mov eerror,1 ;hay error en usuario o password
     salir: 
@@ -458,8 +481,6 @@ mANum macro
         mov nume ,0 ;hay al menos un numero
         jmp salir 
     noTieneCAracter:
-        mMostrarString eProgram
-        call pEspEnter
         mov nume,1 ;no hay numeros
         mov eerror,1 ;error 
     salir: 
@@ -489,8 +510,6 @@ mASigno macro
         mov sinCaractE ,0
         jmp salir 
     noTieneCAracter:
-        mMostrarString eProgram
-        call pEspEnter
         mov sinCaractE,1
         mov eerror,1
     salir: 
@@ -519,8 +538,6 @@ mSizePassword macro
         mov largoe2 , 0 ;no hay error en el rango
         jmp salir 
     sentenciabad:
-        mMostrarString eProgram
-        call pEspEnter
         mov largoe2 ,1 ;si hay eror en el rango
         mov eerror,1 ; hay error en usuario o contraseña
     salir: 

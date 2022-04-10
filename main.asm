@@ -79,7 +79,7 @@ pDelayLetras endp
 
 pAlmacenaruser proc
     mOpenFile2Write usersb
-    mHallarSimbolo " " ;hallar el espacio (ultimo valor del registro) para posicionarse ahi
+    call pFinaldoc
     mWriteToFile UsuarioRegis
     mWriteToFile separador
     mWriteToFile PasswordRegis
@@ -125,6 +125,49 @@ pEspEnter proc
     ret 
 pEspEnter endp
 
-;VERIFICACION DE LAS CARACTERISTICAS PEDIDAS PARA PASSWORD
+pResetFlagsE proc
+    ;ERRORES USUARIO
+    mov numinicio,0  
+    mov largoe,0  
+    mov existee,0  
+    mov caractNp,0   ;caracteres no permitidos para el usuario
+    ;CARACTERISTICAS PASSWORD
+    mov mayuse,0 
+    mov nume,0  
+    mov sinCaractE,0  ;caracteres especiales faltantes en la contraseña
+    mov largoe2,0  
+    ;EXISTE ERROR
+    mov enrango,0 
+    mov eerror,0 
+    mov contadoraux,0 
+    ret 
+pResetFlagsE endp
+
+
+;cx: me coloco en esta posicion --- dx: me mueve tantas cantidades de posiciones desde la posicion de cx
+;cx:1 me quedo en la posicion actual  dx:  me mueve tantas cantidades de posiciones desde la posicion de cx
+;cx:0 inicio
+;cx:2 final de archivo
+pInidoc proc
+    mov al,0
+    mov bx,handler
+    mov cx,0
+    mov dx,0
+    mov ah,42h
+    int 21 
+    ret
+pInidoc endp 
+
+pFinaldoc proc
+    mov al,2
+    mov bx,handler
+    mov cx,-1
+    mov dx,-1
+    mov ah,42h
+    int 21 
+    ret
+pFinaldoc endp 
+
+
 
 END start 
