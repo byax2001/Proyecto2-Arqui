@@ -84,6 +84,8 @@ pAlmacenaruser proc
     mWriteToFile separador
     mWriteToFile PasswordRegis
     mWriteToFile separador
+    mWriteToFile Numerrordef
+    mWriteToFile separador 
     mWriteToFile Bloqdef
     mWriteToFile separador
     mWriteToFile admindef
@@ -124,7 +126,7 @@ pEspEnter proc
     pop ax 
     ret 
 pEspEnter endp
-
+;RESETEAR LAS BANDERA QUE INDICAN LOS ERRORES EN EL REGISTRO 
 pResetFlagsE proc
     ;ERRORES USUARIO
     mov numinicio,0  
@@ -167,7 +169,63 @@ pFinaldoc proc
     int 21 
     ret
 pFinaldoc endp 
+;coloca el documento una posiciona anterior al lugar actual leido 
+pPosAnterior proc
+    mov al,1
+    mov bx,handler
+    mov cx,-1
+    mov dx,-1
+    mov ah,42h
+    int 21 
+    ret
+pPosAnterior endp 
 
 
+;user db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
+   
+;AUMENTA EL NUMERO DE VECES QUE SE EQUIVOCO
+pIncVEquivoco proc
+    mHallarSimbolo separador ; esta situado en la posicion de contraseña solo es necesario buscar una vez el separador 
+    mReadFile eleActual; saltarse el separador 
+    cmp eleActual,33h ;no se suma si es exactamente 3 el numero de veces que se equivoco
+    je salir 
+    mSumardb eleActual,1
+    call pPosAnterior
+    mWriteToFile eleActual
+    salir: 
+    ret 
+pIncVEquivoco endp 
+
+;DAR BLOQUEO 
+pDarbloqueo proc 
+    ;ya que dar bloqueo va despues de incrementar veces que se equivoco solo se busca una vez el separador
+    cmp eleActual,33h
+    jne salir 
+    mHallarSimbolo separador
+    mWriteToFile BloqueoU
+    salir: 
+    ret 
+pDarbloqueo endp
+
+;QUITAR BLOQUEO
+pQuitarbloqueo proc
+    mHallarSimbolo separador
+    mHallarSimbolo separador
+    mWriteToFile Nequivdef
+    mHallarSimbolo separador
+    mWriteToFile Bloqdef
+    ret
+pQuitarbloqueo endp 
+
+;DAR ADMIN
+pDarAdmin proc 
+    ;estas en la posicion de users
+    ret
+pDarAdmin endp 
+
+;QUITAR ADMIN
+pQuitarAdmin proc
+
+pQuitarAdmin endp 
 
 END start 

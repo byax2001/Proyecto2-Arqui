@@ -2,7 +2,7 @@ mVariables macro
     ;Mensaje de Bienvenida
     mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
     ;enter para avanzar
-    espEnter db 0A,"(Presionar enter para poder avanzar): $"
+    espEnter db 0A,"(Presiona enter para poder continuar): $"
     ;MENU 1
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
     ;Menu 2
@@ -12,14 +12,21 @@ mVariables macro
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
     ;INGRESO DE USUARIO
-    msgLogin db "'Login':",0A,"$"
+    msgLogin db 0A,"============Login",58t,"============",0A,"$"
     UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
     PasswordI db 25 dup (24)   ;contraseña a ingresar
+    msgUnE  db 0A,"Usuario no Existe ",0A,"$"
+    msgPinc  db 0A,"Contraseña Incorrecta ",0A,"$"
+        ;MENU DE USUARIO
+        msgMenuU db "Menu de usuario",0A,"$"
 
 
+        ;MENU DE ADMIN
+        msgMenuAdmin db "Menu de Admin",0A,"$"
     ;REGISTRO DE USUARIOS
-    ;adminG db "Nombre",01,"Contraseña",01,"Bloqueado/n","Admin/n",enter (0A)
-    adminG db "201800534BADM",01,"435008102",01,"N",01,"A",0A," "
+    msgRegister db 0A,"============Register",58t,"============",0A,"$"
+    ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
+    adminG db "201800534BADM",01,"435008102",01,"0",01,"N",01,"A",0A," "
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
 
@@ -40,9 +47,12 @@ mVariables macro
         ;GUARDAR USUARIO
         separador db 01
         enterg db 0A, " "
+        Nequivdef db "0"
         Bloqdef db "N"
         admindef  db "N"
-        
+        Numerrordef db "0"
+        BloqueoU db "B"
+        AdminU db "A"
         ;ERRORES USUARIO
         numinicio db 0
         largoe db 0
@@ -152,7 +162,8 @@ mFlujoMenu macro
         mMostrarString opi
         jmp ciclomenu
     Login:
-
+        mLogin
+        jmp ciclomenu
     Register:
         call pResetFlagsE ;RESETEA LAS BANDERAS QUE DETECTAN DE ERRORES A LA HORA DE REGISTRAR
         mRegistrar
@@ -162,26 +173,61 @@ mFlujoMenu macro
 endm
 
 mLogin macro
+    local esadmin,noesadmin
     call pLimpiarConsola
+    call pResetFlagsE
+    mOpenFile2Write usersb ;abre el archivo de users
+    mLimpiar UsuarioI,25,24 ;limpia el espacio para  almacenar el usuario ingresado
+    mLimpiar PasswordI,25,24 ;limpia el espacio donde se almacenara temporalmente la contra ingresada
+    mMostrarString msgLogin ;muestra mesaje de login
+    ;captura de usuario y contraseña 
     mMostrarString rU
     mCapturarString UsuarioI
     mMostrarString rP 
     mCapturarPassword PasswordI
-    ;es el admin??
-    ;no es el admin
-    ;
-
+    mEncontrarId UsuarioI
+    cmp idEncontrado,0
+    je noesadmin
+    esadmin: ;ES EL ADMIN PRINCIPAL
+        mHallarSimbolo 01 ;pasa al separador que esta alapar de contraseña
+        mReadFile eleActual;se salta el separador
+        mEncontrarId PasswordI;verificar si la contraseña es la correcta 
+        cmp idEncontrado,0
+        je cAdminInc
+        cAdminCor:;password de admin correcta
+            mMostrarString msgMenuAdmin
+            call pEspEnter
+            jmp salir 
+        cAdminInc:;pasword de admin incorrecta 
+            mMostrarString msgPinc
+            call pIncVEquivoco
+            call pDarbloqueo
+            call pEspEnter
+            jmp salir 
+    noesadmin:
+    mUserExiste UsuarioI
+    cmp existee,1 ;EXISTE USUARIO?
+    jne Noexiste  ;NO EXISTE
     ;EXISTE?
-    existe:
     PasswordCorrect:
         ;MUESTRA MENU DE JUEGO 
+        mMostrarString msgMenuU
+        call pEspEnter
+        jmp salir 
     PasswordIcorrect:
         ;LE SUMA UNO AL NUMERO DE ERRORES 
+        mMostrarString msgPinc
+        call pIncVEquivoco
+        call pDarbloqueo
+        call pEspEnter
+        jmp salir 
     Noexiste:
-    jmp noLogin
+        mMostrarString msgUnE ;MENSAJE USUARIO NO EXISTE 
+        call pEspEnter
+        jmp salir 
     ;NO EXISTE
-    Login: 
-    noLogin:
+    salir:
+    mCloseFile
 endm 
 
 
@@ -192,6 +238,7 @@ mRegistrar macro
     mLimpiar UsuarioRegis,25,24
     mLimpiar PasswordRegis,25,24
     call pLimpiarConsola
+    mMostrarString msgRegister
     mMostrarString rU
     mCapturarString UsuarioRegis
     mMostrarString rP
@@ -199,7 +246,7 @@ mRegistrar macro
     ;RESTRICCIONES 
     mUserInicial
     mSizeUser
-    mUserExiste
+    mUserExiste UsuarioRegis
     mRequisitoCletra
     mAMayus
     mANum
@@ -282,6 +329,7 @@ endm
 ;REQUISITOS PARA EL USUARIO 
 ;NO DEBE DE TENER UN NUMERO AL INICIO
 mUserInicial macro
+    local iniNumero,iniLetra,salir 
     mEnRango UsuarioRegis[0],30h,39h  ; el dato se encuentra entre 0-9 del codigo ascii?
     cmp enrango,0     ;no
     je iniLetra       ;inicia con una letra y otro caracter, no hay error
@@ -323,12 +371,12 @@ mSizeUser macro
     pop si 
 endm 
 ;NO DEBE DE EXISTIR EL USUARIO
-mUserExiste macro
+mUserExiste macro Username 
     local Existe,Noexiste,salir,cicloexiste
     ;SE VERIFICA SI NO ES EL ADMIN
     mOpenFile usersb  ;abre el archivo en modo lectura 
     mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
-    mEncontrarId UsuarioRegis;lo primero en el documento de usuarios es el admin, que siempre estara aca
+    mEncontrarId Username;lo primero en el documento de usuarios es el admin, que siempre estara aca
     cmp idEncontrado,1 ; se encontro usuario? 
     je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
     cicloexiste: ;caso contrario se procedera a un ciclo de lectura del archivo hasta hallar o un espacio o el id buscado
@@ -337,7 +385,7 @@ mUserExiste macro
         cmp eleActual," " ;si hay un espacio es que ya se llego al fin del documento y el usuario no existe
         ;CADA VEZ QUE SE CREA UN USUARIO SE ELIMINA EL ULTIMO ESPACIO QUE DEJA LA CREACION DEL USUARIO ANTERIOR
         je Noexiste ; no existe usuario
-        mEncontrarId UsuarioRegis ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
+        mEncontrarId Username ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
         cmp idEncontrado,1 ; si, entonces existe 
         je Existe 
         jne cicloexiste 
@@ -742,12 +790,12 @@ mSumardb macro var1,var2
     pop ax 
 endm 
 ;Resta dos variables
-mResta macro var1,var2
+mRestadb macro var1,var2
     push ax 
     xor ax,ax 
-    mov ax, var1 
-    sub ax, var2
-    mov var1, ax 
+    mov al, var1 
+    sub al, var2
+    mov var1, al
     pop ax 
 endm 
 ;Multiplicacion
