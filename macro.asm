@@ -3,10 +3,11 @@ mVariables macro
     mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
     ;enter para avanzar
     espEnter db 0A,"(Presiona enter para poder continuar): $"
-    ;MENU 1
+    ;MENU PRINCIPAL 
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
-    ;Menu 2
-    Menu2 db "F2. Play game",0A,"F3. Show top 10 scoreboard",0A,"F5. Show my top 10 scoreboard",0A,"F9. Logout",0A,"$"
+    ;Menu DE USUARIO
+    ;MENU DE ADMIN
+    ;MENU DE USUARIO ADMIN
     ; Opcion incorrecta
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
@@ -15,18 +16,25 @@ mVariables macro
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
     msgexit db "(presione tab y luego 2 enter para salir)",0A,"$"
     UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
+    useriaux db "$"
     PasswordI db 25 dup (24)   ;contraseña a ingresar
+    passiaux db "$"
     msgUnE  db 0A,"===Usuario no Existe===",0A,"$"
     msgPinc  db 0A,"===Password Incorrecta===",0A,"$"
     msgUbloqueado db "==Usuario bloqueado==",0A,"$"
+    enteraux db 0A,"$"
         ;MENU DE USUARIO
-        msgMenuU db "Menu de usuario",0A,"$"
-
+        msgMenuU db "====Menu de usuario===",10 dup(" "),"user: ","$"
+        MenuUsuario db "F2. Play game",0A,"F3. Show top 10 scoreboard",0A,"F5. Show my top 10 scoreboard",0A,"F9. Logout",0A,"$"
+   
         ;MENU USUARIO ADMIN
-        msgMuA db "Menu usuario Admin",0A,"$"
-
+        msgMuA db "Menu usuario Admin",10 dup(" "),"user: ","$"
+        MenuUsuarioAdmin db "F1. Unlock User",0A,"F2.  Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard","F4. Play Game",0A,"F5. Bubble Sort",0A,"F6.Heap Sort",0A,"F7.Tim sort" ,"F9. Logout",0A,"$"
+    
         ;MENU DE ADMIN
-        msgMenuAdmin db "Menu de Admin",0A,"$"
+        msgMenuAdmin db "Menu de Admin",10 dup(" "),"user: ","$"
+        MenuAdmin db "F1. Unlock User",0A,"F2. Promote user to admin",0A,"F3. Demote user from admin",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
+      
         ;DELAY
         valort1 db 0
         v1ax db "$"
@@ -219,8 +227,7 @@ mLogin macro
         je PasswordIncorrect
         cAdminCor:;password de admin correcta
             call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
-            mMostrarString msgMenuAdmin
-            call pEspEnter
+            mMenuAdmin
             jmp salir 
     ;USUARIO O USUARIO ADMIN==================================================
     noesadmin: ;ENTONCES ES UN USUARIO NORMAL o ADMIN SECUNDARIO 
@@ -248,13 +255,11 @@ mLogin macro
         jne UsuarioNormal
     ;USUARIO NORMAL=================================================
     UsuarioNormal: 
-        mMostrarString msgMenuU ;MENU DE USUARIO NORMAL
-        call pespEnter
+        mMenuUser ;MUESTRA MENU CORRESPONDIENTE  
         jmp salir 
     ;USUARIO ADMIN==================================================
     Usuarioadmin: 
-        mMostrarString msgMuA  ;MENU USUARIO ADMIN
-        call pespEnter
+        mMenuUadmin ;MUESTRA MENU CORRESPONDIENTE
         jmp salir        
     Ubloqueado:
         mMostrarString msgUbloqueado
@@ -319,9 +324,73 @@ mUserExiste macro Username
         mov existee, 0 ; no existe usuario, no hay error
     salir:
 endm 
+;MENU PARA EL USUARIO NORMAL
+mMenuUser macro
+    local menuUser,salir 
+    ;MENU DE USUARIO 
+    mMostrarString msgMenuU 
+    mMostrarString UsuarioI
+    mMostrarString enteraux
+    mMostrarString MenuUsuario 
+    menuUser:
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21
+    mov ah,01  ;atrapa la tecla fn 
+    int 21
+    mov opcion,al
+    cmp opcion, "<"
+    je game
+    cmp opcion, "="
+    je totalscorboard
+    cmp opcion, "?"
+    je myscorboards
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp menuUser
+    game:
+
+    totalscorboard:
+
+    myscorboards:
 
 
-
+    salir: 
+endm
+;MENU PARA EL ADMIN GENERAL
+mMenuAdmin macro
+    mMostrarString msgMenuAdmin
+    mMostrarString UsuarioI
+    mMostrarString enteraux
+    mMostrarString MenuAdmin
+    
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+        ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21
+    mov ah,01  ;atrapa la tecla fn 
+    int 21
+    mov opcion,al
+endm
+;MENU PARA EL USUARIO ADMIN
+mMenuUadmin macro
+    mMostrarString msgMuA
+    mMostrarString UsuarioI
+    mMostrarString enteraux
+    mMostrarString MenuUsuarioAdmin
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21
+    mov ah,01  ;atrapa la tecla fn 
+    int 21
+    mov opcion,al
+endm 
 
 mRegistrar macro
     local salir 
