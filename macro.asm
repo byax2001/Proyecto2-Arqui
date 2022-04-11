@@ -13,6 +13,7 @@ mVariables macro
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
     ;INGRESO DE USUARIO
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
+    msgexit db "(presione tab y luego 2 enter para salir)",0A,"$"
     UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
     PasswordI db 25 dup (24)   ;contraseña a ingresar
     msgUnE  db 0A,"===Usuario no Existe===",0A,"$"
@@ -147,7 +148,6 @@ mFlujoProyecto2 macro
     call pAjustarMemoria
         call pBaseDatos
         call pLimpiarConsola
-        call pDelayLetras
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
             call pEspEnter
@@ -190,18 +190,23 @@ endm
 
 mLogin macro
     local esadmin,noesadmin
-    call pLimpiarConsola
     call pResetFlagsE
     mOpenFile2Write usersb ;abre el archivo de users
+    cicloLogin:
+    call pLimpiarConsola
+    call pInidoc ;COLOCAR EL PUNTERO AL INICIO DEL DOCUMENTO 
     mLimpiar UsuarioI,25,24 ;limpia el espacio para  almacenar el usuario ingresado
     mLimpiar PasswordI,25,24 ;limpia el espacio donde se almacenara temporalmente la contra ingresada
     mMostrarString msgLogin ;muestra mesaje de login
+    mMostrarString msgexit
     ;captura de usuario y contraseña 
     mMostrarString rU
     mCapturarString UsuarioI
     mMostrarString rP 
     mCapturarPassword PasswordI
     ;ADMIN PRINCIPAL==================================================
+    cmp UsuarioI[0],09 ;tab=Exit  ;POR SI SE QUIERE SALIR DEL MENU 
+    je salir 
     mReadFile eleActual
     mEncontrarId UsuarioI
     cmp idEncontrado,0
@@ -213,6 +218,7 @@ mLogin macro
         cmp idEncontrado,0
         je PasswordIncorrect
         cAdminCor:;password de admin correcta
+            call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
             mMostrarString msgMenuAdmin
             call pEspEnter
             jmp salir 
@@ -233,7 +239,7 @@ mLogin macro
         mHallarSimbolo 01 ;separador a la par de N veces repetido
         mHallarSimbolo 01 ;separador a la par de bloqueado o no bloqueado
         mReadFile eleActual ;B o N
-        cmp eleActual,"B"
+        cmp eleActual,"B" ;si esta bloqueado a pesar de tener buena la contraseña, no ingresara
         je Ubloqueado
         mHallarSimbolo 01 ;separador a la par de admin o no admin 
         mReadFile eleActual ;A o N
@@ -245,30 +251,44 @@ mLogin macro
         mMostrarString msgMenuU ;MENU DE USUARIO NORMAL
         call pespEnter
         jmp salir 
-    
     ;USUARIO ADMIN==================================================
     Usuarioadmin: 
         mMostrarString msgMuA  ;MENU USUARIO ADMIN
         call pespEnter
-        jmp salir 
-           
+        jmp salir        
     Ubloqueado:
         mMostrarString msgUbloqueado
         call pespEnter
-        jmp salir 
+        jmp cicloLogin
     Adminbloqueado:
-        
+        call pDelay30
+        jmp cicloLogin
     PasswordIncorrect:
         ;LE SUMA UNO AL NUMERO DE ERRORES 
         mMostrarString msgPinc
         call pIncVEquivoco
         call pDarbloqueo
         call pEspEnter
-        jmp salir 
+        ;SABER SI ES ADMIN O NO, AQUI YA RECORRIO LA POSICION DE NVECES ERROR Y LA DE BLOQUEO CON
+        ;UN SOLO HALLAR SIMBOLO SE PASARIA AL APARTADO PARA SABER SI ES ADMIN O NO
+        mHallarSimbolo 01
+        mReadFile eleActual
+        cmp eleActual,"A"
+        je PasswordIAdmin;SI ES ADMIN
+        ;SI NO SEGUIR 
+        jmp cicloLogin
+    PasswordIAdmin:
+        call pPosAnterior ;A/n
+        call pPosAnterior ;separador antes de A/n
+        call pPosAnterior ;B/No bloqueado
+        mReadFile eleActual
+        cmp eleActual,"B"
+        je Adminbloqueado
+        jmp cicloLogin
     Noexiste:
         mMostrarString msgUnE ;MENSAJE USUARIO NO EXISTE 
         call pEspEnter
-        jmp salir 
+        jmp cicloLogin
     ;NO EXISTE
     salir:
     mCloseFile
@@ -1071,6 +1091,44 @@ mHallarSimbolo macro simbolo
     salir:
 endm 
 
+
+
+Delayt macro tiempo
+    push ax 
+    push dx 
+    mov valort1,0
+    mov auxt, 0
+    mov valort2,0
+    mov contadort,0
+    ;SE TOMA EL VALOR DE T1 
+    mov ah,2Ch
+    int 21h
+    mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
+    ciclodelay:
+        xor ax,ax
+        mov dx,ax 
+        mov ah,2Ch
+        int 21h
+        mov valort2,dh  ;VALOR 2 TOMA OTRO TIEMPO DESPUES DE VALOR 1
+        movVariables auxt,valort2 
+        mModdb valort1,2
+        mModdb valort2,2
+        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE
+        jne segundo ;> ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
+        jmp ciclodelay
+        segundo:
+            mLimpiar StringNumT,4,24 ;SE LIMPIA EL STRING QUE ALMACENARA EL SEGUNDO
+            Num2String contadort,StringNumT ;SE PASA EL CONTADOR ACTUAL A STRING 
+            mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR 
+            cmp contadort,tiempo ;CONTADOR ES IGUAL A 30?
+            jae salir  ;SI, SALIR 
+            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=VALORT2 
+            mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
+            jmp ciclodelay
+    salir: 
+        pop dx
+        pop ax 
+endm 
 ;debug
 ;mMostrarString eProgram
 ;call pEspEnter 

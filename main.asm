@@ -59,8 +59,8 @@ pBaseDatos proc
     mCloseFile
     ret 
 pBaseDatos endp 
-;PROC PARA UN RETARDO NECESARIO EN LAS TECLAS PARA QUE NO SE DETECTE QUE SE PRESIONARON DOS VECES
-pDelayLetras proc  
+;PROC PARA DELAY DE 30 SEGUNDOS CON IMPRESION DE SEGUNDOS EN LA CONSOLA 
+pDelay30 proc  
     push ax 
     push dx 
     mov valort1,0
@@ -78,10 +78,10 @@ pDelayLetras proc
         int 21h
         mov valort2,dh  ;VALOR 2 TOMA OTRO TIEMPO DESPUES DE VALOR 1
         movVariables auxt,valort2 
-        mModdb valort1,2
-        mModdb valort2,2
-        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE
-        jne segundo ;> ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
+        mModdb valort1,2 ;para saber si es par o impar el  valor 1 
+        mModdb valort2,2 ;para saber si es par o impar el valor 2
+        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE SEAN DISTINTOS
+        jne segundo ;ES DISTINTO POR LO CUAL YA CAMBIO DE SEGUNDO 
         jmp ciclodelay
         segundo:
             mLimpiar StringNumT,4,24 ;SE LIMPIA EL STRING QUE ALMACENARA EL SEGUNDO
@@ -89,14 +89,14 @@ pDelayLetras proc
             mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR 
             cmp contadort,30t ;CONTADOR ES IGUAL A 30?
             jae salir  ;SI, SALIR 
-            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=VALORT2 
+            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=auxt (que contiene el valor2 sin el efecto de mod)
             mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
         pop dx
         pop ax 
     ret 
-pDelayLetras endp 
+pDelay30 endp 
 
 pAlmacenaruser proc
     mOpenFile2Write usersb
@@ -222,12 +222,26 @@ pIncVEquivoco endp
 pDarbloqueo proc 
     ;ya que dar bloqueo va despues de incrementar veces que se equivoco solo se busca una vez el separador
     cmp eleActual,33h
-    jne salir 
+    jne nobloquear 
     mHallarSimbolo separador
     mWriteToFile BloqueoU
+    jmp salir 
+    nobloquear: ;si no se bloquea al menos se debe de desplazar la misma cantidad de espacios de como
+    ;si se hubiera bloqueado 
+        mHallarSimbolo separador
+        mReadFile eleActual
     salir: 
     ret 
 pDarbloqueo endp
+
+;QUITAR BLOQUEO ADMIN
+pQuitarbloqAdmin proc
+    mHallarSimbolo separador
+    mWriteToFile Nequivdef
+    mHallarSimbolo separador
+    mWriteToFile Bloqdef
+    ret
+pQuitarbloqAdmin endp 
 
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
