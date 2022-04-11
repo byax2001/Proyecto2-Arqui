@@ -169,6 +169,7 @@ pFinaldoc proc
     int 21 
     ret
 pFinaldoc endp 
+
 ;coloca el documento una posiciona anterior al lugar actual leido 
 pPosAnterior proc
     mov al,1

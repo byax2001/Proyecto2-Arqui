@@ -17,16 +17,21 @@ mVariables macro
     PasswordI db 25 dup (24)   ;contraseña a ingresar
     msgUnE  db 0A,"===Usuario no Existe===",0A,"$"
     msgPinc  db 0A,"===Password Incorrecta===",0A,"$"
+    msgUbloqueado db "==Usuario bloqueado==",0A,"$"
         ;MENU DE USUARIO
         msgMenuU db "Menu de usuario",0A,"$"
 
+        ;MENU USUARIO ADMIN
+        msgMuA db "Menu usuario Admin",0A,"$"
 
         ;MENU DE ADMIN
         msgMenuAdmin db "Menu de Admin",0A,"$"
+
+        
     ;REGISTRO DE USUARIOS
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
-    adminG db "201800534BADM$$$$$$$$$$$$",01,"435008102",01,"0",01,"N",01,"A",0A," "
+    adminG db "201800534BADM$$$$$$$$$$$$",01,"435008102$$$$$$$$$$$$$$$$",01,"0",01,"N",01,"A",0A," "
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
 
@@ -185,7 +190,7 @@ mLogin macro
     mCapturarString UsuarioI
     mMostrarString rP 
     mCapturarPassword PasswordI
-    ;ES EL ADMIN PRINCIPAL? 
+    ;ADMIN PRINCIPAL==================================================
     mReadFile eleActual
     mEncontrarId UsuarioI
     cmp idEncontrado,0
@@ -200,6 +205,7 @@ mLogin macro
             mMostrarString msgMenuAdmin
             call pEspEnter
             jmp salir 
+    ;USUARIO O USUARIO ADMIN==================================================
     noesadmin: ;ENTONCES ES UN USUARIO NORMAL o ADMIN SECUNDARIO 
         mUserExiste UsuarioI
         cmp existee,1 ;EXISTE USUARIO?
@@ -207,15 +213,40 @@ mLogin macro
         ;luego del metodo mUserExiste  estara posicionado justo en la linea deseada
         mHallarSimbolo 01 ;Separador alapar de contraseña 
         mReadFile eleActual ;Primer elemento de contraseña 
-        mEncontrarId PasswordRegis 
+        mEncontrarId PasswordI
         cmp idEncontrado,1
         jne PasswordIncorrect
+        je PasswordCorrect
         ;EXISTE?
     PasswordCorrect:
-        ;MUESTRA MENU DE JUEGO 
-        mMostrarString msgMenuU
-        call pEspEnter
+        mHallarSimbolo 01 ;separador a la par de N veces repetido
+        mHallarSimbolo 01 ;separador a la par de bloqueado o no bloqueado
+        mReadFile eleActual ;B o N
+        cmp eleActual,"B"
+        je Ubloqueado
+        mHallarSimbolo 01 ;separador a la par de admin o no admin 
+        mReadFile eleActual ;A o N
+        cmp eleActual,"A"
+        je Usuarioadmin
+        jne UsuarioNormal
+    ;USUARIO NORMAL=================================================
+    UsuarioNormal: 
+        mMostrarString msgMenuU ;MENU DE USUARIO NORMAL
+        call pespEnter
         jmp salir 
+    
+    ;USUARIO ADMIN==================================================
+    Usuarioadmin: 
+        mMostrarString msgMuA  ;MENU USUARIO ADMIN
+        call pespEnter
+        jmp salir 
+           
+    Ubloqueado:
+        mMostrarString msgUbloqueado
+        call pespEnter
+        jmp salir 
+    Adminbloqueado:
+        
     PasswordIncorrect:
         ;LE SUMA UNO AL NUMERO DE ERRORES 
         mMostrarString msgPinc
@@ -252,7 +283,6 @@ mUserExiste macro Username
     Existe:
         mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
         mov eerror,1  ;se reporta error general al registro
-        mCloseFile
         jmp salir 
     Noexiste:
         mov existee, 0 ; no existe usuario, no hay error
