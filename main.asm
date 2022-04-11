@@ -61,19 +61,31 @@ pBaseDatos proc
 pBaseDatos endp 
 ;PROC PARA UN RETARDO NECESARIO EN LAS TECLAS PARA QUE NO SE DETECTE QUE SE PRESIONARON DOS VECES
 pDelayLetras proc  
-    pop ax 
-    pop dx 
-    xor ax,ax
-    xor dx,dx
+    push ax 
+    push dx 
+    mov valort1,0
+    mov valort2,0
+    mov contadort,0
+    ;SE TOMA EL VALOR DE T1 
+    mov ah,2Ch
+    int 21h
+    mov valort1,dh 
+    xor ax,ax 
+    xor dx,dx 
     ciclodelay:
         mov ah,2Ch
         int 21h
-        cmp dh,2 ; dara 0 en el mod si CDELAY ES UN MULTIPLO DE 30 POR LO CUAL PASARON 30 SEGUNDOS
-        je salir   
-        jmp ciclodelay 
+        mov valort2,dh
+        xor ax,ax 
+        xor dx,dx 
+        mRestadb valort2,valort1
+        cmp valort2,30t
+        jae salir 
+       
+        jmp ciclodelay
     salir: 
-    push ax 
-    push dx 
+        pop dx
+        pop ax 
     ret 
 pDelayLetras endp 
 

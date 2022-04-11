@@ -26,8 +26,13 @@ mVariables macro
 
         ;MENU DE ADMIN
         msgMenuAdmin db "Menu de Admin",0A,"$"
-
-        
+        ;DELAY
+        valort1 db 0
+        valort2 db 0
+        contadort dw 0
+        StringNumT db 4 dup(24)
+        ;PARA EL NUM2STRING
+         contador db 0
     ;REGISTRO DE USUARIOS
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
@@ -72,6 +77,8 @@ mVariables macro
         enrango db 0
         eerror db 0
         contadoraux db 0
+       
+
         RUSucces db "Registro exitoso",0A,"$"
             ;MENSAJE SUCCES
             msgRegistroSucces db "Se registro el usuario de forma exitosa"
@@ -137,6 +144,7 @@ mFlujoProyecto2 macro
     call pAjustarMemoria
         call pBaseDatos
         call pLimpiarConsola
+        call pDelayLetras
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
             call pEspEnter
@@ -843,6 +851,17 @@ mComparar macro var1,var2
     cmp al,bl
     pop bx
     pop ax
+endm 
+
+
+;SUMAR DW
+mSumarDw macro var1,var2
+    push ax 
+    xor ax,ax 
+    mov ax,var1
+    add ax,var2
+    mov var1,ax
+    pop ax 
 endm 
 ;SUMAR DB 
 mSumardb macro var1,var2
