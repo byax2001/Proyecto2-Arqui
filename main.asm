@@ -64,25 +64,34 @@ pDelayLetras proc
     push ax 
     push dx 
     mov valort1,0
+    mov auxt, 0
     mov valort2,0
     mov contadort,0
     ;SE TOMA EL VALOR DE T1 
     mov ah,2Ch
     int 21h
-    mov valort1,dh 
-    xor ax,ax 
-    xor dx,dx 
+    mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
     ciclodelay:
+        xor ax,ax
+        mov dx,ax 
         mov ah,2Ch
         int 21h
-        mov valort2,dh
-        xor ax,ax 
-        xor dx,dx 
-        mRestadb valort2,valort1
-        cmp valort2,30t
-        jae salir 
-       
+        mov valort2,dh  ;VALOR 2 TOMA OTRO TIEMPO DESPUES DE VALOR 1
+        movVariables auxt,valort2 
+        mModdb valort1,2
+        mModdb valort2,2
+        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE
+        jne segundo ;> ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
         jmp ciclodelay
+        segundo:
+            mLimpiar StringNumT,4,24 ;SE LIMPIA EL STRING QUE ALMACENARA EL SEGUNDO
+            Num2String contadort,StringNumT ;SE PASA EL CONTADOR ACTUAL A STRING 
+            mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR 
+            cmp contadort,30t ;CONTADOR ES IGUAL A 30?
+            jae salir  ;SI, SALIR 
+            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=VALORT2 
+            mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
+            jmp ciclodelay
     salir: 
         pop dx
         pop ax 

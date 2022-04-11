@@ -28,10 +28,13 @@ mVariables macro
         msgMenuAdmin db "Menu de Admin",0A,"$"
         ;DELAY
         valort1 db 0
+        v1ax db "$"
         valort2 db 0
+        v2ax db "$"
+        auxt db 0
         contadort dw 0
         StringNumT db 4 dup(24)
-        ;PARA EL NUM2STRING
+        ;COMO AUXILIAR PARA LA MACRO NUM2STRING
          contador db 0
     ;REGISTRO DE USUARIOS
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
@@ -904,7 +907,7 @@ mModdb macro var1,var2
     mov al, var1
     mov bl, var2
     div bl
-    mov var2, ah 
+    mov var1, ah 
     pop bx 
     pop ax 
 endm
