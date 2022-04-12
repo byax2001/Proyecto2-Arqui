@@ -33,8 +33,11 @@ mVariables macro
     
         ;MENU DE ADMIN
         msgMenuAdmin db "Menu de Admin",10 dup(" "),"user: ","$"
+        usDesBloq db "Usuario a desbloquear: $"
+        usDarAdmin db "Usuario a dar admin: $"
+        usQuitarAdmin db "Usuario a remover admin: $"
         MenuAdmin db "F1. Unlock User",0A,"F2. Promote user to admin",0A,"F3. Demote user from admin",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
-      
+        Umoderado db 25 dup (24)
         ;DELAY
         valort1 db 0
         v1ax db "$"
@@ -43,8 +46,8 @@ mVariables macro
         auxt db 0
         contadort dw 0
         StringNumT db 4 dup(24)
-        ;COMO AUXILIAR PARA LA MACRO NUM2STRING
-         contador db 0
+    ;COMO AUXILIAR PARA LA MACRO NUM2STRING
+    contador db 0
     ;REGISTRO DE USUARIOS
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
@@ -214,7 +217,7 @@ mLogin macro
     mCapturarPassword PasswordI
     ;ADMIN PRINCIPAL==================================================
     cmp UsuarioI[0],09 ;tab=Exit  ;POR SI SE QUIERE SALIR DEL MENU 
-    je salir 
+    je exitab
     mReadFile eleActual
     mEncontrarId UsuarioI
     cmp idEncontrado,0
@@ -227,6 +230,7 @@ mLogin macro
         je PasswordIncorrect
         cAdminCor:;password de admin correcta
             call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
+            mCloseFile
             mMenuAdmin
             jmp salir 
     ;USUARIO O USUARIO ADMIN==================================================
@@ -255,10 +259,12 @@ mLogin macro
         jne UsuarioNormal
     ;USUARIO NORMAL=================================================
     UsuarioNormal: 
+        mCloseFile
         mMenuUser ;MUESTRA MENU CORRESPONDIENTE  
         jmp salir 
     ;USUARIO ADMIN==================================================
     Usuarioadmin: 
+        mCloseFile
         mMenuUadmin ;MUESTRA MENU CORRESPONDIENTE
         jmp salir        
     Ubloqueado:
@@ -295,8 +301,9 @@ mLogin macro
         call pEspEnter
         jmp cicloLogin
     ;NO EXISTE
+    exitab:
+        mCloseFile
     salir:
-    mCloseFile
 endm 
 
 mUserExiste macro Username 
@@ -362,11 +369,13 @@ mMenuUser macro
 endm
 ;MENU PARA EL ADMIN GENERAL
 mMenuAdmin macro
+    local salir
+    call pResetFlagsE
+    mOpenFile2Write usersb 
     mMostrarString msgMenuAdmin
     mMostrarString UsuarioI
     mMostrarString enteraux
-    mMostrarString MenuAdmin
-    
+    mMostrarString MenuAdmin  
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
         ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
@@ -375,9 +384,25 @@ mMenuAdmin macro
     mov ah,01  ;atrapa la tecla fn 
     int 21
     mov opcion,al
+
+
+    unlockUser:
+    darAdmin:
+    quitarAdmin:
+    Bublesort:
+    Heasort:
+    Timsort:
+    salir:
 endm
+
+
+
+
+
+
 ;MENU PARA EL USUARIO ADMIN
 mMenuUadmin macro
+    
     mMostrarString msgMuA
     mMostrarString UsuarioI
     mMostrarString enteraux
@@ -390,6 +415,8 @@ mMenuUadmin macro
     mov ah,01  ;atrapa la tecla fn 
     int 21
     mov opcion,al
+    
+
 endm 
 
 mRegistrar macro

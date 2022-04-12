@@ -243,13 +243,30 @@ pQuitarbloqAdmin proc
     ret
 pQuitarbloqAdmin endp 
 
+
+
+
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
-    mHallarSimbolo separador
-    mHallarSimbolo separador
+    call pResetFlagsE
+    mMostrarString usDesBloq
+    mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
+
+    call pExisteUserM
+    cmp existee,0 ;no existe el usuario ingresado?
+    je Unoexiste ; no existe, entonces marca error y se sale
+    ;EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
+    mHallarSimbolo separador; contraseña
+    mHallarSimbolo separador ; n veces error
     mWriteToFile Nequivdef
     mHallarSimbolo separador
     mWriteToFile Bloqdef
+    Unoexiste:
+    mMostrarString MsgUnE
+    call pEspEnter
+    jmp salir 
+
+    salir: 
     ret
 pQuitarbloqueo endp 
 
@@ -263,5 +280,32 @@ pDarAdmin endp
 pQuitarAdmin proc
 
 pQuitarAdmin endp 
+
+pExisteUserM proc 
+    local Existe,Noexiste,salir,cicloexiste
+    ;SE VERIFICA SI NO ES EL ADMIN
+    mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
+    mEncontrarId Umoderado;lo primero en el documento de usuarios es el admin, que siempre estara aca
+    cmp idEncontrado,1 ; se encontro usuario? 
+    je Existe ;si se encontro se procede a decir que si existe el usuario y se marcara como error
+    cicloexiste: ;caso contrario se procedera a un ciclo de lectura del archivo hasta hallar o un espacio o el id buscado
+        mHallarSimbolo 0A  ;se salta hasta el enter hasta la posicion donde esta 0A
+        mReadFile eleActual ; se corre una vez el elemento 
+        cmp eleActual," " ;si hay un espacio es que ya se llego al fin del documento y el usuario no existe
+        ;CADA VEZ QUE SE CREA UN USUARIO SE ELIMINA EL ULTIMO ESPACIO QUE DEJA LA CREACION DEL USUARIO ANTERIOR
+        je Noexiste ; no existe usuario
+        mEncontrarId Umoderado ;si no es espacio lo que esta en esta posicion fijo es un nombre de user, el user a registrar  es igual a este? 
+        cmp idEncontrado,1 ; si, entonces existe 
+        je Existe 
+        jne cicloexiste 
+    Existe:
+        mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
+        mov eerror,1  ;se reporta error general al registro
+        jmp salir 
+    Noexiste:
+        mov existee, 0 ; no existe usuario, no hay error
+    salir:
+    ret 
+pExisteUserM endp 
 
 END start 
