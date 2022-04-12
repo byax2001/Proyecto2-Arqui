@@ -349,7 +349,6 @@ pQuitarAdmin proc
 pQuitarAdmin endp 
 
 pExisteUserM proc 
-    local Existe,Noexiste,salir,cicloexiste
     ;SE VERIFICA SI NO ES EL ADMIN
     mReadFile eleActual ;TOMA EL PRIMER VALOR DEL ARCHIVO 
     mEncontrarId Umoderado;lo primero en el documento de usuarios es el admin, que siempre estara aca
