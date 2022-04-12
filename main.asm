@@ -248,36 +248,103 @@ pQuitarbloqAdmin endp
 
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
+    mOpenFile2Write usersb
     call pResetFlagsE
     mMostrarString usDesBloq
     mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
-
     call pExisteUserM
     cmp existee,0 ;no existe el usuario ingresado?
     je Unoexiste ; no existe, entonces marca error y se sale
-    ;EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
+    ;SI EXISTE, ENTONCES EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
     mHallarSimbolo separador; contraseña
     mHallarSimbolo separador ; n veces error
+    mHallarSimbolo separador; B/n 
+    mReadFile eleActual
+    cmp eleActual, "N" ; no bloqueado
+    je noBloqAnt
+    call pPosAnterior ; separador antes de B/n
+    call pPosAnterior ;n veces error
+    call pPosAnterior ; separador antes de n veces eror
     mWriteToFile Nequivdef
-    mHallarSimbolo separador
+    mHallarSimbolo 01
     mWriteToFile Bloqdef
+    jmp salir 
+    noBloqAnt:
+        mMostrarString Unoblock ;el usuario no estaba bloqueado 
+        jmp salir 
     Unoexiste:
-    mMostrarString MsgUnE
+    mMostrarString MsgUnE ;usuario no existe
     call pEspEnter
     jmp salir 
-
     salir: 
+    mCloseFile
     ret
 pQuitarbloqueo endp 
 
 ;DAR ADMIN
 pDarAdmin proc 
-    ;estas en la posicion de users
+    mOpenFile2Write usersb
+    call pResetFlagsE
+    mMostrarString usDesBloq
+    mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
+    call pExisteUserM
+    cmp existee,0 ;no existe el usuario ingresado?
+    je Unoexiste ; no existe, entonces marca error y se sale
+    ;SI EXISTE, ENTONCES EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
+    mHallarSimbolo separador; contraseña
+    mHallarSimbolo separador ; n veces error
+    mHallarSimbolo separador; B/n 
+    mHallarSimbolo separador; separador antes de Admin/No admin 
+    mReadFile eleActual
+    cmp eleActual, "A" ; el elemento es admin
+    je AdminAnt
+    call pPosAnterior ; separador antes de Admin/No admin
+    mWriteToFile AdminU
+    jmp salir 
+    AdminAnt:
+        mMostrarString Uadmin ;el usuario ya era admin
+        call pEspEnter
+        jmp salir 
+    Unoexiste:
+    mMostrarString MsgUnE ;usuario no existe
+    call pEspEnter
+    jmp salir 
+    salir: 
+    mCloseFile
     ret
 pDarAdmin endp 
 
 ;QUITAR ADMIN
 pQuitarAdmin proc
+    mOpenFile2Write usersb
+    call pResetFlagsE
+    mMostrarString usDesBloq
+    mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
+    call pExisteUserM
+    cmp existee,0 ;no existe el usuario ingresado?
+    je Unoexiste ; no existe, entonces marca error y se sale
+    ;SI EXISTE, ENTONCES EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
+    mHallarSimbolo separador; contraseña
+    mHallarSimbolo separador ; n veces error
+    mHallarSimbolo separador; B/n 
+    mHallarSimbolo separador; separador antes de Admin/No admin 
+    mReadFile eleActual
+    cmp eleActual, "N" ; el elemento es admin
+    je AdminAnt
+    call pPosAnterior ; separador antes de Admin/No admin
+    mWriteToFile admindef
+    jmp salir 
+    AdminAnt:
+        mMostrarString uNoAdmin ;el usuario no era admin
+        call pEspEnter
+        jmp salir 
+    Unoexiste:
+    mMostrarString MsgUnE ;usuario no existe
+    call pEspEnter
+    jmp salir 
+    salir: 
+    mCloseFile
+    ret
 
 pQuitarAdmin endp 
 

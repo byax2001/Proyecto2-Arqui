@@ -36,6 +36,9 @@ mVariables macro
         usDesBloq db "Usuario a desbloquear: $"
         usDarAdmin db "Usuario a dar admin: $"
         usQuitarAdmin db "Usuario a remover admin: $"
+        uNoBlock db "==El usuario no estaba bloqueado==",0A,"$"
+        Uadmin db "==El usuario ya era admin==",0A,"$"
+        uNoAdmin db "==El usuario no era admin==",0A,"$"
         MenuAdmin db "F1. Unlock User",0A,"F2. Promote user to admin",0A,"F3. Demote user from admin",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
         Umoderado db 25 dup (24)
         ;DELAY
