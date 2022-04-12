@@ -248,7 +248,9 @@ pQuitarbloqAdmin endp
 
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
-    mOpenFile2Write usersb
+    call pLimpiarConsola
+    mLimpiar Umoderado,25,24
+    mOpenFile2Write usersb 
     call pResetFlagsE
     mMostrarString usDesBloq
     mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
@@ -268,9 +270,12 @@ pQuitarbloqueo proc
     mWriteToFile Nequivdef
     mHallarSimbolo 01
     mWriteToFile Bloqdef
+    mMostrarString Udesbloqueado
+    call pEspEnter
     jmp salir 
     noBloqAnt:
         mMostrarString Unoblock ;el usuario no estaba bloqueado 
+        call pEspEnter
         jmp salir 
     Unoexiste:
     mMostrarString MsgUnE ;usuario no existe
@@ -283,9 +288,11 @@ pQuitarbloqueo endp
 
 ;DAR ADMIN
 pDarAdmin proc 
+    call pLimpiarConsola
+    mLimpiar Umoderado,25,24
     mOpenFile2Write usersb
     call pResetFlagsE
-    mMostrarString usDesBloq
+    mMostrarString usDarAdmin
     mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
     call pExisteUserM
     cmp existee,0 ;no existe el usuario ingresado?
@@ -300,6 +307,8 @@ pDarAdmin proc
     je AdminAnt
     call pPosAnterior ; separador antes de Admin/No admin
     mWriteToFile AdminU
+    mMostrarString Udadoadmin
+    call pEspEnter
     jmp salir 
     AdminAnt:
         mMostrarString Uadmin ;el usuario ya era admin
@@ -316,9 +325,11 @@ pDarAdmin endp
 
 ;QUITAR ADMIN
 pQuitarAdmin proc
+    call pLimpiarConsola
+    mLimpiar Umoderado,25,24
     mOpenFile2Write usersb
     call pResetFlagsE
-    mMostrarString usDesBloq
+    mMostrarString usQuitarAdmin
     mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
     call pExisteUserM
     cmp existee,0 ;no existe el usuario ingresado?
@@ -333,6 +344,8 @@ pQuitarAdmin proc
     je AdminAnt
     call pPosAnterior ; separador antes de Admin/No admin
     mWriteToFile admindef
+    mMostrarString UquitAdmin
+    call pEspEnter
     jmp salir 
     AdminAnt:
         mMostrarString uNoAdmin ;el usuario no era admin

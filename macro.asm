@@ -29,7 +29,7 @@ mVariables macro
    
         ;MENU USUARIO ADMIN
         msgMuA db "Menu usuario Admin",10 dup(" "),"user: ","$"
-        MenuUsuarioAdmin db "F1. Unlock User",0A,"F2.  Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard","F4. Play Game",0A,"F5. Bubble Sort",0A,"F6.Heap Sort",0A,"F7.Tim sort" ,"F9. Logout",0A,"$"
+        MenuUsuarioAdmin db "F1. Unlock User",0A,"F2. Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard","F4. Play Game",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
     
         ;MENU DE ADMIN
         msgMenuAdmin db "Menu de Admin",10 dup(" "),"user: ","$"
@@ -39,6 +39,9 @@ mVariables macro
         uNoBlock db "==El usuario no estaba bloqueado==",0A,"$"
         Uadmin db "==El usuario ya era admin==",0A,"$"
         uNoAdmin db "==El usuario no era admin==",0A,"$"
+        Udesbloqueado db "==El usuario ha sido desbloqueado==$"
+        Udadoadmin db "==Se ascendio a admin a el usuario==$"
+        UquitAdmin db "==Se removio de admin al usuario==$"
         MenuAdmin db "F1. Unlock User",0A,"F2. Promote user to admin",0A,"F3. Demote user from admin",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
         Umoderado db 25 dup (24)
         ;DELAY
@@ -202,6 +205,7 @@ mFlujoMenu macro
     salir: 
 endm
 
+;LOGIN################################################################################################
 mLogin macro
     local esadmin,noesadmin
     call pResetFlagsE
@@ -231,9 +235,11 @@ mLogin macro
         mEncontrarId PasswordI;verificar si la contraseña es la correcta 
         cmp idEncontrado,0
         je PasswordIncorrect
+        ;USUARIO GENERAL PRINCIPAL==========================================
         cAdminCor:;password de admin correcta
             call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
             mCloseFile
+            call pLimpiarConsola
             mMenuAdmin
             jmp salir 
     ;USUARIO O USUARIO ADMIN==================================================
@@ -263,11 +269,13 @@ mLogin macro
     ;USUARIO NORMAL=================================================
     UsuarioNormal: 
         mCloseFile
+        call pLimpiarConsola
         mMenuUser ;MUESTRA MENU CORRESPONDIENTE  
         jmp salir 
     ;USUARIO ADMIN==================================================
     Usuarioadmin: 
         mCloseFile
+        call pLimpiarConsola
         mMenuUadmin ;MUESTRA MENU CORRESPONDIENTE
         jmp salir        
     Ubloqueado:
@@ -336,13 +344,13 @@ mUserExiste macro Username
 endm 
 ;MENU PARA EL USUARIO NORMAL
 mMenuUser macro
-    local menuUser,salir 
+    local menuUser,salir,totalscorboard,myscorboards
+    menuUser: 
     ;MENU DE USUARIO 
-    mMostrarString msgMenuU 
-    mMostrarString UsuarioI
-    mMostrarString enteraux
-    mMostrarString MenuUsuario 
-    menuUser:
+    mMostrarString msgMenuU  ;MENU DE USUARIO NORMAL
+    mMostrarString UsuarioI  ;IMPRESION DEL USUARIO ACTUAL
+    mMostrarString enteraux ;IMPRESION DE UN ENTER 
+    mMostrarString MenuUsuario ;IMPRESION DE MENU USUARIO 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
     ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
@@ -362,7 +370,7 @@ mMenuUser macro
     mMostrarString opi
     jmp menuUser
     game:
-
+    jmp menuUser
     totalscorboard:
 
     myscorboards:
@@ -372,28 +380,52 @@ mMenuUser macro
 endm
 ;MENU PARA EL ADMIN GENERAL
 mMenuAdmin macro
-    local salir
-    call pResetFlagsE
+    local salir,ciclomenu, unlockUser,darAdmin,quitarAdmin,Bublesort,heapsort,Timsort
     mOpenFile2Write usersb 
-    mMostrarString msgMenuAdmin
-    mMostrarString UsuarioI
-    mMostrarString enteraux
-    mMostrarString MenuAdmin  
+    ciclomenu:
+    call pResetFlagsE
+    mMostrarString msgMenuAdmin ;MENU ADMIN
+    mMostrarString UsuarioI ; IMPRIME AL USUARIO ACTUAL
+    mMostrarString enteraux ;ENTER A LA LINEA USADA 
+    mMostrarString MenuAdmin  ;MUESTRA EL MENU 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-        ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
     mov ah,01
     int 21
     mov ah,01  ;atrapa la tecla fn 
     int 21
     mov opcion,al
-
-
+    cmp opcion, 59t
+    je unlockUser
+    cmp opcion, "<"
+    je darAdmin
+    cmp opcion, "="
+    je quitarAdmin
+    cmp opcion, "?"
+    je Bublesort
+    cmp opcion, "@"
+    je heapsort
+    cmp opcion, "A"
+    je Timsort
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp ciclomenu
     unlockUser:
+        call pQuitarbloqueo
+        call pLimpiarConsola
+        jmp ciclomenu
     darAdmin:
+        call pDarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
     quitarAdmin:
+        call pQuitarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
     Bublesort:
-    Heasort:
+    heapsort:
     Timsort:
     salir:
 endm
@@ -404,12 +436,13 @@ endm
 
 
 ;MENU PARA EL USUARIO ADMIN
-mMenuUadmin macro
-    
-    mMostrarString msgMuA
-    mMostrarString UsuarioI
-    mMostrarString enteraux
-    mMostrarString MenuUsuarioAdmin
+mMenuUadmin macro 
+    local unlockUser,totalscorboard,myscorboards,game,Bublesort,heapsort,Timsort,salir,ciclomenu
+    ciclomenu:
+    mMostrarString msgMuA   ;TITULO: MENU DE USUARIO ADMIN
+    mMostrarString UsuarioI ;IMPRESION DEL NOMBRE DE USUARIO ACTUAL
+    mMostrarString enteraux ;ENTER PARA SALTAR DE LA LINEA ACTUAL
+    mMostrarString MenuUsuarioAdmin ;OPCIONES DEL MENU DE USUARIO ADMIN 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
     ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
@@ -418,10 +451,47 @@ mMenuUadmin macro
     mov ah,01  ;atrapa la tecla fn 
     int 21
     mov opcion,al
+    cmp opcion, 59t
+    je unlockUser
+    cmp opcion, "<"
+    je totalscorboard
+    cmp opcion, "="
+    je myscorboards
+    cmp opcion, ">"
+    je game 
+    cmp opcion, "?"
+    je Bublesort
+    cmp opcion, "@"
+    je heapsort
+    cmp opcion, "A"
+    je Timsort
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp ciclomenu
+    unlockUser:
+        call pQuitarbloqueo
+        call pLimpiarConsola
+        jmp ciclomenu
+    totalscorboard:
+        call pDarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    myscorboards:
+        call pQuitarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    game:
+
+    Bublesort:
+    heapsort:
+    Timsort:
+    salir:
     
 
 endm 
 
+;REGISTRAR############################################################################################
 mRegistrar macro
     local salir 
     mov eerror,0
