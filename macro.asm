@@ -159,18 +159,25 @@ mVariables macro
     cadIguales db 0
     ;DEBUGER
     eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
+
+    ;JUEGO
+    cNave_x dw 0
+    cNave_y dw 0
+
 endm 
 
 mFlujoProyecto2 macro
     call pAjustarMemoria
-        call pBaseDatos
-        call pLimpiarConsola
-        mMostrarString mensajeI
+        ;call pBaseDatos
+        ;call pLimpiarConsola
+        ;MmMostrarString mensajeI
          ;apartado de espera de un enter----------------------
-            call pEspEnter
+         ;   call pEspEnter
         ;---------------------------------------------------
-        call pLimpiarConsola
-        mFlujoMenu 
+        ;call pLimpiarConsola
+        ;mFlujoMenu  COMENTADO POR EL MOMENTO
+        call pGame
+        
     call pRetControl
 endm 
 
@@ -1261,7 +1268,7 @@ mHallarSimbolo macro simbolo
 endm 
 
 
-
+;NO IMPRIME LOS SEGUNDOS, PARA HACERLO SOLO AGREGARLE UNA CONVERSION DEL CONTADOR A STRING Y LUEGO IMPRIMIRLO
 Delayt macro tiempo
     push ax 
     push dx 
@@ -1286,10 +1293,7 @@ Delayt macro tiempo
         jne segundo ;> ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
         jmp ciclodelay
         segundo:
-            mLimpiar StringNumT,4,24 ;SE LIMPIA EL STRING QUE ALMACENARA EL SEGUNDO
-            Num2String contadort,StringNumT ;SE PASA EL CONTADOR ACTUAL A STRING 
-            mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR 
-            cmp contadort,tiempo ;CONTADOR ES IGUAL A 30?
+            cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             jae salir  ;SI, SALIR 
             MovVariables valort1,auxt ;NO, ENTONCES VALORT1=VALORT2 
             mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
@@ -1301,3 +1305,61 @@ endm
 ;debug
 ;mMostrarString eProgram
 ;call pEspEnter 
+
+;APARTADO PARA EL JUEGO
+mDrawPixel macro line,column,color 
+    push ax
+    push bx 
+    push dx 
+    push si 
+    xor ax,ax
+    mov bx,ax
+    mov dx,ax
+    mov si,ax 
+    ;formula para pintar un pixel de la matriz video = ((linea-1) * 320) + (columna-1) 
+    mov ax,line
+    dec ax 
+    mov bx, 320t
+    mul bx
+    ;en ax ya tengo el resultado del primer parentesis  
+    add ax, column
+    dec ax 
+
+    mov si, ax 
+    mov bl,color 
+    mov [si],bl
+
+    pop si
+    pop dx
+    pop bx 
+    pop ax 
+endm 
+
+mDecVar macro var1,nveces
+    local c1 
+    push cx 
+    mov cx,nveces
+    c1: 
+        dec var1
+        loop c1 
+    pop cx 
+endm 
+mIncVar macro var1,nveces
+    local c1 
+    push cx 
+    mov cx,nveces
+    c1: 
+        inc var1
+        loop c1 
+    pop cx 
+endm 
+mDrawFila macro fila,column,color,nveces
+    local c1 
+    push cx 
+    mov cx,nveces
+    c1:    
+        mDrawPixel fila,column,color 
+        inc column 
+        loop c1 
+    pop cx 
+endm 

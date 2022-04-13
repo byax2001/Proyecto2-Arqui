@@ -26,7 +26,7 @@ pLimpiarConsola proc
     int 10
     ;posiciona el cursor en la pos 0
     mov ah, 02
-    mov bh,0  ;nuero de pagina
+    mov bh,0  ;numero de pagina
     mov dl,0   ;columna
     mov dh,0   ;fila 
     int 10
@@ -386,5 +386,114 @@ pExisteUserM proc
     salir:
     ret 
 pExisteUserM endp 
+
+;APARTADOS PARA LA MANIPULACION DE TEXTO Y JUEGOS
+;POR DEFAULT DOSBOX SE MANEJA CON EL TEXT MODE, SI SE DESEA VOLVER AL MODO NORMAL LUEGO DEL MODO VIDEO VOLVER
+;A INSTANCIAR ESTE METODO 
+pTextMode proc
+    push ax
+    mov ax, 03
+    int 10h
+    pop ax 
+    ret 
+pTextMode endp 
+;PARA EL JUEGO SE DEBE DE CAMBIAR A MODO VIDEO 
+pVideoMode proc
+    push ax
+    mov ax, 13
+    int 10h
+    pop ax 
+    ret 
+pVideoMode endp 
+
+pMemVideoMode proc
+    push dx
+    mov dx, 0A000
+    mov ds,dx 
+    pop dx 
+    ret 
+pMemVideoMode endp 
+
+pGame proc
+    call pMemVideoMode
+    call pVideoMode 
+   
+    ;mDrawPixel 100t,160t,10t
+    call pDrawNave
+        Delayt 5t
+    call pTextMode
+    ret
+pGame endp
+
+pDrawNave proc
+    push cx 
+    mov cNave_x,160t
+    mov cNave_y,160t
+    ;CAÑON PRINCIPAL 
+    mDrawPixel cNave_x,cNave_y,39t
+    inc cNave_x 
+    mDrawPixel cNave_x,cNave_y,15t
+    ;CUERPO
+    inc cNave_x
+    dec cNave_y
+    mDrawFila cNave_x,cNave_y,15t,3t
+    inc cNave_x
+    mDecVar cNave_y,4t
+    mDrawFila cNave_x,cNave_y,15t,5t 
+    inc cNave_x
+    mDecVar cNave_y,6t
+    mDrawFila cNave_x,cNave_y,15t,7t 
+    ;VENTANAS PRINCIPALES NAVE 
+    inc cNave_x
+    mDecVar cNave_y,7t  
+    mDrawFila cNave_x,cNave_y,15t,2t
+    mDrawFila cNave_x,cNave_y,39t,3t
+    mDrawFila cNave_x,cNave_y,15t,2t
+    ;siguiente parte y parte de las ventanas 
+    inc cNave_x 
+    mDecVar cNave_y,10t
+    mDrawFila cNave_x,cNave_y,15t,5t
+    mDrawPixel cNave_x,cNave_y,39t
+    inc cNave_y
+    mDrawPixel cNave_x,cNave_y,15t
+    inc cNave_y
+    mDrawPixel cNave_x,cNave_y,39t
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,15t,5t
+    ;otra parte 
+    inc cNave_x
+    mDecVar cNave_y,14t
+    mDrawFila cNave_x,cNave_y,15t,15t
+    ;otra parte
+    inc cNave_x
+    mDecVar cNave_y,15t
+    mDrawFila cNave_x,cNave_y,15t,15t
+    ;otra parte 
+    inc cNave_x
+    mDecVar cNave_y,16t
+    mDrawFila cNave_x,cNave_y,15t,3t 
+    inc cNave_y
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,15t,7t 
+    inc cNave_y
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,15t,3t 
+    ;OTRA PARTE 
+    inc cNave_x
+    mDecVar cNave_y,18t
+    mDrawFila cNave_x,cNave_y,15t,3t 
+    inc cNave_y
+    inc cNave_y
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,39t,2t 
+    mDrawFila cNave_x,cNave_y,15t,3t 
+    mDrawFila cNave_x,cNave_y,39t,2t 
+    inc cNave_y
+    inc cNave_y
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,15t,3t
+    pop cx 
+    ret 
+pDrawNave endp 
 
 END start 
