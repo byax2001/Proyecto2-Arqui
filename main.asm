@@ -420,10 +420,218 @@ pGame proc
    
     ;mDrawPixel 100t,160t,10t
     call pDrawNave
+    call pFilaEnemigo1
+    call pFilaEnemigo2
+    call pFilaEnemigo3
         Delayt 5t
     call pTextMode
     ret
 pGame endp
+
+pFilaEnemigo1 proc
+    push cx
+    mov cx, 7
+    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_y,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    filaE:
+        call pDrawEnemigo1
+        mIncVar ce1_y,12
+        mov ce1_x,30t ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    pop cx 
+    ret 
+pFilaEnemigo1 endp 
+
+pFilaEnemigo2 proc
+    push cx
+    mov cx, 7
+    mov ce2_x,60t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce2_y,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    filaE:
+        call pDrawEnemigo2
+        mIncVar ce2_y,12
+        mov ce2_x,60t ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    pop cx 
+    ret 
+pFilaEnemigo2 endp 
+
+pFilaEnemigo3 proc
+    push cx
+    mov cx, 7
+    mov ce3_x,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce3_y,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    filaE:
+        call pDrawEnemigo3
+        mIncVar ce3_y,11
+        mov ce3_x,90t ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    pop cx 
+    ret 
+pFilaEnemigo3 endp 
+
+
+pDrawEnemigo1 proc
+    ;punta sur del enemigo
+    mDecVar ce1_y,4
+    mDrawPixel ce1_x,ce1_y,01
+    mIncVar ce1_y,6
+    mDrawPixel ce1_x,ce1_y,01
+    ;fila anterior 
+    dec ce1_x
+    mDecVar ce1_y,6
+    mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
+    inc ce1_y
+    mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
+    inc ce1_y
+    mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
+    inc ce1_y
+    mDrawPixel ce1_x,ce1_y,01
+    ;fila anterior
+    dec ce1_x
+    mDecVar ce1_y,5
+    mDrawFila ce1_x,ce1_y,01,2t 
+    inc ce1_y
+    mDrawFila ce1_x,ce1_y,01,2t
+    ;fila anterior
+    dec ce1_x
+    mDecVar ce1_y,6
+    mDrawFila ce1_x,ce1_y,01,7t
+    ;fila anterior
+    dec ce1_x
+    mDecVar ce1_y,6
+    mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
+    inc ce1_y
+    mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
+    inc ce1_y
+    mDrawPixel ce1_x,ce1_y,01
+    ;fila anterior 
+    dec ce1_x
+    mDecVar ce1_y,3
+    mDrawFila ce1_x,ce1_y,01,3t
+    ;antenas
+    dec ce1_x
+    mDecVar ce1_y,4
+    mDrawPixel ce1_x,ce1_y,01
+    mIncVar ce1_y,4
+    mDrawPixel ce1_x,ce1_y,01
+    ret 
+pDrawEnemigo1 endp 
+
+pDrawEnemigo2 proc 
+
+    ;parte sur del enemigo
+    mDecVar ce2_y,3
+    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    ;fila anterior
+    dec ce2_x
+    mDecVar ce2_y, 5
+    mDrawFila ce2_x,ce2_y,2t,2
+    inc ce2_y
+    mDrawFila ce2_x,ce2_y,2t,2
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 6
+    mDrawFila ce2_x,ce2_y,2t,7t
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 7
+    mDrawPixel ce2_x,ce2_y,2t
+    mIncVar ce2_y,3
+    mDrawPixel ce2_x,ce2_y,2t
+    mIncVar ce2_y,3
+    mDrawPixel ce2_x,ce2_y,2t
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 5
+    mDrawFila ce2_x,ce2_y,2t,5
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 4
+    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 3
+    mDrawPixel ce2_x,ce2_y,2t
+    mIncVar ce2_y,4t
+    mDrawPixel ce2_x,ce2_y,2t
+    ;fila anterior 
+    dec ce2_x
+    mDecVar ce2_y, 3
+    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    ret 
+pDrawEnemigo2 endp
+
+pDrawEnemigo3 proc
+
+    ;punta sur del enemigo
+    dec ce3_y
+    mDrawFila ce3_x,ce3_y,44t,2t 
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,3
+    mDrawFila ce3_x,ce3_y,44t,4t 
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,5
+    mDrawFila ce3_x,ce3_y,44t,6t 
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,7
+    mDrawFila ce3_x,ce3_y,44t,2t 
+    inc ce3_y
+    mDrawFila ce3_x,ce3_y,44t,2t 
+    inc ce3_y
+    mDrawFila ce3_x,ce3_y,44t,2t
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,8
+    mDrawPixel ce3_x,ce3_y,44t
+    inc ce3_y
+    inc ce3_y
+    mDrawFila ce3_x,ce3_y,44t,4t
+    inc ce3_y
+    mDrawPixel ce3_x,ce3_y,44t
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,4
+    mDrawFila ce3_x,ce3_y,44t,2t
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,4
+    mDrawFila ce3_x,ce3_y,44t,2t
+    inc ce3_y
+    inc ce3_y
+    mDrawFila ce3_x,ce3_y,44t,2t
+    ;fila anterior 
+    dec ce3_x
+    mDecVar ce3_y,6
+    mDrawPixel ce3_x,ce3_y,44t
+    mIncVar ce3_y, 5t
+    mDrawPixel ce3_x,ce3_y,44t
+    ret 
+pDrawEnemigo3 endp 
+
 
 pDrawNave proc
     push cx 

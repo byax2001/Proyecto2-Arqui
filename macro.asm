@@ -163,6 +163,12 @@ mVariables macro
     ;JUEGO
     cNave_x dw 0
     cNave_y dw 0
+    ce1_x dw 0
+    ce1_y dw 0
+    ce2_x dw 0
+    ce2_y dw 0
+    ce3_x dw 0
+    ce3_y dw 0
 
 endm 
 
