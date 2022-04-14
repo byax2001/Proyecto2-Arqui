@@ -185,9 +185,17 @@ mVariables macro
             alto dw 0
         ;BORRADOR MOVIMIENTO
             borrx dw 0
-            xBaux dw 0
             borry dw 0
-            yBaux dw 0
+        ;BALAS 
+            bala1x dw 0
+            bala2y dw 0
+            dañob1 dw 1t
+            bala2x dw 0
+            bala2y dw 0
+            dañob2 dw 2t 
+            bala3x dw 0
+            bala3y dw 0
+            dañob3 dw 3t
 endm 
 
 mFlujoProyecto2 macro

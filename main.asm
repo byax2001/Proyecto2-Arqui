@@ -422,16 +422,17 @@ pGame proc
     mDrawRectangulo 1t,1t,120t,130t,1t
     mDrawRectangulo 132t,1,120t,67t,1t
     mDrawRectangulo 1t,121t,200t,198t,1t
-    call pDrawEnemigo1
+    call pFilaEnemigo1
+    call pFilaEnemigo2
+    call pFilaEnemigo3
+    ;call pDrawEnemigo1
+    call pDrawEnemigo2
     ;mDrawPixel 100t,160t,10t
     ;call pDrawNave
     ;call pFilaEborrado
     call pMovimientoGame
     ;call pDrawEborrado
-    ;call pFilaEnemigo1
-    ;call pFilaEnemigo2
-    ;call pFilaEnemigo3
-        Delayt 7t
+    
     call pTextMode
     ret
 pGame endp
@@ -471,9 +472,6 @@ pMovimientoGame proc
     jmp fps 
     ret 
 pMovimientoGame endp 
-
-
-
 pFilaEnemigo1 proc
     push cx
     mov cx, 7
@@ -550,8 +548,8 @@ pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
     push bx
-    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ax, ce1_x
     mov bx, ce1_y
     mDecVar ce1_y,5
@@ -615,13 +613,13 @@ pDrawEnemigo2 proc
     push bx
     mov ax, ce2_x
     mov bx, ce2_y
-
     ;parte sur del enemigo
-    mDecVar ce2_y,3
+    mDecVar ce2_y,4t
     mDrawPixel ce2_x,ce2_y,2t
     inc ce2_y
     inc ce2_y
     mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
     inc ce2_y
     inc ce2_y
     mDrawPixel ce2_x,ce2_y,2t
@@ -630,43 +628,46 @@ pDrawEnemigo2 proc
     mDrawPixel ce2_x,ce2_y,2t
     ;fila anterior
     dec ce2_x
-    mDecVar ce2_y, 5
+    mDecVar ce2_y, 6t
     mDrawFila ce2_x,ce2_y,2t,2
     inc ce2_y
+    inc ce2_y
     mDrawFila ce2_x,ce2_y,2t,2
     ;fila anterior 
     dec ce2_x
-    mDecVar ce2_y, 6
-    mDrawFila ce2_x,ce2_y,2t,7t
-    ;fila anterior 
+    mDecVar ce2_y, 7t
+    mDrawFila ce2_x,ce2_y,2t,8t
+    ;fila de los ojos  
     dec ce2_x
-    mDecVar ce2_y, 7
+    mDecVar ce2_y, 8t
     mDrawPixel ce2_x,ce2_y,2t
     mIncVar ce2_y,3
-    mDrawPixel ce2_x,ce2_y,2t
-    mIncVar ce2_y,3
+    mDrawFila ce2_x,ce2_y,2t,2t
+    mIncVar ce2_y,2
     mDrawPixel ce2_x,ce2_y,2t
     ;fila anterior 
     dec ce2_x
-    mDecVar ce2_y, 5
-    mDrawFila ce2_x,ce2_y,2t,5
-    ;fila anterior 
+    mDecVar ce2_y, 6t
+    mDrawFila ce2_x,ce2_y,2t,6t
+    ;Antenas
     dec ce2_x
-    mDecVar ce2_y, 4
+    mDecVar ce2_y, 5t
     mDrawPixel ce2_x,ce2_y,2t
     inc ce2_y
     inc ce2_y
+    inc ce2_y
+    mDrawPixel ce2_x,ce2_y,2t
+    ;Antenas2 
+    dec ce2_x
+    mDecVar ce2_y, 4t
+    mDrawPixel ce2_x,ce2_y,2t
+    mIncVar ce2_y,5t
     mDrawPixel ce2_x,ce2_y,2t
     ;fila anterior 
     dec ce2_x
-    mDecVar ce2_y, 3
+    mDecVar ce2_y, 4t
     mDrawPixel ce2_x,ce2_y,2t
-    mIncVar ce2_y,4t
-    mDrawPixel ce2_x,ce2_y,2t
-    ;fila anterior 
-    dec ce2_x
-    mDecVar ce2_y, 3
-    mDrawPixel ce2_x,ce2_y,2t
+    inc ce2_y
     inc ce2_y
     inc ce2_y
     mDrawPixel ce2_x,ce2_y,2t
@@ -833,6 +834,23 @@ pDrawNave proc
     pop ax 
     ret 
 pDrawNave endp 
+
+pDrawBala1 proc
+    MovVariablesDw bala1x, navec
+    
+
+    ret 
+pDrawBala1 endp 
+
+pDrawBala2 proc
+
+    ret 
+pDrawBala2 endp 
+
+pDrawBala3 proc
+
+    ret 
+pDrawBala3 endp 
 
 pDrawNaveBorr proc
     push ax
