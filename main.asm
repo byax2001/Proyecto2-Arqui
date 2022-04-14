@@ -445,11 +445,10 @@ pMovimientoGame proc
     ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     ;mov ce1_y,142t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL
     ;call pFilaEnemigo1  
-
     ;nave
     mov cNave_x,185t
     mov cNave_y,220t
-    
+
     fps:
         mov ah,2Ch
         int 21
@@ -463,15 +462,19 @@ pMovimientoGame proc
     ;cmp ce1_x, 170t
     ;ja reset 
     ;call pFilaEnemigo1  
-    
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
-    
-    
+    cmp estD1,0
+    je sinAccion
+    movBala1: 
+        call pMovbala
+        jmp sinAccion
+    sinAccion: 
     jmp fps 
     ret 
 pMovimientoGame endp 
+;FILAS DE ENEMIGOS---------------------------------------------------------------------------
 pFilaEnemigo1 proc
     push cx
     mov cx, 7
@@ -526,32 +529,32 @@ pFilaEnemigo3 endp
 pFilaEborrado proc
     push cx
     push ax
-    push bx 
+    push dx 
     mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
     ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ax, borrx ;aux para reestablecer el valor de la fila escogida 
-    mov bx, borry 
+    mov dx, borry 
     filaE:
         call pDrawEborrado
         mIncVar borry,28t
         MovVariablesDw borrx, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
-    MovVariablesDw borry, bx 
-    pop bx
+    MovVariablesDw borry, dx 
+    pop dx
     pop ax 
     pop cx 
     ret 
 pFilaEborrado endp 
-
+;DRAW--------------------------------------------------------------------------------
 pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
-    push bx
+    push dx
     ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ax, ce1_x
-    mov bx, ce1_y
+    mov dx, ce1_y
     mDecVar ce1_y,5
     mDrawPixel ce1_x,ce1_y,01
     mIncVar ce1_y,7
@@ -601,18 +604,18 @@ pDrawEnemigo1 proc
     mIncVar ce1_y,5t
     mDrawPixel ce1_x,ce1_y,01
     mov ce1_x,ax
-    mov ce1_y,bx
+    mov ce1_y,dx
+    pop dx
     pop ax
-    pop bx
     
     ret 
 pDrawEnemigo1 endp 
 
 pDrawEnemigo2 proc 
     push ax
-    push bx
+    push dx
     mov ax, ce2_x
-    mov bx, ce2_y
+    mov dx, ce2_y
     ;parte sur del enemigo
     mDecVar ce2_y,4t
     mDrawPixel ce2_x,ce2_y,2t
@@ -672,17 +675,18 @@ pDrawEnemigo2 proc
     inc ce2_y
     mDrawPixel ce2_x,ce2_y,2t
     mov ce2_x,ax
-    mov ce2_y,bx
+    mov ce2_y,dx
+    pop dx
     pop ax
-    pop bx
+    
     ret 
 pDrawEnemigo2 endp
 
 pDrawEnemigo3 proc
     push ax
-    push bx
+    push dx
     mov ax, ce3_x
-    mov bx, ce3_y
+    mov dx, ce3_y
     ;punta sur del enemigo
     dec ce3_y
     mDrawFila ce3_x,ce3_y,44t,2t 
@@ -729,28 +733,28 @@ pDrawEnemigo3 proc
     mIncVar ce3_y, 5t
     mDrawPixel ce3_x,ce3_y,44t
     mov ce3_x,ax
-    mov ce3_y,bx
+    mov ce3_y,dx
+    pop dx
     pop ax
-    pop bx
     ret 
 pDrawEnemigo3 endp 
 
 pDrawEborrado proc
     push cx
     push ax
-    push bx 
+    push dx 
     mov cx, 8
     mov ax, borrx
-    mov bx, borry 
+    mov dx, borry 
     figuraB:
         mDecVar borry,4t 
         mDrawFila borrx,borry,0t,8     
-        mov borry, bx 
+        mov borry, dx 
         dec borrx
         loop figuraB
-    mov borrx,ax
+    mov borrx,dx
 
-    pop bx
+    pop dx
     pop ax
     pop cx 
     ret
@@ -758,9 +762,9 @@ pDrawEborrado endp
 
 pDrawNave proc
     push ax
-    push bx 
+    push dx 
     mov ax,cNave_x
-    mov bx, cNave_y
+    mov dx, cNave_y
     ;CAÑON PRINCIPAL 
     mDrawPixel cNave_x,cNave_y,39t
     inc cNave_x 
@@ -829,16 +833,25 @@ pDrawNave proc
 
 
     mov cNave_x,ax
-    mov cNave_y,bx
-    pop bx
+    mov cNave_y,dx
+    pop dx
     pop ax 
     ret 
 pDrawNave endp 
 
 pDrawBala1 proc
-    MovVariablesDw bala1x, navec
-    
+    push ax 
+    push cx 
+    mov ax, bala1x  
+    mov cx,3
+    ciclo:
+        mDrawPixel bala1x,bala1y,25t
+        inc bala1x
+        loop ciclo 
 
+    mov bala1x,ax 
+    pop cx 
+    pop ax 
     ret 
 pDrawBala1 endp 
 
@@ -871,34 +884,80 @@ pDrawNaveBorr proc
     ret
 pDrawNaveBorr endp
 
+;MOV-------------------------------------------------------------------------------------
 pMovNave proc
     push ax 
     xor ax,ax 
-    mov ah,01 ;existe pulsascion o no?
-    int 16h
-    jz salir ; no hay pulsacion, salir 
-    mov ah, 00  ;Espera a que se presione una tecla y la lee
-    int 16h
-    cmp al,"a"
-    je movIzquierda
-    cmp al,"A"
-    je movIzquierda
-    cmp al, "d"
-    je movDerecha
-    cmp al, "D"
-    je movDerecha
+        mov ah,01 ;existe pulsascion o no?
+        int 16h
+        jz salir ; no hay pulsacion, salir 
+        mov ah, 00  ;Espera a que se presione una tecla y la lee
+        int 16h
+        cmp al,"a"
+        je movIzquierda
+        cmp al,"A"
+        je movIzquierda
+        cmp al, "d"
+        je movDerecha
+        cmp al, "D"
+        je movDerecha
+        cmp al, "v"
+        je Disparo1
+        cmp al, "V"
+        je Disparo1
+        jmp salir 
     movIzquierda:
-    cmp cNave_y,132t
-    jb salir 
-    dec cNave_y
-    jmp salir 
+        cmp cNave_y,132t
+        jb salir 
+        dec cNave_y
+        jmp salir 
     movDerecha:
-    cmp cNave_y,310t
-    ja salir 
-    inc cNave_y    
+        cmp cNave_y,310t
+        ja salir 
+        inc cNave_y  
+        jmp salir   
+    Disparo1:
+        cmp estD1,1 
+        je salir 
+        MovVariablesDw bala1x, cNave_x
+        mDecVar bala1x,3t 
+        movVariablesDw bala1y, cNave_y
+        mov estD1,1
+        jmp salir 
     salir: 
     pop ax 
     ret 
 pMovNave endp 
+
+pMovbala proc
+    push ax
+    push dx
+    cmp bala1x,2 
+    je  finmovimiento
+    movnormal:
+        dec bala1x
+        mov dx,bala1x
+        call pDrawBala1
+        mIncVar bala1x,3t
+        mDrawPixel bala1x,bala1y,0t
+        mov bala1x,dx 
+        jmp salir 
+    finmovimiento:
+        mDrawPixel bala1x,bala1y,0t
+        inc bala1x
+        mDrawPixel bala1x,bala1y,0t
+        inc bala1x
+        mDrawPixel bala1x,bala1y,0t
+        mov estD1,0
+    salir: 
+    pop dx 
+    pop ax  
+    ret
+pMovbala endp  
+
+pBorrarbala1 proc
+    
+    ret 
+pBorrarbala1 endp 
 
 END start 

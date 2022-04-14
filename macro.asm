@@ -161,6 +161,7 @@ mVariables macro
     eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
 
     ;JUEGO
+        auxfpsT db 0
         ;NAVE
             cNave_x dw 0
             cNave_y dw 0
@@ -176,8 +177,7 @@ mVariables macro
             ce3_x dw 0
             ce3_y dw 0
             auxE3x dw 0
-            auxE3y dw 0
-            auxfpsT db 0
+            auxE3y dw 0 
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
@@ -188,14 +188,18 @@ mVariables macro
             borry dw 0
         ;BALAS 
             bala1x dw 0
-            bala2y dw 0
-            dañob1 dw 1t
+            bala1y dw 0
+            damageb1 dw 1t
             bala2x dw 0
             bala2y dw 0
-            dañob2 dw 2t 
+            damageb2 dw 2t 
             bala3x dw 0
             bala3y dw 0
-            dañob3 dw 3t
+            damageb3 dw 3t
+        ;ESTADOS DE DISPARO
+            estD1 db 0
+            estD2 db 0
+            estD3 db 0
 endm 
 
 mFlujoProyecto2 macro
