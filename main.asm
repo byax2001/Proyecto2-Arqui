@@ -422,8 +422,9 @@ pGame proc
     mDrawRectangulo 1t,1t,120t,130t,1t
     mDrawRectangulo 132t,1,120t,67t,1t
     mDrawRectangulo 1t,121t,200t,198t,1t
+    call pDrawEnemigo1
     ;mDrawPixel 100t,160t,10t
-    call pDrawNave
+    ;call pDrawNave
     ;call pFilaEborrado
     call pMovimientoGame
     ;call pDrawEborrado
@@ -440,22 +441,33 @@ pGame endp
 pMovimientoGame proc
     mov auxfpsT,0
     reset: 
-    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce1_y,142t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL
-    call pFilaEnemigo1  
+    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_y,142t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL
+    ;call pFilaEnemigo1  
+
+    ;nave
+    mov cNave_x,185t
+    mov cNave_y,220t
+    
     fps:
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-    MovVariablesDw borrx,ce1_x
-    MovVariablesDw borry,ce1_y
-    call pFilaEborrado 
-    inc ce1_x
-    cmp ce1_x, 170t
-    ja reset 
-    call pFilaEnemigo1  
+    ;MovVariablesDw borrx,ce1_x
+    ;MovVariablesDw borry,ce1_y
+    ;call pFilaEborrado 
+    ;inc ce1_x
+    ;cmp ce1_x, 170t
+    ;ja reset 
+    ;call pFilaEnemigo1  
+    
+    call pMovNave
+    call pDrawNaveBorr
+    call pDrawNave
+    
+    
     jmp fps 
     ret 
 pMovimientoGame endp 
@@ -465,8 +477,8 @@ pMovimientoGame endp
 pFilaEnemigo1 proc
     push cx
     mov cx, 7
-    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     MovVariablesDw auxE1y,ce1_y
     MovVariablesDw auxE1x,ce1_x ;aux para reestablecer el valor de la fila escogida 
     filaE:
@@ -538,19 +550,22 @@ pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
     push bx
+    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ax, ce1_x
     mov bx, ce1_y
-    mDecVar ce1_y,4
+    mDecVar ce1_y,5
     mDrawPixel ce1_x,ce1_y,01
-    mIncVar ce1_y,6
+    mIncVar ce1_y,7
     mDrawPixel ce1_x,ce1_y,01
     ;fila anterior 
     dec ce1_x
-    mDecVar ce1_y,6
+    mDecVar ce1_y,7
     mDrawPixel ce1_x,ce1_y,01
     inc ce1_y
     inc ce1_y
     mDrawPixel ce1_x,ce1_y,01
+    inc ce1_y
     inc ce1_y
     inc ce1_y
     mDrawPixel ce1_x,ce1_y,01
@@ -559,33 +574,33 @@ pDrawEnemigo1 proc
     mDrawPixel ce1_x,ce1_y,01
     ;fila anterior
     dec ce1_x
-    mDecVar ce1_y,5
+    mDecVar ce1_y,6
     mDrawFila ce1_x,ce1_y,01,2t 
+    inc ce1_y
     inc ce1_y
     mDrawFila ce1_x,ce1_y,01,2t
     ;fila anterior
     dec ce1_x
-    mDecVar ce1_y,6
-    mDrawFila ce1_x,ce1_y,01,7t
+    mDecVar ce1_y,7
+    mDrawFila ce1_x,ce1_y,01,8t
     ;fila anterior
     dec ce1_x
-    mDecVar ce1_y,6
+    mDecVar ce1_y,7
     mDrawPixel ce1_x,ce1_y,01
     inc ce1_y
     inc ce1_y
-    mDrawPixel ce1_x,ce1_y,01
-    inc ce1_y
+    mDrawFila ce1_x,ce1_y,01,2t
     inc ce1_y
     mDrawPixel ce1_x,ce1_y,01
     ;fila anterior 
     dec ce1_x
-    mDecVar ce1_y,3
-    mDrawFila ce1_x,ce1_y,01,3t
+    mDecVar ce1_y,4t
+    mDrawFila ce1_x,ce1_y,01,4t
     ;antenas
     dec ce1_x
-    mDecVar ce1_y,4
+    mDecVar ce1_y,5
     mDrawPixel ce1_x,ce1_y,01
-    mIncVar ce1_y,4
+    mIncVar ce1_y,5t
     mDrawPixel ce1_x,ce1_y,01
     mov ce1_x,ax
     mov ce1_y,bx
@@ -743,8 +758,6 @@ pDrawEborrado endp
 pDrawNave proc
     push ax
     push bx 
-    mov cNave_x,180t
-    mov cNave_y,220t
     mov ax,cNave_x
     mov bx, cNave_y
     ;CAÑON PRINCIPAL 
@@ -769,38 +782,33 @@ pDrawNave proc
     mDrawFila cNave_x,cNave_y,15t,2t
     ;siguiente parte y parte de las ventanas 
     inc cNave_x 
-    mDecVar cNave_y,10t
-    mDrawFila cNave_x,cNave_y,15t,5t
+    mDecVar cNave_y,9t
+    mDrawFila cNave_x,cNave_y,15t,4t
     mDrawPixel cNave_x,cNave_y,39t
     inc cNave_y
     mDrawPixel cNave_x,cNave_y,15t
     inc cNave_y
     mDrawPixel cNave_x,cNave_y,39t
     inc cNave_y
-    mDrawFila cNave_x,cNave_y,15t,5t
+    mDrawFila cNave_x,cNave_y,15t,4t
     ;otra parte 
     inc cNave_x
-    mDecVar cNave_y,14t
-    mDrawFila cNave_x,cNave_y,15t,15t
-    ;otra parte
-    inc cNave_x
-    mDecVar cNave_y,15t
-    mDrawFila cNave_x,cNave_y,15t,15t
+    mDecVar cNave_y,12t
+    mDrawFila cNave_x,cNave_y,15t,13t
+
     ;otra parte 
     inc cNave_x
-    mDecVar cNave_y,16t
-    mDrawFila cNave_x,cNave_y,15t,3t 
-    inc cNave_y
+    mDecVar cNave_y,13t
+    mDrawFila cNave_x,cNave_y,15t,2t 
     inc cNave_y
     mDrawFila cNave_x,cNave_y,15t,7t 
     inc cNave_y
-    inc cNave_y
-    mDrawFila cNave_x,cNave_y,15t,3t 
+    mDrawFila cNave_x,cNave_y,15t,2t 
+
     ;OTRA PARTE 
     inc cNave_x
-    mDecVar cNave_y,18t
-    mDrawFila cNave_x,cNave_y,15t,3t 
-    inc cNave_y
+    mDecVar cNave_y,14t
+    mDrawFila cNave_x,cNave_y,15t,2t 
     inc cNave_y
     inc cNave_y
     mDrawFila cNave_x,cNave_y,39t,2t 
@@ -808,13 +816,71 @@ pDrawNave proc
     mDrawFila cNave_x,cNave_y,39t,2t 
     inc cNave_y
     inc cNave_y
+    mDrawFila cNave_x,cNave_y,15t,2t
+    ;11 filas 
+    inc cNave_x
+    mDecVar cNave_y,11t 
+    mDrawFila cNave_x,cNave_y,39t,2t 
     inc cNave_y
-    mDrawFila cNave_x,cNave_y,15t,3t
+    inc cNave_y
+    inc cNave_y
+    mDrawFila cNave_x,cNave_y,39t,2t
+
+
     mov cNave_x,ax
     mov cNave_y,bx
     pop bx
     pop ax 
     ret 
 pDrawNave endp 
+
+pDrawNaveBorr proc
+    push ax
+    push cx 
+    ;12 filas x 15 columnas
+    MovVariablesDw borrx, cNave_x
+    MovVariablesDw borry, cNave_y
+    mDecVar borry,8t
+    mov ax, borry
+    mov cx,12t
+    ciclo:
+        mDrawFila borrx,borry,00,17t
+        mov borry,ax 
+        inc borrx 
+        loop ciclo 
+    pop cx 
+    pop ax 
+    ret
+pDrawNaveBorr endp
+
+pMovNave proc
+    push ax 
+    xor ax,ax 
+    mov ah,01 ;existe pulsascion o no?
+    int 16h
+    jz salir ; no hay pulsacion, salir 
+    mov ah, 00  ;Espera a que se presione una tecla y la lee
+    int 16h
+    cmp al,"a"
+    je movIzquierda
+    cmp al,"A"
+    je movIzquierda
+    cmp al, "d"
+    je movDerecha
+    cmp al, "D"
+    je movDerecha
+    movIzquierda:
+    cmp cNave_y,132t
+    jb salir 
+    dec cNave_y
+    jmp salir 
+    movDerecha:
+    cmp cNave_y,310t
+    ja salir 
+    inc cNave_y    
+    salir: 
+    pop ax 
+    ret 
+pMovNave endp 
 
 END start 
