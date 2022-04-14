@@ -161,15 +161,33 @@ mVariables macro
     eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
 
     ;JUEGO
-    cNave_x dw 0
-    cNave_y dw 0
-    ce1_x dw 0
-    ce1_y dw 0
-    ce2_x dw 0
-    ce2_y dw 0
-    ce3_x dw 0
-    ce3_y dw 0
-
+        ;NAVE
+            cNave_x dw 0
+            cNave_y dw 0
+        ;ENEMIGOS
+            ce1_x dw 0
+            ce1_y dw 0
+            auxE1x dw 0
+            auxE1y dw 0
+            ce2_x dw 0
+            ce2_y dw 0
+            auxE2x dw 0
+            auxE2y dw 0
+            ce3_x dw 0
+            ce3_y dw 0
+            auxE3x dw 0
+            auxE3y dw 0
+            auxfpsT db 0
+        ;RECTANGULOS
+            cordx dw 0
+            cordy dw 0
+            ancho dw 0
+            alto dw 0
+        ;BORRADOR MOVIMIENTO
+            borrx dw 0
+            xBaux dw 0
+            borry dw 0
+            yBaux dw 0
 endm 
 
 mFlujoProyecto2 macro
@@ -1086,6 +1104,14 @@ mRestadb macro var1,var2
     mov var1, al
     pop ax 
 endm 
+mRestaDw macro var1,var2
+    push ax 
+    xor ax,ax 
+    mov ax, var1 
+    sub ax, var2
+    mov var1, ax
+    pop ax 
+endm 
 ;Multiplicacion
 mMultiplicacion macro var1,var2
     push ax
@@ -1367,5 +1393,57 @@ mDrawFila macro fila,column,color,nveces
         mDrawPixel fila,column,color 
         inc column 
         loop c1 
+    pop cx 
+endm 
+
+mDrawRectangulo macro x,y,ancho,alto,color 
+    local lineasup,barraslat,lineainf
+    push cx 
+    push bx 
+    xor cx,cx
+    mov bx,cx 
+    xor bx,bx
+    xor cx,cx 
+    mov bx,y  ;auxiliar que tendra almacenada la variable y 
+    mov cordx,x
+    mov cordy,y 
+
+    mov cx,ancho 
+    lineasup: ;se grafica la linea superior, imprimiendo y aumentando las columnas para generar una linea
+        mDrawPixel cordx,cordy,color 
+        inc cordy
+        loop lineasup
+    mov cordy,bx ; se regresa cordy a su valor original
+    inc cordx ;se pasa a la siguiente fila 
+    mov cx,alto ; se hara el siguiente procedimiento hasta que se cumpla el alto establecido 
+    barraslat: ;se grafican las barras laterales 
+        mDrawPixel cordx,cordy,color 
+        mSumarDw cordy,ancho
+        dec cordy
+        mDrawPixel cordx,cordy,color 
+        mov cordy,bx ;una vez hecho las dos impresiones siempre volver al valor original 
+        inc cordx
+        loop barraslat
+    mov cx,ancho
+    lineainf: 
+        mDrawPixel cordx,cordy,color 
+        inc cordy
+        loop lineainf
+    mov cordx,0
+    mov cordy,0
+    pop bx 
+    pop cx 
+endm 
+;MACRO PARA BORRAR DESPLAZAMIENTOS
+mDrawBdesp macro x,y
+    local ciclodesp
+    push cx
+    mov cx,6
+    ciclodesp:
+        mDrawFila x,y,0t,7
+        mIncVar y,24t
+        loop ciclodesp
+    mDrawFila x,y,0t,7
+    mDecVar y,199t
     pop cx 
 endm 
