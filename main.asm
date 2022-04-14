@@ -424,8 +424,9 @@ pGame proc
     mDrawRectangulo 1t,121t,200t,198t,1t
     ;mDrawPixel 100t,160t,10t
     call pDrawNave
+    ;call pFilaEborrado
     call pMovimientoGame
-    
+    ;call pDrawEborrado
     ;call pFilaEnemigo1
     ;call pFilaEnemigo2
     ;call pFilaEnemigo3
@@ -438,20 +439,23 @@ pGame endp
 
 pMovimientoGame proc
     mov auxfpsT,0
+    reset: 
     mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ce1_y,142t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL
+    call pFilaEnemigo1  
     fps:
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-    call pFilaEnemigo1
     MovVariablesDw borrx,ce1_x
-    mRestadW borrx,8
-    MovVariablesDw borry,138t
-    mDrawBdesp borrx,borry
+    MovVariablesDw borry,ce1_y
+    call pFilaEborrado 
     inc ce1_x
+    cmp ce1_x, 170t
+    ja reset 
+    call pFilaEnemigo1  
     jmp fps 
     ret 
 pMovimientoGame endp 
@@ -467,7 +471,7 @@ pFilaEnemigo1 proc
     MovVariablesDw auxE1x,ce1_x ;aux para reestablecer el valor de la fila escogida 
     filaE:
         call pDrawEnemigo1
-        mIncVar ce1_y,26t
+        mIncVar ce1_y,28t
         MovVariablesDw ce1_x,auxE1x ;para escribir todos los enemigos 1 en la misma linea 
         loop filaE
     MovVariablesDw ce1_y,auxE1y;para escribir cada elemento en la misma columna 
@@ -484,7 +488,7 @@ pFilaEnemigo2 proc
     MovVariablesDw auxE2x,ce2_x ;aux para reestablecer el valor de la fila escogida 
     filaE:
         call pDrawEnemigo2
-        mIncVar ce2_y,26t
+        mIncVar ce2_y,28t
         MovVariablesDw ce2_x,auxE2x ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
     MovVariablesDw ce2_y, auxE2y
@@ -501,7 +505,7 @@ pFilaEnemigo3 proc
     MovVariablesDw auxE3x,ce3_x ;aux para reestablecer el valor de la fila escogida 
     filaE:
         call pDrawEnemigo3
-        mIncVar ce3_y,25t
+        mIncVar ce3_y,28t
         MovVariablesDw ce3_x, auxE3x ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
     MovVariablesDw ce3_y, auxE3y
@@ -509,8 +513,33 @@ pFilaEnemigo3 proc
     ret 
 pFilaEnemigo3 endp 
 
+pFilaEborrado proc
+    push cx
+    push ax
+    push bx 
+    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
+    ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ax, borrx ;aux para reestablecer el valor de la fila escogida 
+    mov bx, borry 
+    filaE:
+        call pDrawEborrado
+        mIncVar borry,28t
+        MovVariablesDw borrx, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    MovVariablesDw borry, bx 
+    pop bx
+    pop ax 
+    pop cx 
+    ret 
+pFilaEborrado endp 
+
 pDrawEnemigo1 proc
     ;punta sur del enemigo
+    push ax
+    push bx
+    mov ax, ce1_x
+    mov bx, ce1_y
     mDecVar ce1_y,4
     mDrawPixel ce1_x,ce1_y,01
     mIncVar ce1_y,6
@@ -558,10 +587,19 @@ pDrawEnemigo1 proc
     mDrawPixel ce1_x,ce1_y,01
     mIncVar ce1_y,4
     mDrawPixel ce1_x,ce1_y,01
+    mov ce1_x,ax
+    mov ce1_y,bx
+    pop ax
+    pop bx
+    
     ret 
 pDrawEnemigo1 endp 
 
 pDrawEnemigo2 proc 
+    push ax
+    push bx
+    mov ax, ce2_x
+    mov bx, ce2_y
 
     ;parte sur del enemigo
     mDecVar ce2_y,3
@@ -617,11 +655,18 @@ pDrawEnemigo2 proc
     inc ce2_y
     inc ce2_y
     mDrawPixel ce2_x,ce2_y,2t
+    mov ce2_x,ax
+    mov ce2_y,bx
+    pop ax
+    pop bx
     ret 
 pDrawEnemigo2 endp
 
 pDrawEnemigo3 proc
-
+    push ax
+    push bx
+    mov ax, ce3_x
+    mov bx, ce3_y
     ;punta sur del enemigo
     dec ce3_y
     mDrawFila ce3_x,ce3_y,44t,2t 
@@ -667,25 +712,41 @@ pDrawEnemigo3 proc
     mDrawPixel ce3_x,ce3_y,44t
     mIncVar ce3_y, 5t
     mDrawPixel ce3_x,ce3_y,44t
+    mov ce3_x,ax
+    mov ce3_y,bx
+    pop ax
+    pop bx
     ret 
 pDrawEnemigo3 endp 
 
 pDrawEborrado proc
     push cx
+    push ax
+    push bx 
     mov cx, 8
     mov ax, borrx
+    mov bx, borry 
     figuraB:
-        ;mDrawFila borrx,borry,0t,8     
-        inc borrx
-    mov borrx,ax 
+        mDecVar borry,4t 
+        mDrawFila borrx,borry,0t,8     
+        mov borry, bx 
+        dec borrx
+        loop figuraB
+    mov borrx,ax
+
+    pop bx
+    pop ax
     pop cx 
     ret
 pDrawEborrado endp 
 
 pDrawNave proc
-    push cx 
+    push ax
+    push bx 
     mov cNave_x,180t
     mov cNave_y,220t
+    mov ax,cNave_x
+    mov bx, cNave_y
     ;CAÑON PRINCIPAL 
     mDrawPixel cNave_x,cNave_y,39t
     inc cNave_x 
@@ -749,7 +810,10 @@ pDrawNave proc
     inc cNave_y
     inc cNave_y
     mDrawFila cNave_x,cNave_y,15t,3t
-    pop cx 
+    mov cNave_x,ax
+    mov cNave_y,bx
+    pop bx
+    pop ax 
     ret 
 pDrawNave endp 
 
