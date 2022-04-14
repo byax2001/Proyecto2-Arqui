@@ -183,7 +183,16 @@ mVariables macro
             cordy dw 0
             ancho dw 0
             alto dw 0
-        ;BORRADOR MOVIMIENTO
+        ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 1
+            borrE1x dw 0
+            borrE1y dw 0
+        ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 2
+            borrE2x dw 0
+            borrE2y dw 0
+        ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 3
+            borrE3x dw 0
+            borrE3y dw 0
+        ;BORRADOR MOVIMIENTO PARA NAVE 
             borrx dw 0
             borry dw 0
         ;BALAS 
