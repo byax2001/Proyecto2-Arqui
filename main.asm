@@ -422,11 +422,11 @@ pGame proc
     mDrawRectangulo 1t,1t,120t,130t,1t
     mDrawRectangulo 132t,1,120t,67t,1t
     mDrawRectangulo 1t,121t,200t,198t,1t
-    call pFilaEnemigo1
-    call pFilaEnemigo2
-    call pFilaEnemigo3
+    ;call pFilaEnemigo1
+    ;call pFilaEnemigo2
+    ;call pFilaEnemigo3
     ;call pDrawEnemigo1
-    call pDrawEnemigo2
+    ;call pDrawEnemigo2
     ;mDrawPixel 100t,160t,10t
     ;call pDrawNave
     ;call pFilaEborrado
@@ -448,7 +448,7 @@ pMovimientoGame proc
     ;nave
     mov cNave_x,185t
     mov cNave_y,220t
-    mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_x,20t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
 
     fps:
@@ -467,6 +467,7 @@ pMovimientoGame proc
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
+    call pMovEnemigo1
     cmp estD1,0
     je sinAccion
     movBala1: 
@@ -744,15 +745,15 @@ pDrawEborrado proc
     push ax
     push dx 
     mov cx, 8
-    mov ax, borrx
-    mov dx, borry 
+    mov ax, borrE1x
+    mov dx, borrE1y 
     figuraB:
-        mDecVar borry,4t 
-        mDrawFila borrx,borry,0t,8     
-        mov borry, dx 
-        dec borrx
+        mDecVar borrE1y,5t 
+        mDrawFila borrE1x,borrE1y,0t,8     
+        mov borrE1y, dx 
+        dec borrE1x
         loop figuraB
-    mov borrx,dx
+    mov borrE1x,dx
 
     pop dx
     pop ax
@@ -956,10 +957,16 @@ pMovbala proc
 pMovbala endp  
 
 pMovEnemigo1 proc
-
-
-
-pMovEnemigo1 proc 
+    movVariablesDw borrE1x,ce1_x
+    movVariablesDw borrE1y,ce1_y
+    call pFilaE1borrado 
+    cmp ce1_x, 196t
+    ja salir 
+    inc ce1_x
+    call pFilaEnemigo1
+    salir: 
+    ret
+pMovEnemigo1 endp 
 
 pBorrarbala1 proc
     

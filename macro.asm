@@ -1456,15 +1456,43 @@ mDrawRectangulo macro x,y,ancho,alto,color
     pop cx 
 endm 
 ;MACRO PARA BORRAR DESPLAZAMIENTOS
-mDrawBdesp macro x,y
-    local ciclodesp
+mDrawBfila macro x,y
+    local filaE
     push cx
-    mov cx,6
-    ciclodesp:
-        mDrawFila x,y,0t,7
-        mIncVar y,24t
-        loop ciclodesp
-    mDrawFila x,y,0t,7
-    mDecVar y,199t
+    push ax
+    push dx 
+    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
+    ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ax, x ;aux para reestablecer el valor de la fila escogida 
+    mov dx, y
+    filaE:
+        mDrawEborrado x,y 
+        mIncVar borrE1y,28t
+        MovVariablesDw x, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    MovVariablesDw y, dx 
+    pop dx
+    pop ax 
+    pop cx 
+endm 
+
+mDrawEborrado macro  x,y 
+    local figuraB
+    push cx
+    push ax
+    push dx 
+    mov cx, 8
+    mov ax, x
+    mov dx, y
+    figuraB:
+        mDecVar y,5t 
+        mDrawFila x,y,0t,8     
+        mov y, dx 
+        dec x
+        loop figuraB
+    mov x,dx
+    pop dx
+    pop ax
     pop cx 
 endm 
