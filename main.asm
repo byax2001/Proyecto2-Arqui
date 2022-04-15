@@ -422,15 +422,7 @@ pGame proc
     mDrawRectangulo 1t,1t,120t,130t,1t
     mDrawRectangulo 132t,1t,120t,67t,1t
     mDrawRectangulo 1t,121t,200t,198t,1t
-
-    ;call pFilaEnemigo1
-    ;call pFilaEnemigo2
-    ;call pFilaEnemigo3
-    ;call pDrawEnemigo1
-    ;call pDrawEnemigo2
-    ;mDrawPixel 100t,160t,10t
-    ;call pDrawNave
-    ;call pFilaEborrado
+    
     call pMovimientoGame
     ;call pDrawEborrado
     
@@ -443,14 +435,21 @@ pGame endp
 pMovimientoGame proc
     mov auxfpsT,0
     reset: 
-    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce1_y,142t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL
-    ;call pFilaEnemigo1  
-    ;nave
+    mImprimirLetreros Usergame,1t,1t,9t
+    mImprimirLetreros Leveltitle,4t,1t,9t
+    mImprimirLetreros Scoregame,7t,1t,9t
+    mImprimirLetreros Timegame,10t,1t,9t
+    mImprimirLetreros Livesgame,13t,1t,9t
+    mImprimirLetreros PressSpace,18t,1t,9t
+    mImprimirLetreros toStartG,20t,1t,9t
     mov cNave_x,185t
     mov cNave_y,220t
-    mov ce1_x,20t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce1_x,20t  
+    mov ce1_y,140t   
+    mov ce2_x,20t   
+    mov ce2_y,140t   
+    mov ce3_x,20t 
+    mov ce3_y,140t 
     mov estEnem,1 
     fps:
         mov ah,2Ch
@@ -458,24 +457,27 @@ pMovimientoGame proc
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-    ;MovVariablesDw borrx,ce1_x
-    ;MovVariablesDw borry,ce1_y
-    ;call pFilaEborrado 
-    ;inc ce1_x
-    ;cmp ce1_x, 170t
-    ;ja reset 
-    ;call pFilaEnemigo1  
+    ;MOVIMIENTOS 
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
+    
     ;MOVIMIENTO DE ENEMIGO  
     cmp estEnem,1
     jne NoDespenemigos1
     DespEnemigos1:
         call pMovEnemigo1
     NoDespenemigos1:
-    
-
+    cmp estEnem,2
+    jne NoDespenemigos2
+    DespEnemigos2:
+        call pMovEnemigo2
+    NoDespenemigos2:
+    cmp estEnem,3
+    jne NoDespenemigos3
+    DespEnemigos3:
+        call pMovEnemigo3
+    NoDespenemigos3:
     ;MOVIMIENTO DE BALAS
     cmp estD1,0
     je sinAccion
@@ -492,6 +494,8 @@ pFilaEnemigo1 proc
     push dx 
     push cx
     mov cx, 7
+    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov dx,ce1_y  
     mov ax,ce1_x
     filaE:
@@ -573,11 +577,11 @@ pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
     push dx
-    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_x,30t   
+    ;mov ce1_y,140t  
     mov ax, ce1_x
     mov dx, ce1_y
-    mDecVar ce1_y,5
+    mDecVar ce1_y,4
     mDrawPixel ce1_x,ce1_y,01
     mIncVar ce1_y,7
     mDrawPixel ce1_x,ce1_y,01
@@ -636,6 +640,8 @@ pDrawEnemigo1 endp
 pDrawEnemigo2 proc 
     push ax
     push dx
+    ;mov ce2_x,40t 
+    ;mov ce2_y,140t   
     mov ax, ce2_x
     mov dx, ce2_y
     ;parte sur del enemigo
@@ -707,6 +713,8 @@ pDrawEnemigo2 endp
 pDrawEnemigo3 proc
     push ax
     push dx
+    ;mov ce3_x,50t  
+    ;mov ce3_y,140t   
     mov ax, ce3_x
     mov dx, ce3_y
     ;punta sur del enemigo
@@ -988,10 +996,43 @@ pMovEnemigo1 proc
     call pFilaEnemigo1
     jmp salir 
     finMov: 
-        mov estEnem,0
+        mov estEnem,2
     salir: 
     ret
 pMovEnemigo1 endp 
+
+pMovEnemigo2 proc
+    movVariablesDw borrE2x ,ce2_x
+    movVariablesDw borrE2y,ce2_y
+    mDrawBfila borrE2x , borrE2y 
+    ;call pFilaE1borrado 
+    cmp ce2_x, 196t
+    ja finMov 
+    inc ce2_x
+    call pFilaEnemigo2
+    jmp salir 
+    finMov: 
+        mov estEnem,3
+    salir: 
+    ret
+pMovEnemigo2 endp 
+
+pMovEnemigo3 proc
+    movVariablesDw borrE3x ,ce3_x
+    movVariablesDw borrE3y,ce3_y
+    mDrawBfila borrE3x , borrE3y 
+    ;call pFilaE1borrado 
+    cmp ce3_x, 196t
+    ja finMov 
+    inc ce3_x
+    call pFilaEnemigo3
+    jmp salir 
+    finMov: 
+        mov estEnem,0
+    salir: 
+    ret
+pMovEnemigo3 endp 
+
 
 pBorrarbala1 proc
     

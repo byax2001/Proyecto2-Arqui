@@ -98,7 +98,7 @@ mVariables macro
         enrango db 0
         eerror db 0
         contadoraux db 0
-       
+        
 
         RUSucces db "Registro exitoso",0A,"$"
             ;MENSAJE SUCCES
@@ -162,6 +162,15 @@ mVariables macro
 
     ;JUEGO
         auxfpsT db 0
+        ;MENSAJES
+            Usergame db "Username:"
+            Leveltitle db "Level:"
+            Scoregame db "Score:"
+            Timegame db "Time:"
+            Livesgame db "Lives:"
+            PressSpace db "Press space"
+            toStartG  db "to Start"
+
         ;NAVE
             cNave_x dw 0
             cNave_y dw 0
@@ -1488,7 +1497,7 @@ mDrawEborrado macro  x,y
     mov ax, x
     mov dx, y
     figuraB:
-        mDecVar y,5t 
+        mDecVar y,4t 
         mDrawFila x,y,0t,8     
         mov y, dx 
         dec x
@@ -1497,4 +1506,26 @@ mDrawEborrado macro  x,y
     pop dx
     pop ax
     pop cx 
+endm 
+;IMPRIME STRINGS CON COLOR EN UNA POSICION INDICADA 
+mImprimirLetreros macro letrero,fila,columna,color 
+    push ax
+    push bx
+    push cx 
+    xor ax, ax
+    xor bx, bx
+    xor cx, cx 
+    mov al,1   ;MODO DE IMPRESION CON COLOR (1), SIN COLO(0)
+    mov bh,0   ;PAGINA 
+    mov bl,color  ;COLOR  (PALETA VGA 1t-255t)
+    mov cx, LENGTHOF letrero ;tamaño del letrero 
+    ;columna,fila
+    mov dh,fila ;fila 
+    mov dl,columna ;columna 
+    mov bp, offset letrero 
+    mov ah, 13h
+	int 10h
+    pop cx
+    pop bx 
+    pop ax 
 endm 
