@@ -167,17 +167,11 @@ mVariables macro
             cNave_y dw 0
         ;ENEMIGOS
             ce1_x dw 0
-            ce1_y dw 0
-            auxE1x dw 0
-            auxE1y dw 0
+            ce1_y dw 0  
             ce2_x dw 0
-            ce2_y dw 0
-            auxE2x dw 0
-            auxE2y dw 0
+            ce2_y dw 0   
             ce3_x dw 0
-            ce3_y dw 0
-            auxE3x dw 0
-            auxE3y dw 0 
+            ce3_y dw 0  
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
@@ -209,6 +203,8 @@ mVariables macro
             estD1 db 0
             estD2 db 0
             estD3 db 0
+        ;ESTADO DE APARICION DE ENEMIGOS
+            estEnem db 0
 endm 
 
 mFlujoProyecto2 macro
@@ -1366,9 +1362,10 @@ mDrawPixel macro line,column,color
     push dx 
     push si 
     xor ax,ax
-    mov bx,ax
-    mov dx,ax
-    mov si,ax 
+    xor bx,bx 
+    xor dx,dx
+    xor si,si 
+   
     ;formula para pintar un pixel de la matriz video = ((linea-1) * 320) + (columna-1) 
     mov ax,line
     dec ax 
@@ -1422,9 +1419,7 @@ mDrawRectangulo macro x,y,ancho,alto,color
     push cx 
     push bx 
     xor cx,cx
-    mov bx,cx 
     xor bx,bx
-    xor cx,cx 
     mov bx,y  ;auxiliar que tendra almacenada la variable y 
     mov cordx,x
     mov cordy,y 
@@ -1436,6 +1431,7 @@ mDrawRectangulo macro x,y,ancho,alto,color
         loop lineasup
     mov cordy,bx ; se regresa cordy a su valor original
     inc cordx ;se pasa a la siguiente fila 
+
     mov cx,alto ; se hara el siguiente procedimiento hasta que se cumpla el alto establecido 
     barraslat: ;se grafican las barras laterales 
         mDrawPixel cordx,cordy,color 
@@ -1461,6 +1457,9 @@ mDrawBfila macro x,y
     push cx
     push ax
     push dx 
+    xor cx,cx 
+    xor ax, ax 
+    xor dx, dx
     mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
     ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
@@ -1468,7 +1467,7 @@ mDrawBfila macro x,y
     mov dx, y
     filaE:
         mDrawEborrado x,y 
-        mIncVar borrE1y,28t
+        mIncVar y,28t
         MovVariablesDw x, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
     MovVariablesDw y, dx 
@@ -1482,6 +1481,9 @@ mDrawEborrado macro  x,y
     push cx
     push ax
     push dx 
+    xor cx,cx 
+    xor ax, ax 
+    xor dx, dx 
     mov cx, 8
     mov ax, x
     mov dx, y

@@ -420,8 +420,9 @@ pGame proc
     ;CUADROS DIVISORES PARA EL JUEGO
                    ;FILA,COLUMNA,ANCHO,ALTO,COLOR
     mDrawRectangulo 1t,1t,120t,130t,1t
-    mDrawRectangulo 132t,1,120t,67t,1t
+    mDrawRectangulo 132t,1t,120t,67t,1t
     mDrawRectangulo 1t,121t,200t,198t,1t
+
     ;call pFilaEnemigo1
     ;call pFilaEnemigo2
     ;call pFilaEnemigo3
@@ -450,7 +451,7 @@ pMovimientoGame proc
     mov cNave_y,220t
     mov ce1_x,20t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-
+    mov estEnem,1 
     fps:
         mov ah,2Ch
         int 21
@@ -467,7 +468,15 @@ pMovimientoGame proc
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
-    call pMovEnemigo1
+    ;MOVIMIENTO DE ENEMIGO  
+    cmp estEnem,1
+    jne NoDespenemigos1
+    DespEnemigos1:
+        call pMovEnemigo1
+    NoDespenemigos1:
+    
+
+    ;MOVIMIENTO DE BALAS
     cmp estD1,0
     je sinAccion
     movBala1: 
@@ -479,51 +488,63 @@ pMovimientoGame proc
 pMovimientoGame endp 
 ;FILAS DE ENEMIGOS---------------------------------------------------------------------------
 pFilaEnemigo1 proc
+    push ax  
+    push dx 
     push cx
     mov cx, 7
-    MovVariablesDw auxE1y,ce1_y
-    MovVariablesDw auxE1x,ce1_x ;aux para reestablecer el valor de la fila escogida 
+    mov dx,ce1_y  
+    mov ax,ce1_x
     filaE:
         call pDrawEnemigo1
         mIncVar ce1_y,28t
-        MovVariablesDw ce1_x,auxE1x ;para escribir todos los enemigos 1 en la misma linea 
+        mov ce1_x,ax ;para escribir todos los enemigos 1 en la misma linea 
         loop filaE
-    MovVariablesDw ce1_y,auxE1y;para escribir cada elemento en la misma columna 
+    mov ce1_y,dx;para escribir cada elemento en la misma columna 
     pop cx 
+    pop dx 
+    pop ax 
     ret 
 pFilaEnemigo1 endp 
 
 pFilaEnemigo2 proc
+    push ax  
+    push dx 
     push cx
     mov cx, 7
-    mov ce2_x,60t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce2_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    MovVariablesDw auxE2y,ce2_y
-    MovVariablesDw auxE2x,ce2_x ;aux para reestablecer el valor de la fila escogida 
+    ;mov ce2_x,60t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce2_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx,ce2_y  
+    mov ax,ce2_x
     filaE:
         call pDrawEnemigo2
         mIncVar ce2_y,28t
-        MovVariablesDw ce2_x,auxE2x ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        mov ce2_x,ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
-    MovVariablesDw ce2_y, auxE2y
+    mov ce2_y, dx
     pop cx 
+    pop dx 
+    pop ax 
     ret 
 pFilaEnemigo2 endp 
 
 pFilaEnemigo3 proc
+    push ax  
+    push dx 
     push cx
     mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
-    mov ce3_x,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce3_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    MovVariablesDw auxE3y,ce3_y
-    MovVariablesDw auxE3x,ce3_x ;aux para reestablecer el valor de la fila escogida 
+    ;mov ce3_x,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce3_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx, ce3_y
+    mov ax, ce3_x
     filaE:
         call pDrawEnemigo3
         mIncVar ce3_y,28t
-        MovVariablesDw ce3_x, auxE3x ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        mov ce3_x, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
         loop filaE
-    MovVariablesDw ce3_y, auxE3y
+    mov ce3_y, dx 
     pop cx 
+    pop dx 
+    pop ax 
     ret 
 pFilaEnemigo3 endp 
 
@@ -959,11 +980,15 @@ pMovbala endp
 pMovEnemigo1 proc
     movVariablesDw borrE1x,ce1_x
     movVariablesDw borrE1y,ce1_y
-    call pFilaE1borrado 
+    mDrawBfila borrE1x , borrE1y 
+    ;call pFilaE1borrado 
     cmp ce1_x, 196t
-    ja salir 
+    ja finMov 
     inc ce1_x
     call pFilaEnemigo1
+    jmp salir 
+    finMov: 
+        mov estEnem,0
     salir: 
     ret
 pMovEnemigo1 endp 
