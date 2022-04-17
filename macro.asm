@@ -1531,10 +1531,10 @@ mDrawEborrado macro  x,y
 endm 
 ;IMPRIME STRINGS CON COLOR EN UNA POSICION INDICADA 
 mImprimirLetreros macro letrero,fila,columna,color
-  
     push ax
     push bx
-    push cx 
+    push cx
+    push dx  
     mov al,1   ;MODO DE IMPRESION CON COLOR (1), SIN COLO(0)
     mov bh,0   ;PAGINA 
     mov bl,color  ;COLOR  (PALETA VGA 1t-255t)
@@ -1546,14 +1546,11 @@ mImprimirLetreros macro letrero,fila,columna,color
     mov bp,offset letrero 
     mov ah,13h
 	int 10h
-    
     call pMemVideoMode;SE VUELVE A COLOCAR LA MEMORIA DE VIDEO EN ES 
     pop dx 
     pop cx
     pop bx 
     pop ax 
-
-   
 endm 
 
 mRestartLifeEnemy macro 
