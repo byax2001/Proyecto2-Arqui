@@ -181,6 +181,30 @@ mVariables macro
             ce2_y dw 0   
             ce3_x dw 0
             ce3_y dw 0  
+        ;VIDA DE ENEMIGOS TIPO 1
+            elife11 db 0
+            elife12 db 0
+            elife13 db 0
+            elife14 db 0
+            elife15 db 0
+            elife16 db 0
+            elife17 db 0
+        ;VIDA DE ENEMIGOS TIPO 1
+            elife21 db 0
+            elife22 db 0
+            elife23 db 0
+            elife24 db 0
+            elife25 db 0
+            elife26 db 0
+            elife27 db 0
+        ;VIDA DE ENEMIGOS TIPO 1
+            elife31 db 0
+            elife32 db 0
+            elife33 db 0
+            elife34 db 0
+            elife35 db 0
+            elife36 db 0
+            elife37 db 0
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
@@ -1339,7 +1363,6 @@ Delayt macro tiempo
     int 21h
     mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
     ciclodelay:
-        xor ax,ax
         mov dx,ax 
         mov ah,2Ch
         int 21h
@@ -1386,7 +1409,7 @@ mDrawPixel macro line,column,color
 
     mov si, ax 
     mov bl,color 
-    mov [si],bl
+    mov es:[si],bl
 
     pop si
     pop dx
@@ -1490,7 +1513,6 @@ mDrawEborrado macro  x,y
     push cx
     push ax
     push dx 
-    xor cx,cx 
     xor ax, ax 
     xor dx, dx 
     mov cx, 8
@@ -1508,24 +1530,56 @@ mDrawEborrado macro  x,y
     pop cx 
 endm 
 ;IMPRIME STRINGS CON COLOR EN UNA POSICION INDICADA 
-mImprimirLetreros macro letrero,fila,columna,color 
+mImprimirLetreros macro letrero,fila,columna,color
+  
     push ax
     push bx
     push cx 
-    xor ax, ax
-    xor bx, bx
-    xor cx, cx 
+    call pDataS_ES;COLOCAR EL SEGMENTO DE DATOS EN ES 
     mov al,1   ;MODO DE IMPRESION CON COLOR (1), SIN COLO(0)
     mov bh,0   ;PAGINA 
     mov bl,color  ;COLOR  (PALETA VGA 1t-255t)
-    mov cx, LENGTHOF letrero ;tamaño del letrero 
-    ;columna,fila
-    mov dh,fila ;fila 
+    mov cx,LENGTHOF letrero ;tamaño del letrero 
     mov dl,columna ;columna 
-    mov bp, offset letrero 
-    mov ah, 13h
+    mov dh,fila ;fila 
+    push ds
+    pop es 
+    mov bp,offset letrero 
+    mov ah,13h
 	int 10h
+    
+    call pMemVideoMode;COLOCAR LA MEMORIA DE VIDEO EN ES 
+    pop dx 
     pop cx
     pop bx 
     pop ax 
+
+   
 endm 
+
+mRestartLifeEnemy macro 
+    ;VIDA DE ENEMIGOS TIPO 1
+    mov elife11,1
+    mov elife12,1
+    mov elife13,1
+    mov elife14,1
+    mov elife15,1
+    mov elife16,1
+    mov elife17,1
+    ;VIDA DE ENEMIGOS TIPO 2
+    mov elife21,1
+    mov elife22,1
+    mov elife23,1
+    mov elife24,1
+    mov elife25,1
+    mov elife26,1
+    mov elife27,1
+    ;VIDA DE ENEMIGOS TIPO 3
+    mov elife31,1
+    mov elife32,1
+    mov elife33,1
+    mov elife34,1
+    mov elife35,1
+    mov elife36,1
+    mov elife37,1
+endm
