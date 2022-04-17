@@ -1535,20 +1535,19 @@ mImprimirLetreros macro letrero,fila,columna,color
     push ax
     push bx
     push cx 
-    call pDataS_ES;COLOCAR EL SEGMENTO DE DATOS EN ES 
     mov al,1   ;MODO DE IMPRESION CON COLOR (1), SIN COLO(0)
     mov bh,0   ;PAGINA 
     mov bl,color  ;COLOR  (PALETA VGA 1t-255t)
     mov cx,LENGTHOF letrero ;tamaño del letrero 
     mov dl,columna ;columna 
     mov dh,fila ;fila 
-    push ds
-    pop es 
+    push ds  ;meto el valor de ds a la pila (que contiene el data segment)
+    pop es  ;dicho valor se saca de la pila y se asigna a "es" 
     mov bp,offset letrero 
     mov ah,13h
 	int 10h
     
-    call pMemVideoMode;COLOCAR LA MEMORIA DE VIDEO EN ES 
+    call pMemVideoMode;SE VUELVE A COLOCAR LA MEMORIA DE VIDEO EN ES 
     pop dx 
     pop cx
     pop bx 
