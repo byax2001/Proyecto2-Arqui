@@ -238,19 +238,22 @@ mVariables macro
             estD3 db 0
         ;ESTADO DE APARICION DE ENEMIGOS
             estEnem db 0
+        ;MINUTOS SEGUNDOS Y CENTISEGUNDOS
+            mingame db 4 dup (0)
 endm 
 
 mFlujoProyecto2 macro
     call pAjustarMemoria
-        ;call pBaseDatos
-        ;call pLimpiarConsola
-        ;MmMostrarString mensajeI
-         ;apartado de espera de un enter----------------------
-         ;   call pEspEnter
-        ;---------------------------------------------------
-        ;call pLimpiarConsola
-        ;mFlujoMenu  COMENTADO POR EL MOMENTO
         call pGame
+        call pBaseDatos
+        call pLimpiarConsola
+        mMostrarString mensajeI
+         ;apartado de espera de un enter----------------------
+            call pEspEnter
+        ;---------------------------------------------------
+        call pLimpiarConsola
+        mFlujoMenu 
+        
         
     call pRetControl
 endm 
@@ -261,7 +264,7 @@ mFlujoMenu macro
         mov opcion,0
         mMostrarString Menu
         ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-        ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+        ; para que los reconozca por tal motivo s   e hizo esto dos veces para que se pudiera a trapar el valor de Fn
         mov ah,01
         int 21
         mov ah,01  ;atrapa la tecla fn 
@@ -1484,28 +1487,66 @@ mDrawRectangulo macro x,y,ancho,alto,color
     pop cx 
 endm 
 ;MACRO PARA BORRAR DESPLAZAMIENTOS
-mDrawBfila macro x,y
+;E1l life enemigo 1, si sigue vivo imprimir su limpiador de movimiento tambien 
+mDrawBfila macro x,y,E1,E2,E3,E4,E5,E6,E7 
     local filaE
-    push cx
     push ax
     push dx 
-    xor cx,cx 
     xor ax, ax 
     xor dx, dx
-    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
-    ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     mov ax, x ;aux para reestablecer el valor de la fila escogida 
     mov dx, y
-    filaE:
+    ;DIBUJAR NAVE 1
+        cmp E1,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo1
         mDrawEborrado x,y 
-        mIncVar y,28t
-        MovVariablesDw x, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-        loop filaE
-    MovVariablesDw y, dx 
+        mov x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo1:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 2
+        cmp E2,1 ;saber si esta vivo si no,no graficar 
+        jne Enovivo2
+        mDrawEborrado x,y 
+        mov x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo2:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 3
+        cmp E3,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo3
+        mDrawEborrado x,y 
+        mov x,ax ;volver a la fila original para graficar otro ahi mismo 
+        Enovivo3:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 4
+        cmp E4,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo4
+        mDrawEborrado x,y 
+        mov x,ax;volver a la fila original para graficar otro ahi mismo 
+        Enovivo4:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 5
+        cmp E5,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo5
+        mDrawEborrado x,y 
+        mov x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo5:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 6
+        cmp E6,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo6
+        mDrawEborrado x,y 
+        mov x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo6:
+        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 7
+        cmp E7,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo7
+        mDrawEborrado x,y 
+        mov x,ax ;volver a la fila original 
+        Enovivo7:
+    mov y, dx 
     pop dx
     pop ax 
-    pop cx 
 endm 
 
 mDrawEborrado macro  x,y 
@@ -1520,7 +1561,7 @@ mDrawEborrado macro  x,y
     mov dx, y
     figuraB:
         mDecVar y,4t 
-        mDrawFila x,y,0t,8     
+        mDrawFila x,y,0t,8t     
         mov y, dx 
         dec x
         loop figuraB
@@ -1529,6 +1570,7 @@ mDrawEborrado macro  x,y
     pop ax
     pop cx 
 endm 
+
 ;IMPRIME STRINGS CON COLOR EN UNA POSICION INDICADA 
 mImprimirLetreros macro letrero,fila,columna,color
     push ax
@@ -1541,8 +1583,9 @@ mImprimirLetreros macro letrero,fila,columna,color
     mov cx,LENGTHOF letrero ;tamaño del letrero 
     mov dl,columna ;columna 
     mov dh,fila ;fila 
-    push ds  ;meto el valor de ds a la pila (que contiene el data segment)
-    pop es  ;dicho valor se saca de la pila y se asigna a "es" 
+    call pDataS_ES ;se puede realiar esto o el procedimiento de abajo siempre y cuando ds tenga el valor de @data 
+    ;push ds  ;meto el valor de ds a la pila (que contiene el data segment)
+    ;pop es  ;dicho valor se saca de la pila y se asigna a "es" 
     mov bp,offset letrero 
     mov ah,13h
 	int 10h

@@ -445,7 +445,8 @@ pMovimientoGame proc
     ;RESTAURA LA VIDA DE TODOS LOS ENEMIGOS 
     call pRestartLifeEnemy
     ;LETREROS PRINCIPALES
-    mImprimirLetreros   Usergame,1t,1t,9t
+    mImprimirLetreros Usergame,1t,1t,9t
+    
     mImprimirLetreros Leveltitle,4t,1t,9t
     mImprimirLetreros Scoregame,7t,1t,9t
     mImprimirLetreros Timegame,10t,1t,9t
@@ -472,7 +473,7 @@ pMovimientoGame proc
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
-    
+    mImprimirLetreros mingame,2t,1t,9t 
     ;MOVIMIENTO DE ENEMIGO  
     cmp estEnem,1
     jne NoDespenemigos1
@@ -1085,11 +1086,12 @@ pMovNave proc
         inc cNave_y  
         jmp salir   
     Disparo1:
-        cmp estD1,1 
+        cmp estD1,1t 
         je salir 
         MovVariablesDw bala1x, cNave_x
         mDecVar bala1x,3t 
-        movVariablesDw bala1y, cNave_y
+        movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
+        Num2String cNave_y,mingame; =================================================================00
         mov estD1,1
         jmp salir 
     salir: 
@@ -1103,14 +1105,30 @@ pMovbala proc
     cmp bala1x,2 
     je  finmovimiento
     movnormal:
+
         dec bala1x
+        dec bala1x
+        ;OBTENER EL VALOR DE UN PIXEL 
+        mov cx,bala1y ;column
+        mov dx,bala1x ;fila 
+        mov ah, 0Dh
+        int 10h 
+        cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
+        je finmovimiento
+        cmp al,2t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
+        je finmovimiento
+
         mov dx,bala1x
         call pDrawBala1
         mIncVar bala1x,3t
         mDrawPixel bala1x,bala1y,0t
+        inc bala1x
+        mDrawPixel bala1x,bala1y,0t
         mov bala1x,dx 
         jmp salir 
     finmovimiento:
+        mDrawPixel bala1x,bala1y,0t
+        inc bala1x
         mDrawPixel bala1x,bala1y,0t
         inc bala1x
         mDrawPixel bala1x,bala1y,0t
@@ -1126,7 +1144,8 @@ pMovbala endp
 pMovEnemigo1 proc
     movVariablesDw borrE1x,ce1_x
     movVariablesDw borrE1y,ce1_y
-    mDrawBfila borrE1x , borrE1y 
+    call pFilaEnemigo1
+    mDrawBfila borrE1x , borrE1y,elife11,elife12,elife13,elife14,elife15,elife16,elife17
     ;call pFilaE1borrado 
     cmp ce1_x, 196t
     ja finMov 
@@ -1142,7 +1161,7 @@ pMovEnemigo1 endp
 pMovEnemigo2 proc
     movVariablesDw borrE2x ,ce2_x
     movVariablesDw borrE2y,ce2_y
-    mDrawBfila borrE2x , borrE2y 
+    mDrawBfila borrE2x , borrE2y ,elife21,elife22,elife23,elife24,elife25,elife26,elife27
     ;call pFilaE1borrado 
     cmp ce2_x, 196t
     ja finMov 
@@ -1158,7 +1177,7 @@ pMovEnemigo2 endp
 pMovEnemigo3 proc
     movVariablesDw borrE3x ,ce3_x
     movVariablesDw borrE3y,ce3_y
-    mDrawBfila borrE3x , borrE3y 
+    mDrawBfila borrE3x , borrE3y,elife31,elife32,elife33,elife34,elife35,elife36,elife37 
     ;call pFilaE1borrado 
     cmp ce3_x, 196t
     ja finMov 
