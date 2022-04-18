@@ -1102,38 +1102,41 @@ pMovNave endp
 pMovbala proc
     push ax
     push dx
-    cmp bala1x,2 
+    cmp bala1x,2t
     je  finmovimiento
-    movnormal:
-
-        dec bala1x
-        dec bala1x
+    
+        mov cx,3t
+        movnormal:
+        push cx 
         ;OBTENER EL VALOR DE UN PIXEL 
+        dec bala1x
         mov cx,bala1y ;column
-        mov dx,bala1x ;fila 
+        dec cx 
+        mov dx,bala1x ;fila
         mov ah, 0Dh
         int 10h 
+        cmp al,1t; 
+        je colision
         cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
-        je finmovimiento
+        je colision
         cmp al,2t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
-        je finmovimiento
-
+        je colision
         mov dx,bala1x
         call pDrawBala1
         mIncVar bala1x,3t
         mDrawPixel bala1x,bala1y,0t
-        inc bala1x
-        mDrawPixel bala1x,bala1y,0t
         mov bala1x,dx 
+        pop cx 
+        loop movnormal
         jmp salir 
+    colision: 
+        pop cx 
     finmovimiento:
-        mDrawPixel bala1x,bala1y,0t
-        inc bala1x
-        mDrawPixel bala1x,bala1y,0t
-        inc bala1x
-        mDrawPixel bala1x,bala1y,0t
-        inc bala1x
-        mDrawPixel bala1x,bala1y,0t
+        mov cx, 3 
+        borrarMovBala:
+            mDrawPixel bala1x,bala1y,0t
+            inc bala1x
+            loop borrarMovBala
         mov estD1,0
     salir: 
     pop dx 
