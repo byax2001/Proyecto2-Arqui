@@ -245,7 +245,14 @@ mVariables macro
         ;ESTADO DE APARICION DE ENEMIGOS
             estEnem db 0
         ;MINUTOS SEGUNDOS Y CENTISEGUNDOS
-            mingame db 4 dup (0)
+            mingameS db 4 dup (0)
+            seggameS db 4 dup (0)
+            cengameS db 4 dup (0)
+            dospuntosg db ":"
+            mingameN dw 0
+            seggameN dw 0
+            cengameN dw 0
+
 endm 
 
 mFlujoProyecto2 macro

@@ -441,11 +441,12 @@ pMovimientoGame proc
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
+
+    call pTimeGame
     ;MOVIMIENTOS DE LA NAVE 
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
-    mImprimirLetreros mingame,2t,1t,9t 
     ;MOVIMIENTO DE ENEMIGO  
     cmp estEnem,1 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 1 
     jne NoDespenemigos1
@@ -1074,7 +1075,6 @@ pMovNave proc
         MovVariablesDw bala1x, cNave_x
         mDecVar bala1x,3t 
         movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-         Num2String bala1y,mingame; =================================================================00
         mov estD1,1
         jmp salir 
     salir: 
@@ -1350,8 +1350,43 @@ pConfigIni proc
     mov ce3_x,20t 
     mov ce3_y,140t 
     mov estEnem,1  ;para que se empiece moviendo el enemigo 1 
+
+    mov mingameN,0
+    mov seggameN,0
+    mov cengameN,0
+    mLimpiar cengameS,4,0
+    mLimpiar seggameS,4,0
+    mLimpiar mingameS,4,0
     ret 
 pConfigIni endp  
 
+pTimeGame proc 
+    inc cengameN
+    cmp cengameN,100t
+    jne salir 
+
+    mov cengameN,0 ;centisegundos vuelve a 0
+    inc seggameN ;se aumenta a uno los segundos 
+    cmp seggameN,60t;cuando llegue a 60 se repetira lo mismo 
+    jne salir 
+
+    mov seggameN,0t
+    inc mingameN
+    salir: 
+        mLimpiar cengameS,4,0
+        mLimpiar seggameS,4,0
+        mLimpiar mingameS,4,0
+        Num2String cengameN,cengameS
+        Num2String seggameN,seggameS
+        Num2String mingameN,mingameS
+        mImprimirLetreros mingameS,12t,4t,15t
+        mImprimirLetreros dospuntosg,12t,6t,15t
+        mImprimirLetreros seggameS,12t,7t,15t
+        mImprimirLetreros dospuntosg,12t,9t,15t
+        mImprimirLetreros cengameS,12t,10t,15t 
+         
+         
+    ret 
+pTimeGame endp 
 
 END start 
