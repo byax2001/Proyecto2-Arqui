@@ -449,20 +449,20 @@ pMovimientoGame proc
     call pDrawNave
     ;MOVIMIENTO DE ENEMIGO  
     cmp estEnem,1 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 1 
-    jne NoDespenemigos1
-    DespEnemigos1:
-        call pMovEnemigo1
-    NoDespenemigos1:
-    cmp estEnem,2 ;SE DECIDE SI  SE MUEVE FILA DE ENEMIGOS 2 
-    jne NoDespenemigos2
-    DespEnemigos2:
-        call pMovEnemigo2
-    NoDespenemigos2:
-    cmp estEnem,3 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 3 
-    jne NoDespenemigos3
-    DespEnemigos3:
+    jne NoDespenemigost3
+    DespEnemigost3:
         call pMovEnemigo3
-    NoDespenemigos3:
+    NoDespenemigost3:
+    cmp estEnem,2 ;SE DECIDE SI  SE MUEVE FILA DE ENEMIGOS 2 
+    jne NoDespenemigost2
+    DespEnemigost2:
+        call pMovEnemigo2
+    NoDespenemigost2:
+    cmp estEnem,3 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 3 
+    jne NoDespenemigost1
+    DespEnemigost1:
+        call pMovEnemigo1
+    NoDespenemigost1:
     ;MOVIMIENTO DE BALAS
     cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
     je sinAccion
@@ -1251,7 +1251,7 @@ pMovEnemigo1 proc
     jmp salir 
     finMov: 
         call pFilaEborradoU
-        mov estEnem,2
+        mov estEnem,0
     salir: 
     ret
 pMovEnemigo1 endp 
@@ -1287,7 +1287,7 @@ pMovEnemigo3 proc
     jmp salir 
     finMov: 
         call pFilaEborradoU
-        mov estEnem,0
+        mov estEnem,2
     salir: 
     ret
 pMovEnemigo3 endp 
