@@ -174,6 +174,9 @@ mVariables macro
         ;NAVE
             cNave_x dw 0
             cNave_y dw 0
+            liNave dw 0
+            corazonx dw 0
+            corazony dw 0
         ;ENEMIGOS
             ce1_x dw 0
             ce1_y dw 0  
@@ -219,6 +222,9 @@ mVariables macro
         ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 3
             borrE3x dw 0
             borrE3y dw 0
+        ;BORRADOR ULTIMO DE MOVIMIENTO PARA ENEMIGOS
+            borrUx dw 0
+            borrUy dw 0 
         ;BORRADOR MOVIMIENTO PARA NAVE 
             borrx dw 0
             borry dw 0
@@ -1128,6 +1134,18 @@ mComparar macro var1,var2
     pop bx
     pop ax
 endm 
+;COMPARA VARIABLES
+mCompararDw macro var1,var2
+    push ax 
+    push bx 
+    xor ax,ax
+    mov bx,ax 
+    mov ax,var1
+    mov bx,var2
+    cmp ax,bx
+    pop bx
+    pop ax
+endm 
 
 
 ;SUMAR DW
@@ -1489,7 +1507,7 @@ endm
 ;MACRO PARA BORRAR DESPLAZAMIENTOS
 ;E1l life enemigo 1, si sigue vivo imprimir su limpiador de movimiento tambien 
 mDrawBfila macro x,y,E1,E2,E3,E4,E5,E6,E7 
-    local filaE
+    local Enovivo1,Enovivo2,Enovivo3,Enovivo4,Enovivo5,Enovivo6,Enovivo7
     push ax
     push dx 
     xor ax, ax 
@@ -1556,12 +1574,36 @@ mDrawEborrado macro  x,y
     push dx 
     xor ax, ax 
     xor dx, dx 
-    mov cx, 8
+    mov cx, 6t
+    mov ax, x
+    mov dx, y
+    dec x 
+    dec x 
+    
+    figuraB:
+        mDecVar y,4t 
+        mDrawFila x,y,0t,8t     
+        mov y, dx 
+        dec x
+        loop figuraB
+    mov x,dx
+    pop dx
+    pop ax
+    pop cx 
+endm 
+mDrawEBColision macro  x,y 
+    local figuraB
+    push cx
+    push ax
+    push dx 
+    xor ax, ax 
+    xor dx, dx 
+    mov cx, 10t
     mov ax, x
     mov dx, y
     figuraB:
         mDecVar y,4t 
-        mDrawFila x,y,0t,8t     
+        mDrawFila x,y,0t,10t     
         mov y, dx 
         dec x
         loop figuraB
@@ -1622,3 +1664,19 @@ mRestartLifeEnemy macro
     mov elife36,1
     mov elife37,1
 endm
+
+mEnRangoGame macro dato,limif, limsup
+    local enElrango,noEnelrango,salir
+    ;ja >,jb <,  jbe<=
+    mCompararDw dato,limif
+    jb noEnelrango ; si es menor al limite inferior no esa en el rango
+    mCompararDw dato,limsup
+    jbe enElrango ; si es menor o igual al limite superior esta en el rango
+    ja noEnelrango; si es mayor no esta en el rango 
+    enElrango:
+        MovVariables enrango,1
+        jmp salir 
+    noEnelrango:
+        MovVariables enrango,0
+    salir:
+endm 

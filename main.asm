@@ -243,8 +243,6 @@ pQuitarbloqAdmin proc
 pQuitarbloqAdmin endp 
 
 
-
-
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
     call pLimpiarConsola
@@ -386,6 +384,7 @@ pExisteUserM proc
     ret 
 pExisteUserM endp 
 
+
 ;APARTADOS PARA LA MANIPULACION DE TEXTO Y JUEGOS
 ;POR DEFAULT DOSBOX SE MANEJA CON EL TEXT MODE, SI SE DESEA VOLVER AL MODO NORMAL LUEGO DEL MODO VIDEO VOLVER
 ;A INSTANCIAR ESTE METODO 
@@ -424,15 +423,7 @@ pDataS_ES endp
 pGame proc
     call pMemVideoMode
     call pVideoMode 
-    ;CUADROS DIVISORES PARA EL JUEGO
-                   ;FILA,COLUMNA,ANCHO,ALTO,COLOR
-    mDrawRectangulo 1t,1t,120t,130t,1t
-    mDrawRectangulo 132t,1t,120t,67t,1t
-    mDrawRectangulo 1t,121t,200t,198t,1t
-    
     call pMovimientoGame
-    ;call pDrawEborrado
-    
     call pTextMode
     ret
 pGame endp
@@ -442,277 +433,84 @@ pGame endp
 pMovimientoGame proc
     mov auxfpsT,0
     reset: 
-    ;RESTAURA LA VIDA DE TODOS LOS ENEMIGOS 
-    call pRestartLifeEnemy
-    ;LETREROS PRINCIPALES
-    mImprimirLetreros Usergame,1t,1t,9t
-    
-    mImprimirLetreros Leveltitle,4t,1t,9t
-    mImprimirLetreros Scoregame,7t,1t,9t
-    mImprimirLetreros Timegame,10t,1t,9t
-    mImprimirLetreros Livesgame,13t,1t,9t
-    mImprimirLetreros PressSpace,18t,1t,9t
-    mImprimirLetreros toStartG,20t,1t,9t
-    ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
-    mov cNave_x,185t
-    mov cNave_y,220t
-    mov ce1_x,20t  
-    mov ce1_y,140t   
-    mov ce2_x,20t   
-    mov ce2_y,140t   
-    mov ce3_x,20t 
-    mov ce3_y,140t 
-    mov estEnem,1  ;para que se empiece moviendo el enemigo 1 
-    fps:
+        call pConfigIni
+        call pDrawCorazones
+    fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-    ;MOVIMIENTOS 
+    ;MOVIMIENTOS DE LA NAVE 
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
     mImprimirLetreros mingame,2t,1t,9t 
     ;MOVIMIENTO DE ENEMIGO  
-    cmp estEnem,1
+    cmp estEnem,1 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 1 
     jne NoDespenemigos1
     DespEnemigos1:
         call pMovEnemigo1
     NoDespenemigos1:
-    cmp estEnem,2
+    cmp estEnem,2 ;SE DECIDE SI  SE MUEVE FILA DE ENEMIGOS 2 
     jne NoDespenemigos2
     DespEnemigos2:
         call pMovEnemigo2
     NoDespenemigos2:
-    cmp estEnem,3
+    cmp estEnem,3 ;SE DECIDE SI SE MUEVE FILA DE ENEMIGOS 3 
     jne NoDespenemigos3
     DespEnemigos3:
         call pMovEnemigo3
     NoDespenemigos3:
     ;MOVIMIENTO DE BALAS
-    cmp estD1,0
+    cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
     je sinAccion
-    movBala1: 
+    movBala1: ;NO ESTA EN MOVIMIENTO LISTA PARA SER DISPARADA 
         call pMovbala
         jmp sinAccion
     sinAccion: 
     jmp fps 
     ret 
 pMovimientoGame endp 
-;FILAS DE ENEMIGOS---------------------------------------------------------------------------
 
-pFilaEnemigo1 proc
-    push ax  
-    push dx 
-    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx,ce1_y  
-    mov ax,ce1_x
-    ;DIBUJAR NAVE 1
-        cmp elife11,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo1
-        call pDrawEnemigo1
-        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo1:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 2
-        cmp elife12,1 ;saber si esta vivo si no,no graficar 
-        jne Enovivo2
-        call pDrawEnemigo1
-        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo2:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 3
-        cmp elife13,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo3
-        call pDrawEnemigo1
-        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo 
-        Enovivo3:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 4
-        cmp elife14,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo4
-        call pDrawEnemigo1
-        mov ce1_x,ax;volver a la fila original para graficar otro ahi mismo 
-        Enovivo4:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 5
-        cmp elife15,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo5
-        call pDrawEnemigo1
-        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo5:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 6
-        cmp elife16,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo6
-        call pDrawEnemigo1 
-        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo6:
-        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 7
-        cmp elife17,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo7
-        call pDrawEnemigo1
-        mov ce1_x,ax ;volver a la fila original 
-        Enovivo7:
 
-    mov ce1_y,dx;para escribir cada elemento en la misma columna  
-    pop dx 
-    pop ax 
-    ret 
-pFilaEnemigo1 endp 
-
-pFilaEnemigo2 proc
-    push ax  
-    push dx 
-    push cx
-    mov cx, 7
-    ;mov ce2_x,60t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce2_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx,ce2_y  
-    mov ax,ce2_x
-    ;DIBUJAR NAVE 1
-        cmp elife21,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo1
-        call pDrawEnemigo2
-        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo1:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 2
-        cmp elife22,1 ;saber si esta vivo si no,no graficar 
-        jne Enovivo2
-        call pDrawEnemigo2
-        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo2:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 3
-        cmp elife23,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo3
-        call pDrawEnemigo2
-        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo 
-        Enovivo3:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 4
-        cmp elife24,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo4
-        call pDrawEnemigo2
-        mov ce2_x,ax;volver a la fila original para graficar otro ahi mismo 
-        Enovivo4:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 5
-        cmp elife25,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo5
-        call pDrawEnemigo2
-        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo5:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 6
-        cmp elife26,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo6
-        call pDrawEnemigo2 
-        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo6:
-        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 7
-        cmp elife27,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo7
-        call pDrawEnemigo2
-        mov ce2_x,ax ;volver a la fila original 
-        Enovivo7:    
-    mov ce2_y, dx
-    pop cx 
-    pop dx 
-    pop ax 
-    ret 
-pFilaEnemigo2 endp 
-
-pFilaEnemigo3 proc
-    push ax  
-    push dx 
-    push cx
-    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
-    ;mov ce3_x,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce3_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx, ce3_y
-    mov ax, ce3_x
-    ;DIBUJAR NAVE 1
-        cmp elife31,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo1
-        call pDrawEnemigo3
-        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo1:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 2
-        cmp elife32,1 ;saber si esta vivo si no,no graficar 
-        jne Enovivo2
-        call pDrawEnemigo3
-        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo2:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 3
-        cmp elife33,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo3
-        call pDrawEnemigo3
-        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo 
-        Enovivo3:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 4
-        cmp elife34,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo4
-        call pDrawEnemigo3
-        mov ce3_x,ax;volver a la fila original para graficar otro ahi mismo 
-        Enovivo4:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 5
-        cmp elife35,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo5
-        call pDrawEnemigo3
-        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo5:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 6
-        cmp elife36,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo6
-        call pDrawEnemigo3 
-        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo6:
-        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 7
-        cmp elife37,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo7
-        call pDrawEnemigo3
-        mov ce3_x,ax ;volver a la fila original 
-        Enovivo7:    
-    mov ce3_y, dx 
-    pop cx 
-    pop dx 
-    pop ax 
-    ret 
-pFilaEnemigo3 endp 
-
-pFilaE1borrado proc
-    push cx
-    push ax
-    push dx 
-    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
-    ;mov borrx,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov borry,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ax, borrE1x ;aux para reestablecer el valor de la fila escogida 
-    mov dx, borrE1y
-    filaE:
-        call pDrawEborrado
-        mIncVar borrE1y,28t
-        MovVariablesDw borrE1x, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-        loop filaE
-    MovVariablesDw borrE1y, dx 
-    pop dx
-    pop ax 
-    pop cx 
-    ret 
-pFilaE1borrado endp 
 ;DRAW--------------------------------------------------------------------------------
+pDrawCorazon proc
+    push ax 
+    push dx 
+    mov ax,corazonx
+    mov dx, corazony
+    ;punta corazon 
+    mDrawPixel corazonx,corazony,39t ;rojo
+    ;fila de arriba 
+    dec corazonx
+    dec corazony
+    mDrawFila corazonx,corazony,39t,3t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,4t 
+    mDrawFila corazonx,corazony,39t,5t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,6t
+    mDrawFila corazonx,corazony,39t,7t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,7t
+    mDrawFila corazonx,corazony,39t,7t
+    ;fila de arriba  
+    dec corazonx
+    mDecVar corazony,6t
+    mDrawFila corazonx,corazony,39t,2t
+    inc corazony
+    mDrawFila corazonx,corazony,39t,2t
+    mov corazonx,ax 
+    mov corazony,dx 
+    pop dx 
+    pop ax 
+    ret 
+pDrawCorazon endp 
+
 pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
@@ -909,27 +707,6 @@ pDrawEnemigo3 proc
     ret 
 pDrawEnemigo3 endp 
 
-pDrawEborrado proc
-    push cx
-    push ax
-    push dx 
-    mov cx, 8
-    mov ax, borrE1x
-    mov dx, borrE1y 
-    figuraB:
-        mDecVar borrE1y,5t 
-        mDrawFila borrE1x,borrE1y,0t,8     
-        mov borrE1y, dx 
-        dec borrE1x
-        loop figuraB
-    mov borrE1x,dx
-
-    pop dx
-    pop ax
-    pop cx 
-    ret
-pDrawEborrado endp 
-
 pDrawNave proc
     push ax
     push dx 
@@ -1034,7 +811,7 @@ pDrawBala3 proc
 
     ret 
 pDrawBala3 endp 
-
+;BORRA EL MOVIMIENTO DE LA NAVE 
 pDrawNaveBorr proc
     push ax
     push cx 
@@ -1053,7 +830,213 @@ pDrawNaveBorr proc
     pop ax 
     ret
 pDrawNaveBorr endp
+;FILAS DE ENEMIGOS---------------------------------------------------------------------------
+pDrawCorazones proc 
+    push cx 
+    mov corazonx,125t
+    mov corazony,60t
+    mov cx, liNave ;vida de la nave
+    cmp cx, 0
+    je salir  
+    corazones: 
+        call pDrawCorazon
+        mSumarDw corazony,14t
+        mov corazonx,125t
+        loop corazones
+    salir: 
+    pop cx 
+    ret 
+pDrawCorazones endp 
 
+pFilaEnemigo1 proc
+    push ax  
+    push dx 
+    ;mov ce1_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx,ce1_y  
+    mov ax,ce1_x
+    ;DIBUJAR NAVE 1
+        cmp elife11,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo1
+        call pDrawEnemigo1
+        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo1:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 2
+        cmp elife12,1 ;saber si esta vivo si no,no graficar 
+        jne Enovivo2
+        call pDrawEnemigo1
+        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo2:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 3
+        cmp elife13,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo3
+        call pDrawEnemigo1
+        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo 
+        Enovivo3:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 4
+        cmp elife14,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo4
+        call pDrawEnemigo1
+        mov ce1_x,ax;volver a la fila original para graficar otro ahi mismo 
+        Enovivo4:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 5
+        cmp elife15,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo5
+        call pDrawEnemigo1
+        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo5:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 6
+        cmp elife16,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo6
+        call pDrawEnemigo1 
+        mov ce1_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo6:
+        mIncVar ce1_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 7
+        cmp elife17,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo7
+        call pDrawEnemigo1
+        mov ce1_x,ax ;volver a la fila original 
+        Enovivo7:
+
+    mov ce1_y,dx;para escribir cada elemento en la misma columna  
+    pop dx 
+    pop ax 
+    ret 
+pFilaEnemigo1 endp 
+
+pFilaEnemigo2 proc
+    push ax  
+    push dx 
+    push cx
+    mov cx, 7
+    ;mov ce2_x,60t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce2_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx,ce2_y  
+    mov ax,ce2_x
+    ;DIBUJAR NAVE 1
+        cmp elife21,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo1
+        call pDrawEnemigo2
+        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo1:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 2
+        cmp elife22,1 ;saber si esta vivo si no,no graficar 
+        jne Enovivo2
+        call pDrawEnemigo2
+        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo2:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 3
+        cmp elife23,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo3
+        call pDrawEnemigo2
+        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo 
+        Enovivo3:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 4
+        cmp elife24,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo4
+        call pDrawEnemigo2
+        mov ce2_x,ax;volver a la fila original para graficar otro ahi mismo 
+        Enovivo4:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 5
+        cmp elife25,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo5
+        call pDrawEnemigo2
+        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo5:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 6
+        cmp elife26,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo6
+        call pDrawEnemigo2 
+        mov ce2_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo6:
+        mIncVar ce2_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 7
+        cmp elife27,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo7
+        call pDrawEnemigo2
+        mov ce2_x,ax ;volver a la fila original 
+        Enovivo7:    
+    mov ce2_y, dx
+    pop cx 
+    pop dx 
+    pop ax 
+    ret 
+pFilaEnemigo2 endp 
+
+pFilaEnemigo3 proc
+    push ax  
+    push dx 
+    push cx
+    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
+    ;mov ce3_x,90t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce3_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx, ce3_y
+    mov ax, ce3_x
+    ;DIBUJAR NAVE 1
+        cmp elife31,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo1
+        call pDrawEnemigo3
+        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo1:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 2
+        cmp elife32,1 ;saber si esta vivo si no,no graficar 
+        jne Enovivo2
+        call pDrawEnemigo3
+        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo2:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 3
+        cmp elife33,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo3
+        call pDrawEnemigo3
+        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo 
+        Enovivo3:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 4
+        cmp elife34,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo4
+        call pDrawEnemigo3
+        mov ce3_x,ax;volver a la fila original para graficar otro ahi mismo 
+        Enovivo4:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 5
+        cmp elife35,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo5
+        call pDrawEnemigo3
+        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo5:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 6
+        cmp elife36,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo6
+        call pDrawEnemigo3 
+        mov ce3_x,ax ;volver a la fila original para graficar otro ahi mismo
+        Enovivo6:
+        mIncVar ce3_y,28t ;aumentar siempre la columna a graficar para el siguiente
+    ;DIBUJAR NAVE 7
+        cmp elife37,1 ;saber si esta vivo si no,no graficar
+        jne Enovivo7
+        call pDrawEnemigo3
+        mov ce3_x,ax ;volver a la fila original 
+        Enovivo7:    
+    mov ce3_y, dx 
+    pop cx 
+    pop dx 
+    pop ax 
+    ret 
+pFilaEnemigo3 endp 
 ;MOV-------------------------------------------------------------------------------------
 pMovNave proc
     push ax 
@@ -1091,7 +1074,7 @@ pMovNave proc
         MovVariablesDw bala1x, cNave_x
         mDecVar bala1x,3t 
         movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-        Num2String cNave_y,mingame; =================================================================00
+         Num2String bala1y,mingame; =================================================================00
         mov estD1,1
         jmp salir 
     salir: 
@@ -1102,11 +1085,11 @@ pMovNave endp
 pMovbala proc
     push ax
     push dx
+     
     cmp bala1x,2t
     je  finmovimiento
-    
-        mov cx,3t
-        movnormal:
+    mov cx,3t
+    movnormal:
         push cx 
         ;OBTENER EL VALOR DE UN PIXEL 
         dec bala1x
@@ -1119,9 +1102,8 @@ pMovbala proc
         je colision
         cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
         je colision
-        cmp al,2t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
+        cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
         je colision
-        mov dx,bala1x
         call pDrawBala1
         mIncVar bala1x,3t
         mDrawPixel bala1x,bala1y,0t
@@ -1131,6 +1113,68 @@ pMovbala proc
         jmp salir 
     colision: 
         pop cx 
+        mEnRangoGame bala1y,136t,143t
+        cmp enrango,1
+        jne noesE1
+        mov elife11,0
+        mov borrE1y, 140t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE1:
+
+        mEnRangoGame bala1y,164t,171t
+        cmp enrango,1
+        jne noesE2
+        mov elife12,0
+        mov borrE1y, 168t
+        call pkillEnemy1
+        jmp finmovimiento   
+        noesE2:
+
+        mEnRangoGame bala1y,192t,199t
+        cmp enrango,1
+        jne noesE3
+        mov elife13,0
+        mov borrE1y, 196t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE3:
+
+        mEnRangoGame bala1y,220t,227t
+        cmp enrango,1
+        jne noesE4
+        mov elife14,0
+        mov borrE1y, 224t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE4:
+        
+        mEnRangoGame bala1y,248t,255t
+        cmp enrango,1
+        jne noesE5
+        mov elife15,0
+        mov borrE1y, 252t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE5:
+
+        mEnRangoGame bala1y,276t,283t
+        cmp enrango,1
+        jne noesE6
+        mov elife16,0
+        mov borrE1y, 280t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE6:
+
+        mEnRangoGame bala1y,304t,311t
+        cmp enrango,1
+        jne noesE7
+        mov elife17,0
+        mov borrE1y, 308t
+        call pkillEnemy1
+        jmp finmovimiento
+        noesE7:
     finmovimiento:
         mov cx, 3 
         borrarMovBala:
@@ -1144,18 +1188,69 @@ pMovbala proc
     ret
 pMovbala endp  
 
+pkillEnemy1 proc
+    movVariablesDw borrE1x,bala1x
+    mIncVar borrE1x,4t 
+    mDrawEBColision borrE1x,borrE1y
+    mDecVar borrE1x,3 
+    ret 
+pkillEnemy1 endp 
+
+    ;AUXILIARES PARA BORRAR LA ULTIMA POSICION DE LOS ENEMIGOS 
+pFilaEborradoU proc
+    push cx
+    push ax
+    push dx 
+    mov cx, 7 ;cx es el contador de cuantas veces el loop se repetira 
+    mov borrUx,197t   
+    mov borrUy,140t  
+    mov ax, borrUx ;aux para reestablecer el valor de la fila escogida 
+    mov dx, borrUy
+    filaE:
+        call pDrawEborradoU
+        mIncVar borrUy,28t
+        MovVariablesDw borrUx, ax ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+        loop filaE
+    MovVariablesDw borrUy, dx 
+    pop dx
+    pop ax 
+    pop cx 
+    ret 
+pFilaEborradoU endp 
+
+pDrawEborradoU proc
+    push cx
+    push ax
+    push dx 
+    mov cx, 8
+    mov ax, borrUx
+    mov dx, borrUy 
+    figuraB:
+        mDecVar borrUy,4t 
+        mDrawFila borrUx,borrUy,0t,8     
+        mov borrUy, dx 
+        dec borrUx
+        loop figuraB
+    mov borrUx,dx
+    pop dx
+    pop ax
+    pop cx 
+    ret
+pDrawEborradoU endp 
+    ;==========================================================
+
 pMovEnemigo1 proc
     movVariablesDw borrE1x,ce1_x
     movVariablesDw borrE1y,ce1_y
     call pFilaEnemigo1
-    mDrawBfila borrE1x , borrE1y,elife11,elife12,elife13,elife14,elife15,elife16,elife17
-    ;call pFilaE1borrado 
+    mDrawBfila borrE1x,borrE1y,elife11,elife12,elife13,elife14,elife15,elife16,elife17
     cmp ce1_x, 196t
     ja finMov 
     inc ce1_x
     call pFilaEnemigo1
     jmp salir 
     finMov: 
+        call pFilaEborradoU
         mov estEnem,2
     salir: 
     ret
@@ -1164,14 +1259,16 @@ pMovEnemigo1 endp
 pMovEnemigo2 proc
     movVariablesDw borrE2x ,ce2_x
     movVariablesDw borrE2y,ce2_y
+    call pFilaEnemigo2
     mDrawBfila borrE2x , borrE2y ,elife21,elife22,elife23,elife24,elife25,elife26,elife27
-    ;call pFilaE1borrado 
+    ; 
     cmp ce2_x, 196t
     ja finMov 
     inc ce2_x
     call pFilaEnemigo2
     jmp salir 
     finMov: 
+        call pFilaEborradoU
         mov estEnem,3
     salir: 
     ret
@@ -1180,6 +1277,7 @@ pMovEnemigo2 endp
 pMovEnemigo3 proc
     movVariablesDw borrE3x ,ce3_x
     movVariablesDw borrE3y,ce3_y
+    call pFilaEnemigo3
     mDrawBfila borrE3x , borrE3y,elife31,elife32,elife33,elife34,elife35,elife36,elife37 
     ;call pFilaE1borrado 
     cmp ce3_x, 196t
@@ -1188,6 +1286,7 @@ pMovEnemigo3 proc
     call pFilaEnemigo3
     jmp salir 
     finMov: 
+        call pFilaEborradoU
         mov estEnem,0
     salir: 
     ret
@@ -1222,5 +1321,37 @@ pRestartLifeEnemy proc
     mov elife37,1
     ret
 pRestartLifeEnemy endp 
+
+pConfigIni proc 
+    ;CUADROS DIVISORES PARA EL JUEGO
+                   ;FILA,COLUMNA,ANCHO,ALTO,COLOR
+    mDrawRectangulo 1t,1t,120t,130t,1t
+    mDrawRectangulo 132t,1t,120t,67t,1t
+    mDrawRectangulo 1t,121t,200t,198t,1t
+    ;RESTAURA VIDA DE NAVE 
+    mov liNave, 3t
+    ;RESTAURA LA VIDA DE TODOS LOS ENEMIGOS 
+    call pRestartLifeEnemy
+    ;LETREROS PRINCIPALES
+    mImprimirLetreros Usergame,1t,1t,9t
+    mImprimirLetreros Leveltitle,4t,1t,9t
+    mImprimirLetreros Scoregame,7t,1t,9t
+    mImprimirLetreros Timegame,10t,1t,9t
+    mImprimirLetreros Livesgame,13t,1t,9t
+    mImprimirLetreros PressSpace,18t,1t,9t
+    mImprimirLetreros toStartG,20t,1t,9t
+    ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
+    mov cNave_x,185t
+    mov cNave_y,220t
+    mov ce1_x,20t  
+    mov ce1_y,140t   
+    mov ce2_x,20t   
+    mov ce2_y,140t   
+    mov ce3_x,20t 
+    mov ce3_y,140t 
+    mov estEnem,1  ;para que se empiece moviendo el enemigo 1 
+    ret 
+pConfigIni endp  
+
 
 END start 
