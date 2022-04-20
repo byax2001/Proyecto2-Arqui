@@ -433,14 +433,15 @@ pMovimientoGame proc
     mov auxfpsT,0
     reset: 
         call pConfigIni
-        call pDrawCorazones
+        
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-
+    call pDrawCleansCorazones
+    call pDrawCorazones
     call pTimeGame
     ;MOVIMIENTOS DE LA NAVE 
     call pMovNave
@@ -505,6 +506,42 @@ pDrawCorazon proc
     ret 
 pDrawCorazon endp 
 
+pDrawCleanCorazon proc
+    push ax 
+    push dx 
+    mov ax,corazonx
+    mov dx, corazony
+    ;punta corazon 
+    mDrawPixel corazonx,corazony,0t ;rojo
+    ;fila de arriba 
+    dec corazonx
+    dec corazony
+    mDrawFila corazonx,corazony,0t,3t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,4t 
+    mDrawFila corazonx,corazony,0t,5t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,6t
+    mDrawFila corazonx,corazony,0t,7t
+    ;fila de arriba 
+    dec corazonx
+    mDecVar corazony,7t
+    mDrawFila corazonx,corazony,0t,7t
+    ;fila de arriba  
+    dec corazonx
+    mDecVar corazony,6t
+    mDrawFila corazonx,corazony,0t,2t
+    inc corazony
+    mDrawFila corazonx,corazony,0t,2t
+    mov corazonx,ax 
+    mov corazony,dx 
+    pop dx 
+    pop ax 
+    ret 
+pDrawCleanCorazon endp 
+
 pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
@@ -563,7 +600,6 @@ pDrawEnemigo1 proc
     mov ce_y,dx
     pop dx
     pop ax
-    
     ret 
 pDrawEnemigo1 endp 
 
@@ -840,6 +876,22 @@ pDrawCorazones proc
     pop cx 
     ret 
 pDrawCorazones endp 
+;PARA LIMPIAR LOS CORAZONES 
+pDrawCleansCorazones proc 
+    push cx 
+    mov corazonx,125t
+    mov corazony,60t
+    mov cx, 3t
+    je salir  
+    corazones: 
+        call pDrawCleanCorazon
+        mSumarDw corazony,14t
+        mov corazonx,125t
+        loop corazones
+    salir: 
+    pop cx 
+    ret 
+pDrawCleansCorazones endp 
 
 pFilaEnemigo1 proc
     push ax  
@@ -1021,15 +1073,6 @@ pMovbala proc
     ret
 pMovbala endp  
 
-pMovEnemy1 proc
-    ret 
-pMovEnemy1 endp 
-
-pMovEnemy2 proc
-
-    ret 
-pMovEnemy2 endp
-
 
 pMovEnemys proc  
     cmp estEnem,3
@@ -1043,6 +1086,9 @@ pMovEnemys proc
         movVariablesDw borrXenemy, ce_x
         movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
+        call pColision
+        cmp colisionE,1
+        je finMov3
         cmp ce_x,196t 
         je finMov3
         inc ce_x
@@ -1062,6 +1108,9 @@ pMovEnemys proc
         movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
         movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
         mDrawEborrado borrXenemy,borrYenemy
+        call pColision
+        cmp colisionE,1
+        je finMov2
         cmp ce_x,196t 
         je finMov2
         inc ce_x
@@ -1081,6 +1130,9 @@ pMovEnemys proc
         movVariablesDw borrXenemy, ce_x
         movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
+        call pColision
+        cmp colisionE,1
+        je finMov
         cmp ce_x,196t 
         je finMov
         inc ce_x
@@ -1107,20 +1159,41 @@ pMovEnemys proc
     ret 
 pMovEnemys endp 
 
-pColison proc  
+pColision proc  
     push cx 
-     mov cx,bala1y ;column
-        dec cx 
-        mov dx,bala1x ;fila
-        dec dx 
-        dec dx 
-        mov ah, 0Dh
-        int 10h 
-        cmp al,15t ;blanco 
-
+    push dx 
+    push bx 
+        mov colisionE,0
+        mov bx,ce_y ;salvalguardar posicion y 
+        mov dx,ce_x ;fila
+        inc  dx 
+        inc dx 
+        mov cx,8 
+        mDecVar ce_y,5t
+        cuerpoenemigo: 
+            push cx
+            mov cx,ce_y ;column
+            mov ah, 0Dh
+            int 10h 
+            cmp al,15t ;blanco 
+            je choque 
+            inc ce_y
+            pop cx 
+        loop cuerpoenemigo
+        jmp nochoque
+        choque:
+            mov colisionE,1 
+            pop cx
+            cmp liNave,0
+            je nochoque 
+            dec liNave
+        nochoque: 
+        mov ce_y,bx 
+    pop bx 
+    pop dx 
     pop cx 
     ret 
-pColison endp 
+pColision endp 
 
 
     ;AUXILIARES PARA BORRAR LA ULTIMA POSICION DE LOS ENEMIGOS 

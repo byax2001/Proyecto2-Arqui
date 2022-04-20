@@ -180,13 +180,7 @@ mVariables macro
             liNave dw 0
             corazonx dw 0
             corazony dw 0
-        ;ENEMIGOS
-            ce1_x dw 0
-            ce1_y dw 0  
-            ce2_x dw 0
-            ce2_y dw 0   
-            ce3_x dw 0
-            ce3_y dw 0  
+        ;ENEMIGOS 
             ce_x dw 0
             ce_y dw 0 
         ;FILA INICIAL CON LA CUAL SE COMENZARA A moverse los enemigos 
