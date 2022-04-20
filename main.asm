@@ -451,8 +451,11 @@ pMovimientoGame proc
     je yaimpresoEnemy
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
+    mov ce3_x,45t
+    mov ce3_y, 140t
+    mov filaIgame,45t 
     yaimpresoEnemy: 
-    
+    call pMovEnemy3
     ;MOVIMIENTO DE BALAS
     cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
     je sinAccion
@@ -821,7 +824,8 @@ pDrawNaveBorr proc
     pop ax 
     ret
 pDrawNaveBorr endp
-;FILAS DE ENEMIGOS---------------------------------------------------------------------------
+
+;FILAS DE ELEMENTOS --------------------------------------------------------------------------
 pDrawCorazones proc 
     push cx 
     mov corazonx,125t
@@ -1018,6 +1022,83 @@ pMovbala proc
     ret
 pMovbala endp  
 
+pMovEnemy1 proc
+    ret 
+pMovEnemy1 endp 
+
+pMovEnemy2 proc
+
+    ret 
+pMovEnemy2 endp
+
+
+pMovEnemy3 proc  
+    cmp estEnem,1
+    je filaene3
+    cmp estEnem,2
+    je filaene2
+    cmp estEnem,3
+    je filaene1
+    jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
+    filaene3: 
+        movVariablesDw borrXenemy, ce3_x
+        movVariablesDw borrYenemy, ce3_y 
+        mDrawEborrado borrXenemy,borrYenemy
+        cmp ce3_x,196t 
+        je finMov3
+        inc ce3_x
+        call pDrawEnemigo3
+        jmp salir 
+        finMov3: 
+            call pDrawEborradoU
+            movVariablesDw ce3_x,filaIgame
+            mSumarDw ce3_y,28t
+            cmp ce3_y,336t ;comparar con la ultima posicion que puede tener una nave enemgia 
+            jb  salir ;si es menor al margen salir y seguir graficando de forma normal 
+            mRestaDw ce3_x,15t 
+            movVariablesDw ce2_x,ce3_x
+            mov ce2_y,308t 
+            mov estEnem,2
+    filaene2:
+        movVariablesDw borrXenemy, ce2_x
+        movVariablesDw borrYenemy, ce2_y 
+        mDrawEborrado borrXenemy,borrYenemy
+        cmp ce2_x,196t 
+        je finMov2
+        inc ce2_x
+        call pDrawEnemigo2
+        jmp salir 
+        finMov2: 
+            call pDrawEborradoU
+            movVariablesDw ce2_x,ce3_x
+            mRestaDw ce2_y,28t
+            cmp ce2_y,140t 
+            jae salir 
+            mRestaDw ce2_x,15t 
+            movVariablesDw ce1_x,ce2_x
+            mov ce1_y,140t 
+            mov estEnem,3
+    filaene1: 
+        movVariablesDw borrXenemy, ce1_x
+        movVariablesDw borrYenemy, ce1_y 
+        mDrawEborrado borrXenemy,borrYenemy
+        cmp ce1_x,196t 
+        je finMov
+        inc ce1_x
+        call pDrawEnemigo1
+        jmp salir 
+        finMov: 
+            call pDrawEborradoU
+            movVariablesDw ce1_x,ce2_x
+            mSumarDw ce1_y,28t
+            cmp ce1_y,336t 
+            jb salir 
+        mov estEnem,0t
+    
+    salir:   
+    ret 
+pMovEnemy3 endp 
+
 
 
     ;AUXILIARES PARA BORRAR LA ULTIMA POSICION DE LOS ENEMIGOS 
@@ -1046,16 +1127,16 @@ pDrawEborradoU proc
     push cx
     push ax
     push dx 
-    mov cx, 8
-    mov ax, borrUx
-    mov dx, borrUy 
+    mov ax, borrXenemy
+    mov dx, borrYEnemy
+    mov cx, 8t
     figuraB:
-        mDecVar borrUy,4t 
-        mDrawFila borrUx,borrUy,0t,8     
-        mov borrUy, dx 
-        dec borrUx
+        mDecVar borrYenemy,4t 
+        mDrawFila borrXenemy,borrYenemy,0t,8     
+        mov borrYenemy, dx 
+        dec borrXenemy
         loop figuraB
-    mov borrUx,dx
+    mov borrXenemy,dx
     pop dx
     pop ax
     pop cx 

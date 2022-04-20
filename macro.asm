@@ -186,22 +186,21 @@ mVariables macro
             ce2_y dw 0   
             ce3_x dw 0
             ce3_y dw 0  
-        ;VIDA DE ENEMIGOS TIPO 1
-            movEnemigo db 0
+        ;FILA INICIAL CON LA CUAL SE COMENZARA A moverse los enemigos 
+            filaIgame dw 0
+        ;ESTADO DE APARICION DE ENEMIGOS
+            estEnem db 0
+        ;PERMITIR QUE SE MUEVA EL ENEMIGO 
+            movEnemigo dw 0
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
             ancho dw 0
             alto dw 0
         ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 1
-            borrE1x dw 0
-            borrE1y dw 0
-        ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 2
-            borrE2x dw 0
-            borrE2y dw 0
-        ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 3
-            borrE3x dw 0
-            borrE3y dw 0
+            borrXenemy dw 0
+            borrYenemy dw 0
+
         ;BORRADOR ULTIMO DE MOVIMIENTO PARA ENEMIGOS
             borrUx dw 0
             borrUy dw 0 
@@ -222,8 +221,7 @@ mVariables macro
             estD1 db 0
             estD2 db 0
             estD3 db 0
-        ;ESTADO DE APARICION DE ENEMIGOS
-            estEnem db 0
+        
         ;MINUTOS SEGUNDOS Y CENTISEGUNDOS
             mingameS db 4 dup (0)
             seggameS db 4 dup (0)
@@ -1171,7 +1169,7 @@ mRestaDw macro var1,var2
     pop ax 
 endm 
 ;Multiplicacion
-mMultiplicacion macro var1,var2
+mMultiplicacionDw macro var1,var2
     push ax
     push bx 
     xor ax,ax 
@@ -1566,14 +1564,13 @@ mDrawEborrado macro  x,y
     mov dx, y
     dec x 
     dec x 
-    
     figuraB:
         mDecVar y,4t 
         mDrawFila x,y,0t,8t     
         mov y, dx 
         dec x
         loop figuraB
-    mov x,dx
+    mov x,ax
     pop dx
     pop ax
     pop cx 
@@ -1625,33 +1622,7 @@ mImprimirLetreros macro letrero,fila,columna,color
     pop ax 
 endm 
 
-mRestartLifeEnemy macro 
-    ;VIDA DE ENEMIGOS TIPO 1
-    mov elife11,1
-    mov elife12,1
-    mov elife13,1
-    mov elife14,1
-    mov elife15,1
-    mov elife16,1
-    mov elife17,1
-    ;VIDA DE ENEMIGOS TIPO 2
-    mov elife21,1
-    mov elife22,1
-    mov elife23,1
-    mov elife24,1
-    mov elife25,1
-    mov elife26,1
-    mov elife27,1
-    ;VIDA DE ENEMIGOS TIPO 3
-    mov elife31,1
-    mov elife32,1
-    mov elife33,1
-    mov elife34,1
-    mov elife35,1
-    mov elife36,1
-    mov elife37,1
-endm
-
+;EN RANGO PERO CON DW 
 mEnRangoGame macro dato,limif, limsup
     local enElrango,noEnelrango,salir
     ;ja >,jb <,  jbe<=
