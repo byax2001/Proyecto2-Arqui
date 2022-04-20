@@ -170,7 +170,9 @@ mVariables macro
             Livesgame db "Lives:"
             PressSpace db "Press space"
             toStartG  db "to Start"
-
+        ;NIVEL 
+            nivelGame dw 1
+            printEnemyE dw 0
         ;NAVE
             cNave_x dw 0
             cNave_y dw 0
@@ -185,29 +187,7 @@ mVariables macro
             ce3_x dw 0
             ce3_y dw 0  
         ;VIDA DE ENEMIGOS TIPO 1
-            elife11 db 0
-            elife12 db 0
-            elife13 db 0
-            elife14 db 0
-            elife15 db 0
-            elife16 db 0
-            elife17 db 0
-        ;VIDA DE ENEMIGOS TIPO 1
-            elife21 db 0
-            elife22 db 0
-            elife23 db 0
-            elife24 db 0
-            elife25 db 0
-            elife26 db 0
-            elife27 db 0
-        ;VIDA DE ENEMIGOS TIPO 1
-            elife31 db 0
-            elife32 db 0
-            elife33 db 0
-            elife34 db 0
-            elife35 db 0
-            elife36 db 0
-            elife37 db 0
+            movEnemigo db 0
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
