@@ -171,7 +171,8 @@ mVariables macro
             PressSpace db "Press space"
             toStartG  db "to Start"
         ;NIVEL 
-            nivelGame dw 1
+            nivelGame dw 0
+            nivelGameS dw 0
             printEnemyE dw 0
         ;NAVE
             cNave_x dw 0

@@ -451,11 +451,11 @@ pMovimientoGame proc
     je yaimpresoEnemy
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
-    mov ce3_x,45t
+    mov ce3_x,135t
     mov ce3_y, 140t
-    mov filaIgame,45t 
+    mov filaIgame,135t  ;filaIgame aun no tiene funcionalidad
     yaimpresoEnemy: 
-    call pMovEnemy3
+    call pMovEnemys 
     ;MOVIMIENTO DE BALAS
     cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
     je sinAccion
@@ -991,6 +991,8 @@ pMovbala proc
         mov cx,bala1y ;column
         dec cx 
         mov dx,bala1x ;fila
+        dec dx 
+        dec dx 
         mov ah, 0Dh
         int 10h 
         cmp al,1t; 
@@ -1002,6 +1004,8 @@ pMovbala proc
         call pDrawBala1
         mIncVar bala1x,3t
         mDrawPixel bala1x,bala1y,0t
+        inc dx 
+        inc dx 
         mov bala1x,dx 
         pop cx 
         loop movnormal
@@ -1032,12 +1036,12 @@ pMovEnemy2 proc
 pMovEnemy2 endp
 
 
-pMovEnemy3 proc  
-    cmp estEnem,1
+pMovEnemys proc  
+    cmp estEnem,3
     je filaene3
     cmp estEnem,2
     je filaene2
-    cmp estEnem,3
+    cmp estEnem,1
     je filaene1
     jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
     filaene3: 
@@ -1072,12 +1076,12 @@ pMovEnemy3 proc
             call pDrawEborradoU
             movVariablesDw ce2_x,ce3_x
             mRestaDw ce2_y,28t
-            cmp ce2_y,140t 
-            jae salir 
+            cmp ce2_y,140t ; si es menor a 140t es que ya se movieron los 7 enemigos 
+            jae salir ;si es mayor o igual al margen salir y seguir graficando de forma normal
             mRestaDw ce2_x,15t 
             movVariablesDw ce1_x,ce2_x
             mov ce1_y,140t 
-            mov estEnem,3
+            mov estEnem,1
     filaene1: 
         movVariablesDw borrXenemy, ce1_x
         movVariablesDw borrYenemy, ce1_y 
@@ -1091,13 +1095,22 @@ pMovEnemy3 proc
             call pDrawEborradoU
             movVariablesDw ce1_x,ce2_x
             mSumarDw ce1_y,28t
-            cmp ce1_y,336t 
-            jb salir 
-        mov estEnem,0t
-    
+            cmp ce1_y,336t ; si es mayor a 336t es que ya se movieron los 7 enemigos 
+            jb salir ;si es menor al margen salir y seguir graficando de forma normal
+            mRestaDw ce1_x,15t 
+            cmp ce1_x, 0 
+            jne SeguirMoviendo
+    FinalizarMovEnemigos:
+        mov estEnem,0
+        jmp salir 
+    SeguirMoviendo:
+        movVariablesDw filaIgame,ce1_x
+        movVariablesDw ce3_x,filaIgame
+        mov ce3_y,140t 
+        mov estEnem,3
     salir:   
     ret 
-pMovEnemy3 endp 
+pMovEnemys endp 
 
 
 
@@ -1162,7 +1175,7 @@ pConfigIni proc
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
     mov printEnemyE,0 
-    mov nivelGame,1 
+    mov nivelGame,3 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t
     mov cNave_y,220t
@@ -1172,7 +1185,7 @@ pConfigIni proc
     mov ce2_y,140t   
     mov ce3_x,20t 
     mov ce3_y,140t 
-    mov estEnem,1  ;para que se empiece moviendo el enemigo 1 
+    mov estEnem,3  ;para que se empiece moviendo el enemigo 1 
     mov mingameN,0
     mov seggameN,0
     mov cengameN,0
