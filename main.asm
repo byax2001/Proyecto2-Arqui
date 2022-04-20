@@ -451,8 +451,8 @@ pMovimientoGame proc
     je yaimpresoEnemy
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
-    mov ce3_x,135t
-    mov ce3_y, 140t
+    mov ce_x,135t
+    mov ce_y, 140t
     mov filaIgame,135t  ;filaIgame aun no tiene funcionalidad
     yaimpresoEnemy: 
     call pMovEnemys 
@@ -508,61 +508,59 @@ pDrawCorazon endp
 pDrawEnemigo1 proc
     ;punta sur del enemigo
     push ax
-    push dx
-    ;mov ce1_x,30t   
-    ;mov ce1_y,140t  
-    mov ax, ce1_x
-    mov dx, ce1_y
-    mDecVar ce1_y,4
-    mDrawPixel ce1_x,ce1_y,01
-    mIncVar ce1_y,7
-    mDrawPixel ce1_x,ce1_y,01
+    push dx  
+    mov ax, ce_x
+    mov dx, ce_y
+    mDecVar ce_y,4
+    mDrawPixel ce_x,ce_y,01
+    mIncVar ce_y,7
+    mDrawPixel ce_x,ce_y,01
     ;fila anterior 
-    dec ce1_x
-    mDecVar ce1_y,7
-    mDrawPixel ce1_x,ce1_y,01
-    inc ce1_y
-    inc ce1_y
-    mDrawPixel ce1_x,ce1_y,01
-    inc ce1_y
-    inc ce1_y
-    inc ce1_y
-    mDrawPixel ce1_x,ce1_y,01
-    inc ce1_y
-    inc ce1_y
-    mDrawPixel ce1_x,ce1_y,01
+    dec ce_x
+    mDecVar ce_y,7
+    mDrawPixel ce_x,ce_y,01
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,01
+    inc ce_y
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,01
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,01
     ;fila anterior
-    dec ce1_x
-    mDecVar ce1_y,6
-    mDrawFila ce1_x,ce1_y,01,2t 
-    inc ce1_y
-    inc ce1_y
-    mDrawFila ce1_x,ce1_y,01,2t
+    dec ce_x
+    mDecVar ce_y,6
+    mDrawFila ce_x,ce_y,01,2t 
+    inc ce_y
+    inc ce_y
+    mDrawFila ce_x,ce_y,01,2t
     ;fila anterior
-    dec ce1_x
-    mDecVar ce1_y,7
-    mDrawFila ce1_x,ce1_y,01,8t
+    dec ce_x
+    mDecVar ce_y,7
+    mDrawFila ce_x,ce_y,01,8t
     ;fila anterior
-    dec ce1_x
-    mDecVar ce1_y,7
-    mDrawPixel ce1_x,ce1_y,01
-    inc ce1_y
-    inc ce1_y
-    mDrawFila ce1_x,ce1_y,01,2t
-    inc ce1_y
-    mDrawPixel ce1_x,ce1_y,01
+    dec ce_x
+    mDecVar ce_y,7
+    mDrawPixel ce_x,ce_y,01
+    inc ce_y
+    inc ce_y
+    mDrawFila ce_x,ce_y,01,2t
+    inc ce_y
+    mDrawPixel ce_x,ce_y,01
     ;fila anterior 
-    dec ce1_x
-    mDecVar ce1_y,4t
-    mDrawFila ce1_x,ce1_y,01,4t
+    dec ce_x
+    mDecVar ce_y,4t
+    mDrawFila ce_x,ce_y,01,4t
     ;antenas
-    dec ce1_x
-    mDecVar ce1_y,5
-    mDrawPixel ce1_x,ce1_y,01
-    mIncVar ce1_y,5t
-    mDrawPixel ce1_x,ce1_y,01
-    mov ce1_x,ax
-    mov ce1_y,dx
+    dec ce_x
+    mDecVar ce_y,5
+    mDrawPixel ce_x,ce_y,01
+    mIncVar ce_y,5t
+    mDrawPixel ce_x,ce_y,01
+    mov ce_x,ax
+    mov ce_y,dx
     pop dx
     pop ax
     
@@ -572,70 +570,70 @@ pDrawEnemigo1 endp
 pDrawEnemigo2 proc 
     push ax
     push dx
-    ;mov ce2_x,40t 
-    ;mov ce2_y,140t   
-    mov ax, ce2_x
-    mov dx, ce2_y
+    ;mov ce_x,40t 
+    ;mov ce_y,140t   
+    mov ax, ce_x
+    mov dx, ce_y
     ;parte sur del enemigo
-    mDecVar ce2_y,4t
-    mDrawPixel ce2_x,ce2_y,2t
-    inc ce2_y
-    inc ce2_y
-    mDrawPixel ce2_x,ce2_y,2t
-    inc ce2_y
-    inc ce2_y
-    inc ce2_y
-    mDrawPixel ce2_x,ce2_y,2t
-    inc ce2_y
-    inc ce2_y
-    mDrawPixel ce2_x,ce2_y,2t
+    mDecVar ce_y,4t
+    mDrawPixel ce_x,ce_y,2t
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,2t
+    inc ce_y
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,2t
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,2t
     ;fila anterior
-    dec ce2_x
-    mDecVar ce2_y, 6t
-    mDrawFila ce2_x,ce2_y,2t,2
-    inc ce2_y
-    inc ce2_y
-    mDrawFila ce2_x,ce2_y,2t,2
+    dec ce_x
+    mDecVar ce_y, 6t
+    mDrawFila ce_x,ce_y,2t,2
+    inc ce_y
+    inc ce_y
+    mDrawFila ce_x,ce_y,2t,2
     ;fila anterior 
-    dec ce2_x
-    mDecVar ce2_y, 7t
-    mDrawFila ce2_x,ce2_y,2t,8t
+    dec ce_x
+    mDecVar ce_y, 7t
+    mDrawFila ce_x,ce_y,2t,8t
     ;fila de los ojos  
-    dec ce2_x
-    mDecVar ce2_y, 8t
-    mDrawPixel ce2_x,ce2_y,2t
-    mIncVar ce2_y,3
-    mDrawFila ce2_x,ce2_y,2t,2t
-    mIncVar ce2_y,2
-    mDrawPixel ce2_x,ce2_y,2t
+    dec ce_x
+    mDecVar ce_y, 8t
+    mDrawPixel ce_x,ce_y,2t
+    mIncVar ce_y,3
+    mDrawFila ce_x,ce_y,2t,2t
+    mIncVar ce_y,2
+    mDrawPixel ce_x,ce_y,2t
     ;fila anterior 
-    dec ce2_x
-    mDecVar ce2_y, 6t
-    mDrawFila ce2_x,ce2_y,2t,6t
+    dec ce_x
+    mDecVar ce_y, 6t
+    mDrawFila ce_x,ce_y,2t,6t
     ;Antenas
-    dec ce2_x
-    mDecVar ce2_y, 5t
-    mDrawPixel ce2_x,ce2_y,2t
-    inc ce2_y
-    inc ce2_y
-    inc ce2_y
-    mDrawPixel ce2_x,ce2_y,2t
+    dec ce_x
+    mDecVar ce_y, 5t
+    mDrawPixel ce_x,ce_y,2t
+    inc ce_y
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,2t
     ;Antenas2 
-    dec ce2_x
-    mDecVar ce2_y, 4t
-    mDrawPixel ce2_x,ce2_y,2t
-    mIncVar ce2_y,5t
-    mDrawPixel ce2_x,ce2_y,2t
+    dec ce_x
+    mDecVar ce_y, 4t
+    mDrawPixel ce_x,ce_y,2t
+    mIncVar ce_y,5t
+    mDrawPixel ce_x,ce_y,2t
     ;fila anterior 
-    dec ce2_x
-    mDecVar ce2_y, 4t
-    mDrawPixel ce2_x,ce2_y,2t
-    inc ce2_y
-    inc ce2_y
-    inc ce2_y
-    mDrawPixel ce2_x,ce2_y,2t
-    mov ce2_x,ax
-    mov ce2_y,dx
+    dec ce_x
+    mDecVar ce_y, 4t
+    mDrawPixel ce_x,ce_y,2t
+    inc ce_y
+    inc ce_y
+    inc ce_y
+    mDrawPixel ce_x,ce_y,2t
+    mov ce_x,ax
+    mov ce_y,dx
     pop dx
     pop ax
     
@@ -645,57 +643,57 @@ pDrawEnemigo2 endp
 pDrawEnemigo3 proc
     push ax
     push dx
-    ;mov ce3_x,50t  
-    ;mov ce3_y,140t   
-    mov ax, ce3_x
-    mov dx, ce3_y
+    ;mov ce_x,50t  
+    ;mov ce_y,140t   
+    mov ax, ce_x
+    mov dx, ce_y
     ;punta sur del enemigo
-    dec ce3_y
-    mDrawFila ce3_x,ce3_y,44t,2t 
+    dec ce_y
+    mDrawFila ce_x,ce_y,44t,2t 
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,3
-    mDrawFila ce3_x,ce3_y,44t,4t 
+    dec ce_x
+    mDecVar ce_y,3
+    mDrawFila ce_x,ce_y,44t,4t 
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,5
-    mDrawFila ce3_x,ce3_y,44t,6t 
+    dec ce_x
+    mDecVar ce_y,5
+    mDrawFila ce_x,ce_y,44t,6t 
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,7
-    mDrawFila ce3_x,ce3_y,44t,2t 
-    inc ce3_y
-    mDrawFila ce3_x,ce3_y,44t,2t 
-    inc ce3_y
-    mDrawFila ce3_x,ce3_y,44t,2t
+    dec ce_x
+    mDecVar ce_y,7
+    mDrawFila ce_x,ce_y,44t,2t 
+    inc ce_y
+    mDrawFila ce_x,ce_y,44t,2t 
+    inc ce_y
+    mDrawFila ce_x,ce_y,44t,2t
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,8
-    mDrawPixel ce3_x,ce3_y,44t
-    inc ce3_y
-    inc ce3_y
-    mDrawFila ce3_x,ce3_y,44t,4t
-    inc ce3_y
-    mDrawPixel ce3_x,ce3_y,44t
+    dec ce_x
+    mDecVar ce_y,8
+    mDrawPixel ce_x,ce_y,44t
+    inc ce_y
+    inc ce_y
+    mDrawFila ce_x,ce_y,44t,4t
+    inc ce_y
+    mDrawPixel ce_x,ce_y,44t
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,4
-    mDrawFila ce3_x,ce3_y,44t,2t
+    dec ce_x
+    mDecVar ce_y,4
+    mDrawFila ce_x,ce_y,44t,2t
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,4
-    mDrawFila ce3_x,ce3_y,44t,2t
-    inc ce3_y
-    inc ce3_y
-    mDrawFila ce3_x,ce3_y,44t,2t
+    dec ce_x
+    mDecVar ce_y,4
+    mDrawFila ce_x,ce_y,44t,2t
+    inc ce_y
+    inc ce_y
+    mDrawFila ce_x,ce_y,44t,2t
     ;fila anterior 
-    dec ce3_x
-    mDecVar ce3_y,6
-    mDrawPixel ce3_x,ce3_y,44t
-    mIncVar ce3_y, 5t
-    mDrawPixel ce3_x,ce3_y,44t
-    mov ce3_x,ax
-    mov ce3_y,dx
+    dec ce_x
+    mDecVar ce_y,6
+    mDrawPixel ce_x,ce_y,44t
+    mIncVar ce_y, 5t
+    mDrawPixel ce_x,ce_y,44t
+    mov ce_x,ax
+    mov ce_y,dx
     pop dx
     pop ax
     ret 
@@ -847,16 +845,16 @@ pFilaEnemigo1 proc
     push ax  
     push dx 
     push cx 
-    ;mov ce1_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx,ce1_y  
-    mov ax,ce1_x
+    ;mov ce_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx,ce_y  
+    mov ax,ce_x
     mov cx, 7
      drawFila: 
         call pDrawEnemigo1
-        mSumarDw ce1_y,28t 
+        mSumarDw ce_y,28t 
         loop drawFila
-    mov ce1_y,dx;para escribir cada elemento en la misma columna
+    mov ce_y,dx;para escribir cada elemento en la misma columna
     pop cx 
     pop dx 
     pop ax 
@@ -867,16 +865,16 @@ pFilaEnemigo2 proc
     push ax  
     push dx 
     push cx
-    ;mov ce2_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce2_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx,ce2_y  
-    mov ax,ce2_x
+    ;mov ce_x,30t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx,ce_y  
+    mov ax,ce_x
     mov cx, 7
     drawFila: 
         call pDrawEnemigo2
-        mSumarDw ce2_y,28t 
+        mSumarDw ce_y,28t 
         loop drawFila
-    mov ce2_y, dx
+    mov ce_y, dx
     pop cx 
     pop dx 
     pop ax 
@@ -887,16 +885,16 @@ pFilaEnemigo3 proc
     push ax  
     push dx 
     push cx
-    ;mov ce3_x,45t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    ;mov ce3_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov dx, ce3_y
-    mov ax, ce3_x
+    ;mov ce_x,45t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    ;mov ce_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov dx, ce_y
+    mov ax, ce_x
     mov cx, 7t ;cx es el contador de cuantas veces el loop se repetira 
     drawFila: 
         call pDrawEnemigo3
-        mSumarDw ce3_y,28t 
+        mSumarDw ce_y,28t 
         loop drawFila
-    mov ce3_y, dx 
+    mov ce_y, dx 
     pop cx 
     pop dx 
     pop ax 
@@ -906,30 +904,27 @@ pFilaEnemigo3 endp
 pDrawEnemigos proc 
     push cx 
     mov cx, nivelGame
-    mov ce1_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     drawE:
         ;ENEMIGOS TIPO 1 
         call pFilaEnemigo1
-        mSumarDw ce1_x,15t 
+        mSumarDw ce_x,15t 
 
         ;ENEMIGOS TIPO 2 
-        movVariablesDw ce2_x,ce1_x
-        mov ce2_y,140t
+        mov ce_y,140t
         call pFilaEnemigo2
-        mSumarDw ce2_x,15t 
+        mSumarDw ce_x,15t 
 
         ;ENEMIGOS TIPO 3 
-        movVariablesDw ce3_x,ce2_x
-        mov ce2_y,140t
+        mov ce_y,140t
         call pFilaEnemigo3
-        mSumarDw ce3_x,15t 
-        movVariablesDw ce1_x,ce3_x
-        mov ce1_y,140t
+        mSumarDw ce_x,15t 
+        mov ce_y,140t
     loop drawE
 
-    mov ce1_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
-    mov ce1_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce_x,15t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
+    mov ce_y,140t  ;CAMBIAR ESTE 30T POR UNA VARIABLE GLOBAL 
     pop cx 
     ret 
 pDrawEnemigos endp 
@@ -1045,73 +1040,87 @@ pMovEnemys proc
     je filaene1
     jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
     filaene3: 
-        movVariablesDw borrXenemy, ce3_x
-        movVariablesDw borrYenemy, ce3_y 
+        movVariablesDw borrXenemy, ce_x
+        movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
-        cmp ce3_x,196t 
+        cmp ce_x,196t 
         je finMov3
-        inc ce3_x
+        inc ce_x
         call pDrawEnemigo3
         jmp salir 
         finMov3: 
             call pDrawEborradoU
-            movVariablesDw ce3_x,filaIgame
-            mSumarDw ce3_y,28t
-            cmp ce3_y,336t ;comparar con la ultima posicion que puede tener una nave enemgia 
+            movVariablesDw ce_x,filaIgame ;fila actual 
+            mSumarDw ce_y,28t
+            cmp ce_y,336t ;comparar con la ultima posicion que puede tener una nave enemgia 
             jb  salir ;si es menor al margen salir y seguir graficando de forma normal 
-            mRestaDw ce3_x,15t 
-            movVariablesDw ce2_x,ce3_x
-            mov ce2_y,308t 
+            mRestaDw ce_x,15t 
+            movVariablesDw filaIgame, ce_x ; se actualiza la fila actual a usar 
+            mov ce_y,308t 
             mov estEnem,2
     filaene2:
-        movVariablesDw borrXenemy, ce2_x
-        movVariablesDw borrYenemy, ce2_y 
+        movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
+        movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
         mDrawEborrado borrXenemy,borrYenemy
-        cmp ce2_x,196t 
+        cmp ce_x,196t 
         je finMov2
-        inc ce2_x
+        inc ce_x
         call pDrawEnemigo2
         jmp salir 
         finMov2: 
             call pDrawEborradoU
-            movVariablesDw ce2_x,ce3_x
-            mRestaDw ce2_y,28t
-            cmp ce2_y,140t ; si es menor a 140t es que ya se movieron los 7 enemigos 
+            movVariablesDw ce_x,filaIgame ;se vuelve a reestablecer x en la fila actual 
+            mRestaDw ce_y,28t ;se resta 28 a la columna actual 
+            cmp ce_y,140t ; si es menor a 140t es que ya se movieron los 7 enemigos 
             jae salir ;si es mayor o igual al margen salir y seguir graficando de forma normal
-            mRestaDw ce2_x,15t 
-            movVariablesDw ce1_x,ce2_x
-            mov ce1_y,140t 
+            mRestaDw ce_x,15t ;si es menor entonces pasar a la siguiente fila de enemigos 
+            movVariablesDw filaIgame,ce_x ; se actualiza la fila actual 
+            mov ce_y,140t 
             mov estEnem,1
     filaene1: 
-        movVariablesDw borrXenemy, ce1_x
-        movVariablesDw borrYenemy, ce1_y 
+        movVariablesDw borrXenemy, ce_x
+        movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
-        cmp ce1_x,196t 
+        cmp ce_x,196t 
         je finMov
-        inc ce1_x
+        inc ce_x
         call pDrawEnemigo1
         jmp salir 
         finMov: 
             call pDrawEborradoU
-            movVariablesDw ce1_x,ce2_x
-            mSumarDw ce1_y,28t
-            cmp ce1_y,336t ; si es mayor a 336t es que ya se movieron los 7 enemigos 
+            movVariablesDw ce_x,filaIgame
+            mSumarDw ce_y,28t
+            cmp ce_y,336t ; si es mayor a 336t es que ya se movieron los 7 enemigos 
             jb salir ;si es menor al margen salir y seguir graficando de forma normal
-            mRestaDw ce1_x,15t 
-            cmp ce1_x, 0 
+            mRestaDw ce_x,15t 
+            movVariablesDw filaIgame,ce_x
+            cmp ce_x, 0 
             jne SeguirMoviendo
     FinalizarMovEnemigos:
         mov estEnem,0
         jmp salir 
     SeguirMoviendo:
-        movVariablesDw filaIgame,ce1_x
-        movVariablesDw ce3_x,filaIgame
-        mov ce3_y,140t 
+        movVariablesDw ce_x,filaIgame
+        mov ce_y,140t 
         mov estEnem,3
     salir:   
     ret 
 pMovEnemys endp 
 
+pColison proc  
+    push cx 
+     mov cx,bala1y ;column
+        dec cx 
+        mov dx,bala1x ;fila
+        dec dx 
+        dec dx 
+        mov ah, 0Dh
+        int 10h 
+        cmp al,15t ;blanco 
+
+    pop cx 
+    ret 
+pColison endp 
 
 
     ;AUXILIARES PARA BORRAR LA ULTIMA POSICION DE LOS ENEMIGOS 
@@ -1178,14 +1187,8 @@ pConfigIni proc
     mov nivelGame,3 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t
-    mov cNave_y,220t
-    mov ce1_x,20t  
-    mov ce1_y,140t   
-    mov ce2_x,20t   
-    mov ce2_y,140t   
-    mov ce3_x,20t 
-    mov ce3_y,140t 
-    mov estEnem,3  ;para que se empiece moviendo el enemigo 1 
+    mov cNave_y,220t    
+    mov estEnem,3  ;para que se empiece moviendo el enemigo 3 
     mov mingameN,0
     mov seggameN,0
     mov cengameN,0

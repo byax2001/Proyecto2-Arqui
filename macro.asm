@@ -187,12 +187,16 @@ mVariables macro
             ce2_y dw 0   
             ce3_x dw 0
             ce3_y dw 0  
+            ce_x dw 0
+            ce_y dw 0 
         ;FILA INICIAL CON LA CUAL SE COMENZARA A moverse los enemigos 
             filaIgame dw 0
         ;ESTADO DE APARICION DE ENEMIGOS
             estEnem db 0
         ;PERMITIR QUE SE MUEVA EL ENEMIGO 
             movEnemigo dw 0
+        ;COLISION 
+            colisionE db 0
         ;RECTANGULOS
             cordx dw 0
             cordy dw 0
