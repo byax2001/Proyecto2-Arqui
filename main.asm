@@ -442,6 +442,9 @@ pMovimientoGame proc
     mov auxfpsT, dl 
     call pDrawCleansCorazones
     call pDrawCorazones
+    call pLevel 
+    call pScore
+    
     call pTimeGame
     ;MOVIMIENTOS DE LA NAVE 
     call pMovNave
@@ -1042,8 +1045,8 @@ pMovbala proc
         dec dx 
         mov ah, 0Dh
         int 10h 
-        cmp al,1t; 
-        je colision
+        cmp al,1t; azul 
+        je DestEnemigo
         cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
         je colision
         cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
@@ -1056,10 +1059,22 @@ pMovbala proc
         mov bala1x,dx 
         pop cx 
         loop movnormal
-        jmp salir 
-    colision: 
+        jmp salir
+    DestEnemigo:
         pop cx 
-        
+        movVariablesDw limIzqE,ce_y 
+        movVariablesDw  limDerE,ce_y
+        mRestaDw limIzqE,4t 
+        mSumarDw limDerE ,4t 
+        mEnRangoGame bala1y,limIzqE,limDerE
+        cmp enrango,1
+        jne nosumar
+        mov DestEnem,1 
+        mSumarDw scoreG, 10t 
+        nosumar: 
+        jmp finmovimiento
+    colision: 
+        pop cx     
     finmovimiento:
         mov cx, 4 
         borrarMovBala:
@@ -1087,14 +1102,17 @@ pMovEnemys proc
         movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
         call pColision
-        cmp colisionE,1
+        cmp colisionE,1; si colisiono con la nave principal
         je finMov3
-        cmp ce_x,196t 
+        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
+        je finMov3
+        cmp ce_x,196t ;si llego al margen inferior de la pantalla 
         je finMov3
         inc ce_x
         call pDrawEnemigo3
         jmp salir 
         finMov3: 
+            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame ;fila actual 
             mSumarDw ce_y,28t
@@ -1109,7 +1127,9 @@ pMovEnemys proc
         movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
         mDrawEborrado borrXenemy,borrYenemy
         call pColision
-        cmp colisionE,1
+        cmp colisionE, 1 ; si la nave enemiga choco con la nave principal 
+        je finMov2
+        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
         je finMov2
         cmp ce_x,196t 
         je finMov2
@@ -1117,6 +1137,7 @@ pMovEnemys proc
         call pDrawEnemigo2
         jmp salir 
         finMov2: 
+            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame ;se vuelve a reestablecer x en la fila actual 
             mRestaDw ce_y,28t ;se resta 28 a la columna actual 
@@ -1131,14 +1152,17 @@ pMovEnemys proc
         movVariablesDw borrYenemy, ce_y 
         mDrawEborrado borrXenemy,borrYenemy
         call pColision
-        cmp colisionE,1
+        cmp colisionE,1 ; la nave enemiga choco con la nave user
         je finMov
-        cmp ce_x,196t 
+        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
+        je finMov 
+        cmp ce_x,196t ;llego al margen inferior de la pantalla 
         je finMov
         inc ce_x
         call pDrawEnemigo1
         jmp salir 
         finMov: 
+            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame
             mSumarDw ce_y,28t
@@ -1182,8 +1206,8 @@ pColision proc
         loop cuerpoenemigo
         jmp nochoque
         choque:
-            mov colisionE,1 
             pop cx
+            mov colisionE,1 
             cmp liNave,0
             je nochoque 
             dec liNave
@@ -1299,5 +1323,17 @@ pTimeGame proc
          
     ret 
 pTimeGame endp 
+pLevel proc
+    movVariablesDw nivelGameS,nivelGame
+    add nivelGameS,30h
+    mImprimirLetreros nivelGameS,6,10t,15t 
+    ret 
+pLevel endp 
 
+pScore proc
+    mLimpiar scoreGString,5,0
+    Num2String scoreG,scoreGString
+    mImprimirLetreros scoreGString,9t,4t,15t
+    ret 
+pScore endp 
 END start 

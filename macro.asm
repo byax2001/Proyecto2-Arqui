@@ -170,9 +170,12 @@ mVariables macro
             Livesgame db "Lives:"
             PressSpace db "Press space"
             toStartG  db "to Start"
+        ;SCORE
+            scoreG dw 0
+            scoreGString db 5 dup (0)
         ;NIVEL 
             nivelGame dw 0
-            nivelGameS dw 0
+            nivelGameS dw 0 
             printEnemyE dw 0
         ;NAVE
             cNave_x dw 0
@@ -183,10 +186,13 @@ mVariables macro
         ;ENEMIGOS 
             ce_x dw 0
             ce_y dw 0 
+            limIzqE dw 0
+            limDerE dw 0
         ;FILA INICIAL CON LA CUAL SE COMENZARA A moverse los enemigos 
             filaIgame dw 0
         ;ESTADO DE APARICION DE ENEMIGOS
             estEnem db 0
+            DestEnem db 0
         ;PERMITIR QUE SE MUEVA EL ENEMIGO 
             movEnemigo dw 0
         ;COLISION 
@@ -1001,7 +1007,7 @@ Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el 
         dec contador
         cmp contador,0 
         jne Convertir
-        pop ax 
+    pop ax 
 endm 
 ;MACRO PARA CAPTURAR STRINGS EN UNA VARIABLE
 mCapturarString macro variableAlmacenadora 
