@@ -193,6 +193,7 @@ mVariables macro
         ;ESTADO DE APARICION DE ENEMIGOS
             estEnem db 0
             DestEnem db 0
+            DestEnemA db 0 ;si la nave ya fue destruida con anterioridad 
         ;PERMITIR QUE SE MUEVA EL ENEMIGO 
             movEnemigo dw 0
         ;COLISION 
@@ -209,6 +210,9 @@ mVariables macro
         ;BORRADOR ULTIMO DE MOVIMIENTO PARA ENEMIGOS
             borrUx dw 0
             borrUy dw 0 
+        ;BORRADOR EN CASO DE IMPACTO (CUADRO 9 FILAS 16 COLUMNAS)
+            bImpactox dw 0
+            bImpactoy dw 0 
         ;BORRADOR MOVIMIENTO PARA NAVE 
             borrx dw 0
             borry dw 0
@@ -1580,23 +1584,26 @@ mDrawEborrado macro  x,y
     pop ax
     pop cx 
 endm 
-mDrawEBColision macro  x,y 
+mDrawNaveEdestruida macro  x,y  ;NAVE ENEMIGA DESTRUIDA 
     local figuraB
     push cx
     push ax
     push dx 
     xor ax, ax 
     xor dx, dx 
+    xor cx, cx 
     mov cx, 10t
     mov ax, x
     mov dx, y
+    inc x 
+    inc x 
     figuraB:
-        mDecVar y,4t 
-        mDrawFila x,y,0t,10t     
+        mDecVar y,8t 
+        mDrawFila x,y,0t,16t     
         mov y, dx 
         dec x
         loop figuraB
-    mov x,dx
+    mov x,ax
     pop dx
     pop ax
     pop cx 

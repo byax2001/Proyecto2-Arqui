@@ -432,8 +432,7 @@ pGame endp
 pMovimientoGame proc
     mov auxfpsT,0
     reset: 
-        call pConfigIni
-        
+        call pConfigIni   
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
@@ -455,9 +454,9 @@ pMovimientoGame proc
     je yaimpresoEnemy
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
-    mov ce_x,135t
+    mov ce_x,45t
     mov ce_y, 140t
-    mov filaIgame,135t  ;filaIgame aun no tiene funcionalidad
+    mov filaIgame,45t  ;auxiliar que contendra la fila actual recorrida 
     yaimpresoEnemy: 
     call pMovEnemys 
     ;MOVIMIENTO DE BALAS
@@ -1031,7 +1030,7 @@ pMovNave endp
 pMovbala proc
     push ax
     push dx
-    cmp bala1x,2t
+    cmp bala1x,5t
     je  finmovimiento
     mov cx,3t
     movnormal:
@@ -1058,20 +1057,13 @@ pMovbala proc
         inc dx 
         mov bala1x,dx 
         pop cx 
-        loop movnormal
-        jmp salir
+    loop movnormal
+    jmp salir
     DestEnemigo:
         pop cx 
-        movVariablesDw limIzqE,ce_y 
-        movVariablesDw  limDerE,ce_y
-        mRestaDw limIzqE,4t 
-        mSumarDw limDerE ,4t 
-        mEnRangoGame bala1y,limIzqE,limDerE
-        cmp enrango,1
-        jne nosumar
+        mDrawNaveEdestruida bala1x,bala1y 
         mov DestEnem,1 
-        mSumarDw scoreG, 10t 
-        nosumar: 
+        mSumarDw scoreG, 10t  
         jmp finmovimiento
     colision: 
         pop cx     
@@ -1089,6 +1081,7 @@ pMovbala proc
 pMovbala endp  
 
 
+
 pMovEnemys proc  
     push cx 
     cmp estEnem,3
@@ -1100,11 +1093,13 @@ pMovEnemys proc
     jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
     filaene3: 
         mov cx,nivelGame 
+            call pDestEnemA ;el enemigo fue destruido con anterioridad?
+            cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
+            je finMov3 
         movi3: 
             movVariablesDw borrXenemy, ce_x
             movVariablesDw borrYenemy, ce_y 
             mDrawEborrado borrXenemy,borrYenemy
-        
             call pColision
             cmp colisionE,1; si colisiono con la nave principal
             je finMov3
@@ -1130,6 +1125,9 @@ pMovEnemys proc
             mov estEnem,2
     filaene2:
         mov cx,nivelGame 
+            call pDestEnemA ;el enemigo fue destruido con anterioridad?
+            cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
+            je finMov2 
         movi2: 
             movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
             movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
@@ -1159,6 +1157,9 @@ pMovEnemys proc
             mov estEnem,1
     filaene1: 
         mov cx,nivelGame 
+            call pDestEnemA ;el enemigo fue destruido con anterioridad?
+            cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
+            je finMov 
         movi1: 
             movVariablesDw borrXenemy, ce_x
             movVariablesDw borrYenemy, ce_y 
@@ -1234,6 +1235,27 @@ pColision proc
     ret 
 pColision endp 
 
+pDestEnemA proc
+    push cx 
+    push dx
+    push ax 
+    mov DestEnemA,0
+    mov cx,ce_y ;column
+    mov dx,ce_x ;fila
+    dec dx 
+    dec dx 
+    dec dx 
+    mov ah, 0Dh
+    int 10h 
+    cmp al,0t; negro, entonces fue eliminado 
+    jne nodestruido ; si no ha sido destruido no hacer nada 
+        mov DestEnemA,1 ;si esta destruido indicarle al programa que ha sido destruido anteriormente 
+    nodestruido: 
+    pop ax 
+    pop dx 
+    pop cx 
+    ret 
+pDestEnemA endp 
 
     ;AUXILIARES PARA BORRAR LA ULTIMA POSICION DE LOS ENEMIGOS 
 pFilaEborradoU proc
@@ -1295,18 +1317,15 @@ pConfigIni proc
     mImprimirLetreros PressSpace,18t,1t,9t
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
-    mov printEnemyE,0 
-    mov nivelGame,3 
+    mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
+        mov nivelGame,1 ;nivel del juego 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
-    mov cNave_x,185t
-    mov cNave_y,220t    
+    mov cNave_x,185t ;fila inicial de la nave 
+    mov cNave_y,220t ;columna inicial de la nave
     mov estEnem,3  ;para que se empiece moviendo el enemigo 3 
-    mov mingameN,0
-    mov seggameN,0
-    mov cengameN,0
-    mLimpiar cengameS,4,0
-    mLimpiar seggameS,4,0
-    mLimpiar mingameS,4,0
+    mov mingameN,0 ;minutos desde que se inicio el juego 
+    mov seggameN,0 ;segundos desde que se inicio el juego 
+    mov cengameN,0 ;centisegundos desde que se inicio el juego 
     ret 
 pConfigIni endp  
 
@@ -1333,9 +1352,7 @@ pTimeGame proc
         mImprimirLetreros dospuntosg,12t,6t,15t
         mImprimirLetreros seggameS,12t,7t,15t
         mImprimirLetreros dospuntosg,12t,9t,15t
-        mImprimirLetreros cengameS,12t,10t,15t 
-         
-         
+        mImprimirLetreros cengameS,12t,10t,15t  
     ret 
 pTimeGame endp 
 pLevel proc
