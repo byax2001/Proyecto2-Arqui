@@ -239,6 +239,8 @@ mVariables macro
             mingameN dw 0
             seggameN dw 0
             cengameN dw 0
+        ;EXIT GAME
+            exitGame db 0
 
 endm 
 

@@ -440,6 +440,9 @@ pMovimientoGame proc
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
+        
+       
+    ;MOVIMIENTO 
     call pDrawCleansCorazones
     call pDrawCorazones
     call pLevel 
@@ -450,6 +453,8 @@ pMovimientoGame proc
     call pMovNave
     call pDrawNaveBorr
     call pDrawNave
+    cmp exitGame,1 ; si luego de una pausa se selecciono en salir del juego 
+    je salir 
     ;IMPRESION DE ENEMIGOS 
     cmp printEnemyE,1 ;SI YA SE IMPRIMIO NO VOLVER A IMPRIMIR 
     je yaimpresoEnemy
@@ -468,6 +473,7 @@ pMovimientoGame proc
         jmp sinAccion
     sinAccion: 
     jmp fps 
+    salir:
     ret 
 pMovimientoGame endp 
 
@@ -1000,6 +1006,8 @@ pMovNave proc
         je movDerecha
         cmp al, "D"
         je movDerecha
+        cmp al, 27t 
+        je Pausa 
         cmp al, "v"
         je Disparo1
         cmp al, "V"
@@ -1015,13 +1023,16 @@ pMovNave proc
         ja salir 
         inc cNave_y  
         jmp salir   
+    Pausa: 
+        call pPauseGame ;PAUSA DONDE SOLO HABRA O
+        jmp salir 
     Disparo1:
         cmp estD1,1t 
         je salir 
-        MovVariablesDw bala1x, cNave_x
-        mDecVar bala1x,3t 
+        MovVariablesDw bala1x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
+        mDecVar bala1x,3t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
         movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-        mov estD1,1
+        mov estD1,1 ; si esta en estado 1 significa que esta en movimiento la bala, asi que no se puede lanzar otra hasta que la anterior desapareca 
         jmp salir 
     salir: 
     pop ax 
@@ -1367,4 +1378,23 @@ pScore proc
     mImprimirLetreros scoreGString,9t,4t,15t
     ret 
 pScore endp 
+
+pPauseGame proc 
+    push ax 
+    mov exitGame, 0
+    ciclo:
+        mov ah, 00  ;Espera a que se presione una tecla y la lee
+        int 16h
+        cmp al, 27t ;escape 
+        je exitG 
+        cmp al, " " ;espacio 
+        je salir
+        jmp ciclo  ;estara en un ciclo si no es o espacio o escape 
+    exitG: 
+        mov exitGame,1 
+    salir: 
+    pop ax 
+    ret 
+pPauseGame endp 
+
 END start 
