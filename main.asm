@@ -433,6 +433,7 @@ pMovimientoGame proc
     mov auxfpsT,0
     reset: 
         call pConfigIni   
+        mWaitKey " "
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
@@ -1079,8 +1080,6 @@ pMovbala proc
     pop ax  
     ret
 pMovbala endp  
-
-
 
 pMovEnemys proc  
     push cx 

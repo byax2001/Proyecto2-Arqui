@@ -1649,4 +1649,14 @@ mEnRangoGame macro dato,limif, limsup
     noEnelrango:
         MovVariables enrango,0
     salir:
+endm
+
+mWaitKey macro key 
+    push ax 
+    ciclo: 
+    mov ah, 00  ;Espera a que se presione una tecla y la lee
+    int 16h
+    cmp al,key 
+    jne ciclo 
+    pop ax 
 endm 
