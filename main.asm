@@ -1380,8 +1380,11 @@ pScore proc
 pScore endp 
 
 pPauseGame proc 
-    push ax 
+    call pGuardarMatrizVideo ; guardar el estado de la matriz de video para posteriormente cargarla sin los letreros 
     mov exitGame, 0
+    mImprimirLetreros letPause,5t,25t,15t
+    mImprimirLetreros letRen,12t,20t,15t
+    mImprimirLetreros letExit,15t,20t,15t
     ciclo:
         mov ah, 00  ;Espera a que se presione una tecla y la lee
         int 16h
@@ -1393,8 +1396,52 @@ pPauseGame proc
     exitG: 
         mov exitGame,1 
     salir: 
-    pop ax 
+        call pCargarMatrizVideo ;cargar la matriz de video guardada luego de los letreros 
     ret 
 pPauseGame endp 
+
+;MACROS PARA GUARDAR Y CARGAR LA MATRIZ DE VIDEO 
+;Macro para sobreescribir la matriz de video en un archivo "matriz.vi"
+pGuardarMatrizVideo proc
+    push cx 
+    push ax 
+    push si  
+    mCrearFile matrizgraph
+    mOpenFile2Write matrizgraph
+    mov si,0
+    mov cx, 64000t
+    copiarmatriz:
+        mov bl, es:[si]
+        mov eleactualG,bl 
+        mWriteToFile eleactualG
+        inc si 
+    loop copiarmatriz
+    mCloseFile
+    pop si 
+    pop bx 
+    pop cx 
+    ret 
+pGuardarMatrizVideo endp 
+
+;macro para cargar la matriz guardada con anterioridad 
+pCargarMatrizVideo proc
+    push cx 
+    push ax 
+    push si  
+    mOpenFile2Write matrizgraph
+    mov si,0
+    mov cx, 64000t
+    copiarmatriz2:
+        mReadFile eleactualG
+        mov bl,eleactualG
+        mov  es:[si],bl
+        inc si 
+    loop copiarmatriz2
+    mCloseFile
+    pop si 
+    pop bx 
+    pop cx 
+    ret
+pCargarMatrizVideo endp 
 
 END start 

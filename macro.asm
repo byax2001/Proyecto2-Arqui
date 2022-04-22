@@ -239,7 +239,14 @@ mVariables macro
             mingameN dw 0
             seggameN dw 0
             cengameN dw 0
-        ;EXIT GAME
+        ;PAUSA Y EXIT GAME 
+            letGover db "Game over!"
+            letPause db "Pause"
+            letRen db "Continue (Esp)"
+            letExit db "Exit (Esc)"
+            letclear db 10 dup (" ")
+            matrizgraph db "matriz.vi",0
+            eleactualG db 30
             exitGame db 0
 
 endm 
@@ -1276,7 +1283,7 @@ mCrearFile macro nameFile
         mov creacionCorrecta,0
         jmp salir
     salidaCT: ;sale del bucle
-        mMostrarString savegood
+        ;mMostrarString savegood
         mov creacionCorrecta,1
         jmp salir
     salir:
@@ -1285,21 +1292,31 @@ endm
 ;para escribir en un archivo externo
 mWriteToFile macro palabra
     push ax 
+    push bx 
+    push cx 
     mov bx, handler
     mov cx, LENGTHOF palabra 
     mov dx, offset palabra
     mov ah,40
     int 21
+    pop cx 
+    pop bx 
     pop ax 
 endm
 mReadFile macro varAlmacenadora
     push ax 
+    push bx 
+    push cx 
+    push dx 
     mov bx, handler
     mov cx, 1 
     lea dx, varAlmacenadora ; esto seria igual a:  mov dx, offset lectura, "EN LA POSICION DE LECTURA GRABAR LO LEIDO"
     mov ah, 3F
     int 21
     mov posLectura, ax 
+    pop dx 
+    pop cx 
+    pop bx 
     pop ax 
 endm
 mCloseFile macro
@@ -1617,6 +1634,7 @@ mImprimirLetreros macro letrero,fila,columna,color
     push bx
     push cx
     push dx  
+    push bp 
     mov al,1   ;MODO DE IMPRESION CON COLOR (1), SIN COLO(0)
     mov bh,0   ;PAGINA 
     mov bl,color  ;COLOR  (PALETA VGA 1t-255t)
@@ -1630,6 +1648,7 @@ mImprimirLetreros macro letrero,fila,columna,color
     mov ah,13h
 	int 10h
     call pMemVideoMode;SE VUELVE A COLOCAR LA MEMORIA DE VIDEO EN ES 
+    pop bp 
     pop dx 
     pop cx
     pop bx 
