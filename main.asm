@@ -1090,6 +1090,7 @@ pMovbala endp
 
 
 pMovEnemys proc  
+    push cx 
     cmp estEnem,3
     je filaene3
     cmp estEnem,2
@@ -1098,18 +1099,23 @@ pMovEnemys proc
     je filaene1
     jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
     filaene3: 
-        movVariablesDw borrXenemy, ce_x
-        movVariablesDw borrYenemy, ce_y 
-        mDrawEborrado borrXenemy,borrYenemy
-        call pColision
-        cmp colisionE,1; si colisiono con la nave principal
-        je finMov3
-        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
-        je finMov3
-        cmp ce_x,196t ;si llego al margen inferior de la pantalla 
-        je finMov3
-        inc ce_x
-        call pDrawEnemigo3
+        mov cx,nivelGame 
+        movi3: 
+            movVariablesDw borrXenemy, ce_x
+            movVariablesDw borrYenemy, ce_y 
+            mDrawEborrado borrXenemy,borrYenemy
+        
+            call pColision
+            cmp colisionE,1; si colisiono con la nave principal
+            je finMov3
+            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
+            je finMov3
+            cmp ce_x,196t ;si llego al margen inferior de la pantalla 
+            je finMov3
+            inc ce_x
+            call pDrawEnemigo3
+        dec cx 
+        jne movi3 
         jmp salir 
         finMov3: 
             mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
@@ -1123,18 +1129,22 @@ pMovEnemys proc
             mov ce_y,308t 
             mov estEnem,2
     filaene2:
-        movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
-        movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
-        mDrawEborrado borrXenemy,borrYenemy
-        call pColision
-        cmp colisionE, 1 ; si la nave enemiga choco con la nave principal 
-        je finMov2
-        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
-        je finMov2
-        cmp ce_x,196t 
-        je finMov2
-        inc ce_x
-        call pDrawEnemigo2
+        mov cx,nivelGame 
+        movi2: 
+            movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
+            movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
+            mDrawEborrado borrXenemy,borrYenemy
+            call pColision
+            cmp colisionE, 1 ; si la nave enemiga choco con la nave principal 
+            je finMov2
+            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
+            je finMov2
+            cmp ce_x,196t 
+            je finMov2
+            inc ce_x
+            call pDrawEnemigo2
+        dec cx 
+        jne movi2  
         jmp salir 
         finMov2: 
             mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
@@ -1148,18 +1158,22 @@ pMovEnemys proc
             mov ce_y,140t 
             mov estEnem,1
     filaene1: 
-        movVariablesDw borrXenemy, ce_x
-        movVariablesDw borrYenemy, ce_y 
-        mDrawEborrado borrXenemy,borrYenemy
-        call pColision
-        cmp colisionE,1 ; la nave enemiga choco con la nave user
-        je finMov
-        cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
-        je finMov 
-        cmp ce_x,196t ;llego al margen inferior de la pantalla 
-        je finMov
-        inc ce_x
-        call pDrawEnemigo1
+        mov cx,nivelGame 
+        movi1: 
+            movVariablesDw borrXenemy, ce_x
+            movVariablesDw borrYenemy, ce_y 
+            mDrawEborrado borrXenemy,borrYenemy
+            call pColision
+            cmp colisionE,1 ; la nave enemiga choco con la nave user
+            je finMov
+            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
+            je finMov 
+            cmp ce_x,196t ;llego al margen inferior de la pantalla 
+            je finMov
+            inc ce_x
+            call pDrawEnemigo1
+        dec cx 
+        jne movi1  
         jmp salir 
         finMov: 
             mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
@@ -1179,7 +1193,8 @@ pMovEnemys proc
         movVariablesDw ce_x,filaIgame
         mov ce_y,140t 
         mov estEnem,3
-    salir:   
+    salir:
+    pop cx    
     ret 
 pMovEnemys endp 
 
