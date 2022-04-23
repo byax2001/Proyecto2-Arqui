@@ -241,6 +241,7 @@ mVariables macro
             cengameN dw 0
         ;PAUSA Y EXIT GAME 
             letGover db "Game over!"
+            letEsp db "(Presione espacio para salir)"
             letPause db "Pause"
             letRen db "Continue (Esp)"
             letExit db "Exit (Esc)"

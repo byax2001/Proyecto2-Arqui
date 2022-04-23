@@ -447,7 +447,6 @@ pMovimientoGame proc
     call pDrawCorazones
     call pLevel 
     call pScore
-    
     call pTimeGame
     ;MOVIMIENTOS DE LA NAVE 
     call pMovNave
@@ -455,15 +454,20 @@ pMovimientoGame proc
     call pDrawNave
     cmp exitGame,1 ; si luego de una pausa se selecciono en salir del juego 
     je salir 
-    ;IMPRESION DE ENEMIGOS 
+
+    ;IMPRESION DE ENEMIGOS-NIVELES  
     cmp printEnemyE,1 ;SI YA SE IMPRIMIO NO VOLVER A IMPRIMIR 
     je yaimpresoEnemy
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
-    mov ce_x,45t
-    mov ce_y, 140t
-    mov filaIgame,45t  ;auxiliar que contendra la fila actual recorrida 
+    ;COORDENADAS INICIALES PARA EL MOVIMIENTO DE ENEMIGOS 
+        mov ce_x,45t
+        mMultiplicacionDw ce_x,nivelGame
+        mov ce_y, 140t
+        mov filaIgame,45t  ;auxiliar que contendra la fila actual recorrida 
+        mMultiplicacionDw filaIgame,nivelGame
     yaimpresoEnemy: 
+
     call pMovEnemys 
     ;MOVIMIENTO DE BALAS
     cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
@@ -745,6 +749,7 @@ pDrawEnemigo3 proc
 pDrawEnemigo3 endp 
 
 pDrawNave proc
+    push cx 
     push ax
     push dx 
     mov ax,cNave_x
@@ -814,12 +819,39 @@ pDrawNave proc
     inc cNave_y
     inc cNave_y
     mDrawFila cNave_x,cNave_y,39t,2t
-
-
     mov cNave_x,ax
     mov cNave_y,dx
+    cmp nivelGame,1 
+    je salir 
+    ;caño izquierdo 
+        mIncVar cNave_x,5t 
+        mDecVar cNave_y,7t 
+        mDrawPixel cNave_x,cNave_y,39t
+        mov cx,3t 
+        canonizq:
+            inc cNave_x
+            mDrawPixel cNave_x,cNave_y,15t
+        loop canonizq
+        mov cNave_x,ax
+        mov cNave_y,dx
+        cmp nivelGame,2 
+        je salir
+    ;cañon derecho 
+        mIncVar cNave_x,5t 
+        mIncVar cNave_y,7t 
+        mDrawPixel cNave_x,cNave_y,39t
+        mov cx,3t 
+        canonder:
+            inc cNave_x
+            mDrawPixel cNave_x,cNave_y,15t
+        loop canonder
+        mov cNave_x,ax
+        mov cNave_y,dx 
+
+    salir:     
     pop dx
     pop ax 
+    pop cx 
     ret 
 pDrawNave endp 
 
@@ -1075,7 +1107,7 @@ pMovbala proc
         pop cx 
         mDrawNaveEdestruida bala1x,bala1y 
         mov DestEnem,1 
-        mSumarDw scoreG, 10t  
+        mSumarDw scoreG, 100t  
         jmp finmovimiento
     colision: 
         pop cx     
@@ -1327,7 +1359,7 @@ pConfigIni proc
     mImprimirLetreros PressSpace,18t,1t,9t
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
-    mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
+        mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
         mov nivelGame,1 ;nivel del juego 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t ;fila inicial de la nave 
