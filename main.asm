@@ -433,15 +433,16 @@ pMovimientoGame proc
     mov auxfpsT,0
     reset: 
         call pConfigIni   
-        mWaitKey " "
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-        
-       
+    cmp nivelGame,4 ; si se finalizo el 3 nivel, nivelgame llegara a 4 indicando que finalizo el juego 
+    je gameover
+    cmp liNave,0 ;si la vida de la nave llego a 0 es game over 
+    je gameover
     ;MOVIMIENTO 
     call pDrawCleansCorazones
     call pDrawCorazones
@@ -458,9 +459,13 @@ pMovimientoGame proc
     ;IMPRESION DE ENEMIGOS-NIVELES  
     cmp printEnemyE,1 ;SI YA SE IMPRIMIO NO VOLVER A IMPRIMIR 
     je yaimpresoEnemy
+    ;SE ESPERA A QUE EL USUARIO PRESIONE ESPACIO PARA PODER IMPRIMIR LOS ENEMIGOS Y SEGUIR CON EL RESTO DEL JUEGO  
+        call pEspInicial
+
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
     ;COORDENADAS INICIALES PARA EL MOVIMIENTO DE ENEMIGOS 
+        
         mov ce_x,45t
         mMultiplicacionDw ce_x,nivelGame
         mov ce_y, 140t
@@ -477,6 +482,10 @@ pMovimientoGame proc
         jmp sinAccion
     sinAccion: 
     jmp fps 
+    gameover:
+        mImprimirLetreros letGover,8t,23t,15t ;imprimir letrero de game over 
+        mImprimirLetreros letEsp,12t,18t,15t ;mensaje indicando accion a realizar 
+        mWaitKey " "
     salir:
     ret 
 pMovimientoGame endp 
@@ -861,7 +870,7 @@ pDrawBala1 proc
     mov ax, bala1x  
     mov cx,3
     ciclo:
-        mDrawPixel bala1x,bala1y,25t
+        mDrawPixel bala1x,bala1y,25t ;blanco 
         inc bala1x
         loop ciclo 
 
@@ -872,12 +881,32 @@ pDrawBala1 proc
 pDrawBala1 endp 
 
 pDrawBala2 proc
-
+    push ax 
+    push cx 
+    mov ax, bala2x  
+    mov cx,3
+    ciclo:
+        mDrawPixel bala2x,bala2y,5t ;morado
+        inc bala2x
+        loop ciclo 
+    mov bala2x,ax 
+    pop cx 
+    pop ax 
     ret 
 pDrawBala2 endp 
 
 pDrawBala3 proc
-
+    push ax 
+    push cx 
+    mov ax, bala3x  
+    mov cx,3
+    ciclo:
+        mDrawPixel bala3x,bala3y,39t ;rojo
+        inc bala3x
+        loop ciclo 
+    mov bala3x,ax 
+    pop cx 
+    pop ax 
     ret 
 pDrawBala3 endp 
 ;BORRA EL MOVIMIENTO DE LA NAVE 
@@ -1124,6 +1153,59 @@ pMovbala proc
     ret
 pMovbala endp  
 
+pMovbala2 proc
+    push ax
+    push dx
+    cmp bala2x,5t
+    je  finmovimiento
+    mov cx,3t
+    movnormal:
+        push cx 
+        ;OBTENER EL VALOR DE UN PIXEL 
+        dec bala1x
+        mov cx,bala2y ;column
+        dec cx 
+        mov dx,bala1x ;fila
+        dec dx 
+        dec dx 
+        mov ah, 0Dh
+        int 10h 
+        cmp al,1t; azul 
+        je DestEnemigo
+        cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
+        je colision
+        cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
+        je colision
+        call pDrawBala1
+        mIncVar bala1x,3t
+        mDrawPixel bala1x,bala1y,0t
+        inc dx 
+        inc dx 
+        mov bala1x,dx 
+        pop cx 
+    loop movnormal
+    jmp salir
+    DestEnemigo:
+        pop cx 
+        mDrawNaveEdestruida bala1x,bala1y 
+        mov DestEnem,1 
+        mSumarDw scoreG, 100t  
+        jmp finmovimiento
+    colision: 
+        pop cx     
+    finmovimiento:
+        mov cx, 4 
+        borrarMovBala:
+            mDrawPixel bala1x,bala1y,0t
+            inc bala1x
+            loop borrarMovBala
+        mov estD1,0
+    salir: 
+    pop dx 
+    pop ax  
+    ret 
+pMovbala2 endp 
+
 pMovEnemys proc  
     push cx 
     cmp estEnem,3
@@ -1203,18 +1285,18 @@ pMovEnemys proc
             cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
             je finMov 
         movi1: 
-            movVariablesDw borrXenemy, ce_x
-            movVariablesDw borrYenemy, ce_y 
-            mDrawEborrado borrXenemy,borrYenemy
-            call pColision
-            cmp colisionE,1 ; la nave enemiga choco con la nave user
+            movVariablesDw borrXenemy, ce_x ;toma la fila del enemigo
+            movVariablesDw borrYenemy, ce_y ;toma la fila del enemigo
+            mDrawEborrado borrXenemy,borrYenemy ;pinta un cuadro negro en dicha poisicon
+            call pColision ;verifica si el enemigo no choco con la nave principal
+            cmp colisionE,1 ; si la nave choco significa el fin del movimiento de dicha nave 
             je finMov
             cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
-            je finMov 
+            je finMov  ;si la nave fue destruida es el fin del movimiento de esta 
             cmp ce_x,196t ;llego al margen inferior de la pantalla 
-            je finMov
-            inc ce_x
-            call pDrawEnemigo1
+            je finMov; si llego al final de la pantalla, es su fin de movimiento 
+            inc ce_x ;se incrementa su fila de 1 en 1 
+            call pDrawEnemigo1 ;se manda a dibujar el enemigo 1 
         dec cx 
         jne movi1  
         jmp salir 
@@ -1230,7 +1312,9 @@ pMovEnemys proc
             cmp ce_x, 0 
             jne SeguirMoviendo
     FinalizarMovEnemigos:
-        mov estEnem,0
+        mov estEnem,3 ;incrementa en uno el nivel 
+        inc nivelGame
+        mov printEnemyE,0 ;para indicarle al programa que debe de volver a imprimir enemigos 
         jmp salir 
     SeguirMoviendo:
         movVariablesDw ce_x,filaIgame
@@ -1265,8 +1349,9 @@ pColision proc
         jmp nochoque
         choque:
             pop cx
-            mov colisionE,1 
-            cmp liNave,0
+            call pDrawNaveBorr;desaparece la nave en el momento del choque 
+            mov colisionE,1  ;indicador de que hubo colision 
+            cmp liNave,0 ;si la nave tiene vida 0 entonces ya no se hace nada, caso contrario restar 1 a la vida 
             je nochoque 
             dec liNave
         nochoque: 
@@ -1364,13 +1449,13 @@ pConfigIni proc
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t ;fila inicial de la nave 
     mov cNave_y,220t ;columna inicial de la nave
-    mov estEnem,3  ;para que se empiece moviendo el enemigo 3 
+    mov estEnem,3  ;para que se empiece moviendo el enemigo tipo 3 
     mov mingameN,0 ;minutos desde que se inicio el juego 
     mov seggameN,0 ;segundos desde que se inicio el juego 
     mov cengameN,0 ;centisegundos desde que se inicio el juego 
     ret 
 pConfigIni endp  
-
+;IMPRIME EL TIEMPO DEL JUEGO 
 pTimeGame proc 
     inc cengameN
     cmp cengameN,100t
@@ -1397,20 +1482,21 @@ pTimeGame proc
         mImprimirLetreros cengameS,12t,10t,15t  
     ret 
 pTimeGame endp 
+;IMPRIME EL NIVEL DEL JUEGO 
 pLevel proc
     movVariablesDw nivelGameS,nivelGame
     add nivelGameS,30h
     mImprimirLetreros nivelGameS,6,10t,15t 
     ret 
 pLevel endp 
-
+;IMPRIME EL SCORE DEL JUEGO 
 pScore proc
     mLimpiar scoreGString,5,0
     Num2String scoreG,scoreGString
     mImprimirLetreros scoreGString,9t,4t,15t
     ret 
 pScore endp 
-
+;PAUSA DEL JUEGO 
 pPauseGame proc 
     call pGuardarMatrizVideo ; guardar el estado de la matriz de video para posteriormente cargarla sin los letreros 
     mov exitGame, 0
@@ -1431,6 +1517,33 @@ pPauseGame proc
         call pCargarMatrizVideo ;cargar la matriz de video guardada luego de los letreros 
     ret 
 pPauseGame endp 
+;PAUSA PARA PRESENTAR EL NIVEL A JUGAR Y ESPERAR SE PRESIONE LA TECLA ESPACIO 
+pEspInicial proc
+    cmp nivelGame,1 
+    je nivel1 
+    cmp nivelGame,2 
+    je nivel2 
+    cmp nivelGame,3 
+    je nivel3 
+    jmp salir 
+    nivel1: ;imprime "nivel 1" y espera un espacio
+        mImprimirLetreros letN1,8t,24t,15t 
+        mWaitKey " "
+        mImprimirLetreros letclear,8t,24t,15t 
+        jmp salir 
+    nivel2: ;imprime "nivel 2" y espera un espacio
+        mImprimirLetreros letN2,8t,24t,15t 
+        mWaitKey " "
+        mImprimirLetreros letclear,8t,24t,15t
+        jmp salir
+    nivel3: ;imprime "nivel 3" y espera un espacio
+        mImprimirLetreros letN3,8t,24t,15t 
+        mWaitKey " "
+        mImprimirLetreros letclear,8t,24t,15t
+        jmp salir
+    salir: 
+    ret 
+pEspInicial endp 
 
 ;MACROS PARA GUARDAR Y CARGAR LA MATRIZ DE VIDEO 
 ;Macro para sobreescribir la matriz de video en un archivo "matriz.vi"

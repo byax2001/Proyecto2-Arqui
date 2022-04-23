@@ -241,11 +241,14 @@ mVariables macro
             cengameN dw 0
         ;PAUSA Y EXIT GAME 
             letGover db "Game over!"
-            letEsp db "(Presione espacio para salir)"
+            letEsp db "(Press Esp to Exit)"
             letPause db "Pause"
             letRen db "Continue (Esp)"
             letExit db "Exit (Esc)"
-            letclear db 10 dup (" ")
+            letN1 db "Level 1"
+            letN2 db "Level 2"
+            letN3 db "Level 3"
+            letclear db 7 dup (" ")
             matrizgraph db "matriz.vi",0
             eleactualG db 30
             exitGame db 0
@@ -1674,6 +1677,7 @@ mEnRangoGame macro dato,limif, limsup
 endm
 
 mWaitKey macro key 
+    local ciclo 
     push ax 
     ciclo: 
     mov ah, 00  ;Espera a que se presione una tecla y la lee
