@@ -1135,10 +1135,9 @@ pMovbala proc
     DestEnemigo:
         pop cx 
         mDrawNaveEdestruida bala1x,bala1y 
-        mov DestEnem,1 
-        mSumarDw scoreG, 100t  
+        mSumarDw scoreG, 100t 
         jmp finmovimiento
-    colision: 
+    colision:  ;enemigo no posible de eliminar 
         pop cx     
     finmovimiento:
         mov cx, 4 
@@ -1162,44 +1161,54 @@ pMovbala2 proc
     movnormal:
         push cx 
         ;OBTENER EL VALOR DE UN PIXEL 
-        dec bala1x
+        dec bala2x
         mov cx,bala2y ;column
         dec cx 
-        mov dx,bala1x ;fila
+        mov dx,bala2x ;fila
         dec dx 
         dec dx 
         mov ah, 0Dh
         int 10h 
-        cmp al,1t; azul 
-        je DestEnemigo
-        cmp al,44t ;si es igual al enemigo tipo 2 desaparece la bala pues no es de mayor calibre
-        je colision
+        cmp al,1t; si es igual al enemigo tipo 1 lo destruye y la bala sigue el recorrido con el daño de esta restada en 1 
+        je DestEnemigot1
+        cmp al,44t ;si es igual al enemigo tipo 2 lo destruye y la bala desaparece
+        je DestEnemigot2
         cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
         je colision
         call pDrawBala1
-        mIncVar bala1x,3t
-        mDrawPixel bala1x,bala1y,0t
+        mIncVar bala2x,3t
+        mDrawPixel bala2x,bala2y,0t
         inc dx 
         inc dx 
-        mov bala1x,dx 
+        mov bala2x,dx 
         pop cx 
     loop movnormal
     jmp salir
-    DestEnemigo:
+    DestEnemigot1: 
         pop cx 
-        mDrawNaveEdestruida bala1x,bala1y 
+        mDrawNaveEdestruida bala2x,bala2y
         mov DestEnem,1 
         mSumarDw scoreG, 100t  
+        cmp damageb2,1 ; si el daño de la bala es de 1 (desaparece la bala)
+        je finmovimiento
+        dec damageb2 ;si es de 2 se le resta 1 al daño de la bala y sigue su camino 
+        jmp salir ;no desaparece la bala 2 
+    DestEnemigot2: ;DestEnemigo:
+        pop cx 
+        mDrawNaveEdestruida bala2x,bala2y 
+        mov DestEnem,1 
+        mov damageb2,0 ;$$EN DUDAS$$
+        mSumarDw scoreG, 200t  
         jmp finmovimiento
-    colision: 
+    colision: ;enemigo no posible de eliminar 
         pop cx     
     finmovimiento:
         mov cx, 4 
         borrarMovBala:
-            mDrawPixel bala1x,bala1y,0t
-            inc bala1x
+            mDrawPixel bala2x,bala2y,0t
+            inc bala2x
             loop borrarMovBala
-        mov estD1,0
+        mov estD2,0 ;estado disparo 2 
     salir: 
     pop dx 
     pop ax  
@@ -1216,18 +1225,16 @@ pMovEnemys proc
     je filaene1
     jmp salir ;SE MUEVE EL ESTADO PARA PASAR AL NIVEL 2 
     filaene3: 
-        mov cx,nivelGame 
+        mov cx,nivelGame    
+        movi3: 
             call pDestEnemA ;el enemigo fue destruido con anterioridad?
             cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
             je finMov3 
-        movi3: 
             movVariablesDw borrXenemy, ce_x
             movVariablesDw borrYenemy, ce_y 
             mDrawEborrado borrXenemy,borrYenemy
             call pColision
             cmp colisionE,1; si colisiono con la nave principal
-            je finMov3
-            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
             je finMov3
             cmp ce_x,196t ;si llego al margen inferior de la pantalla 
             je finMov3
@@ -1237,7 +1244,6 @@ pMovEnemys proc
         jne movi3 
         jmp salir 
         finMov3: 
-            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame ;fila actual 
             mSumarDw ce_y,28t
@@ -1249,17 +1255,16 @@ pMovEnemys proc
             mov estEnem,2
     filaene2:
         mov cx,nivelGame 
+            
+        movi2: 
             call pDestEnemA ;el enemigo fue destruido con anterioridad?
             cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
             je finMov2 
-        movi2: 
             movVariablesDw borrXenemy, ce_x ; con las filas actualizadas 
             movVariablesDw borrYenemy, ce_y ;con la columna actualizada 
             mDrawEborrado borrXenemy,borrYenemy
             call pColision
             cmp colisionE, 1 ; si la nave enemiga choco con la nave principal 
-            je finMov2
-            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
             je finMov2
             cmp ce_x,196t 
             je finMov2
@@ -1269,7 +1274,6 @@ pMovEnemys proc
         jne movi2  
         jmp salir 
         finMov2: 
-            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame ;se vuelve a reestablecer x en la fila actual 
             mRestaDw ce_y,28t ;se resta 28 a la columna actual 
@@ -1281,18 +1285,17 @@ pMovEnemys proc
             mov estEnem,1
     filaene1: 
         mov cx,nivelGame 
-            call pDestEnemA ;el enemigo fue destruido con anterioridad?
+           
+        movi1: 
+             call pDestEnemA ;el enemigo fue destruido con anterioridad?
             cmp DestEnemA, 1 ;si entonces saltar a fin de movimiento
             je finMov 
-        movi1: 
             movVariablesDw borrXenemy, ce_x ;toma la fila del enemigo
             movVariablesDw borrYenemy, ce_y ;toma la fila del enemigo
             mDrawEborrado borrXenemy,borrYenemy ;pinta un cuadro negro en dicha poisicon
             call pColision ;verifica si el enemigo no choco con la nave principal
             cmp colisionE,1 ; si la nave choco significa el fin del movimiento de dicha nave 
             je finMov
-            cmp DestEnem,1 ; la nave enemiga fue destruida por una bala 
-            je finMov  ;si la nave fue destruida es el fin del movimiento de esta 
             cmp ce_x,196t ;llego al margen inferior de la pantalla 
             je finMov; si llego al final de la pantalla, es su fin de movimiento 
             inc ce_x ;se incrementa su fila de 1 en 1 
@@ -1301,7 +1304,6 @@ pMovEnemys proc
         jne movi1  
         jmp salir 
         finMov: 
-            mov DestEnem,0 ;limpiar el indicador de enemigo destruido 
             call pDrawEborradoU
             movVariablesDw ce_x,filaIgame
             mSumarDw ce_y,28t

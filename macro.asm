@@ -206,7 +206,6 @@ mVariables macro
         ;BORRADOR DE MOVIMIENTO PARA ENEMIGOS 1
             borrXenemy dw 0
             borrYenemy dw 0
-
         ;BORRADOR ULTIMO DE MOVIMIENTO PARA ENEMIGOS
             borrUx dw 0
             borrUy dw 0 
@@ -230,7 +229,6 @@ mVariables macro
             estD1 db 0
             estD2 db 0
             estD3 db 0
-        
         ;MINUTOS SEGUNDOS Y CENTISEGUNDOS
             mingameS db 4 dup (0)
             seggameS db 4 dup (0)
@@ -252,6 +250,7 @@ mVariables macro
             matrizgraph db "matriz.vi",0
             eleactualG db 30
             exitGame db 0
+            auxDw dw 0
 
 endm 
 
@@ -1660,7 +1659,7 @@ mImprimirLetreros macro letrero,fila,columna,color
 endm 
 
 ;EN RANGO PERO CON DW 
-mEnRangoGame macro dato,limif, limsup
+mEnRangoDw macro dato,limif, limsup
     local enElrango,noEnelrango,salir
     ;ja >,jb <,  jbe<=
     mCompararDw dato,limif
