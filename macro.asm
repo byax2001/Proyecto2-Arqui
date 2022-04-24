@@ -1388,32 +1388,30 @@ endm
 
 
 ;NO IMPRIME LOS SEGUNDOS, PARA HACERLO SOLO AGREGARLE UNA CONVERSION DEL CONTADOR A STRING Y LUEGO IMPRIMIRLO
-Delayt macro tiempo
+mDelayt macro tiempo
+    local ciclodelay,segundo,salir 
     push ax 
     push dx 
     mov valort1,0
-    mov auxt, 0
-    mov valort2,0
+    mov auxt, 0 ;borrar
+    mov valort2,0 ;borrar 
     mov contadort,0
-    ;SE TOMA EL VALOR DE T1 
+
     mov ah,2Ch
     int 21h
     mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
     ciclodelay:
+        ;segunda toma de tiempo 
         mov dx,ax 
         mov ah,2Ch
         int 21h
-        mov valort2,dh  ;VALOR 2 TOMA OTRO TIEMPO DESPUES DE VALOR 1
-        movVariables auxt,valort2 
-        mModdb valort1,2
-        mModdb valort2,2
-        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE
-        jne segundo ;> ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
+        mComparar valort1,dh  ;los tiempos son distintos (si es asi paso un segundo)
+        jne segundo ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
         jmp ciclodelay
         segundo:
             cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
-            jae salir  ;SI, SALIR 
-            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=VALORT2 
+            je salir  ;SI, SALIR 
+            mov valort1,dh ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
             mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 

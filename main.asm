@@ -462,7 +462,7 @@ pMovimientoGame proc
     je yaimpresoEnemy
     ;SE ESPERA A QUE EL USUARIO PRESIONE ESPACIO PARA PODER IMPRIMIR LOS ENEMIGOS Y SEGUIR CON EL RESTO DEL JUEGO  
         call pEspInicial
-
+        mDelayt 1t  ;DELAY ANTES DE EMEPEZAR CADA NIVEL, ESTE DELAY ES DE 1 SEGUNDO 
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
     ;COORDENADAS INICIALES PARA EL MOVIMIENTO DE ENEMIGOS 
@@ -1155,7 +1155,7 @@ pMovNave endp
 pMovbala proc
     push ax
     push dx
-    
+    push cx 
     mov cx,3t
     movnormal:
     cmp bala1x,5t
@@ -1198,6 +1198,7 @@ pMovbala proc
         mLimpiarDisparo bala1x,bala1y ;borrar bala 
         mov estD1,0
     salir: 
+    pop cx 
     pop dx 
     pop ax  
     ret
@@ -1206,6 +1207,7 @@ pMovbala endp
 pMovbala2 proc
     push ax
     push dx
+    push cx 
     mov cx,3t
     movnormal:
         cmp bala2x,5t
@@ -1257,13 +1259,17 @@ pMovbala2 proc
         mov damageb2,2t 
         mLimpiarDisparo  bala2x,bala2y ;borrarbala 
         mov estD2,0 ;estado disparo 2 
-    salir: 
+    salir:
+    pop cx 
     pop dx 
     pop ax  
     ret 
 pMovbala2 endp 
 
 pMovbala3 proc 
+    push ax
+    push dx
+    push cx 
     mov cx,3t
     movnormal:
         cmp bala3x,5t ;si llega al tope de la pantalla se detiene 
@@ -1318,7 +1324,7 @@ pMovbala3 proc
         pop cx 
         cmp damageb3,2 ; si el daño de la bala es menor o igual que 2 ya no tiene el daño necesario para destruir al enemigo 3 
         jle finmovimiento ;se borra la bala
-        mDrawNaveEdestruida bala2x,bala2y ;si tiene los 3 justos si destruye la nave y suma al score 
+        mDrawNaveEdestruida bala3x,bala3y ;si tiene los 3 justos si destruye la nave y suma al score 
         mSumarDw scoreG, 500t  
         jmp finmovimiento    
     finmovimiento:
@@ -1326,6 +1332,7 @@ pMovbala3 proc
         mLimpiarDisparo  bala3x,bala3y ;borrarbala 
         mov estD3,0 ;estado disparo 3 
     salir: 
+    pop cx 
     pop dx 
     pop ax 
     ret 
@@ -1563,7 +1570,7 @@ pConfigIni proc
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
         mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
-        mov nivelGame,2 ;nivel del juego 
+        mov nivelGame,1 ;nivel del juego 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t ;fila inicial de la nave 
     mov cNave_y,220t ;columna inicial de la nave
