@@ -484,13 +484,20 @@ pMovimientoGame proc
         sinAccion: 
         cmp nivelGame,1
         je fps 
-
+    ;BALA 2 
         cmp estD2,0 
         je sinAccion2 
         ;si se tiene permitido disparar la bala 
             call pMovbala2
         sinAccion2: 
-        jmp fps 
+        cmp nivelGame,2
+        je fps 
+    ;BALA 3  
+        cmp estD3,0 
+        je sinAccion3 ; si esta en 0 nos e tiene permitido mover la bala 
+            call pMovbala3;si se tiene permitido mover la bala 
+        sinAccion3: 
+        jmp fps
     gameover:
         mImprimirLetreros letGover,8t,23t,15t ;imprimir letrero de game over 
         mImprimirLetreros letEsp,12t,18t,15t ;mensaje indicando accion a realizar 
@@ -1089,6 +1096,14 @@ pMovNave proc
         je Disparo2
         cmp al,"B"
         je Disparo2
+        cmp nivelGame,2t  ;si el el nivel es 2 solo debera de cumplir con estas instrucciones 
+        je salir 
+        ;NIVEL 3 O MAS 
+        cmp al, "n"
+        je Disparo3
+        cmp al, "N"
+        je Disparo3 
+        jmp salir 
     movIzquierda:
         cmp cNave_y,132t
         jb salir 
@@ -1104,10 +1119,9 @@ pMovNave proc
         jmp salir 
     Disparo1:
         ;tomar en cuanta que esta opcion solo se tomara cuando se presione el boton indicado   
-        cmp estD1,1t ;si ya se presiono una vez y la bala se esta moviendo se ignora las otras instrucciones
+        cmp estD1,1t ;si ya se presiono una vez y la bala se esta moviendo se ignora estas otras instrucciones
         je salir 
-        ;CASO CONTRARIO
-        ;se reestablece el punto de partida de la bala 
+        ;si no se oprimio antes se reestablece el punto de partida de la bala y se comienza a mover 
         MovVariablesDw bala1x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
         mDecVar bala1x,3t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
         movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
@@ -1124,7 +1138,15 @@ pMovNave proc
         mDecVar bala2y,8t
         mov estD2,1 ;  se le autoriza al programa a pintar la bala
         jmp salir 
-    nivel3: 
+    Disparo3:
+        cmp estD3,1 
+        je salir 
+        MovVariablesDw bala3x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
+        mIncVar bala3x,2t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
+        movVariablesDw bala3y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
+        mIncVar bala3y,8t
+        mov estD3,1 ;  se le autoriza al programa a pintar la bala
+        jmp salir 
     salir: 
     pop ax 
     ret 
@@ -1222,7 +1244,7 @@ pMovbala2 proc
             dec damageb2 ;si es de 2 se le resta 1 al daño de la bala y sigue su camino 
             mLimpiarDisparo bala2x,bala2y ;borrar bala 
             jmp salir ;no desaparece la bala 2 
-    DestEnemigot2: ;DestEnemigo:
+    DestEnemigot2:
         pop cx 
         cmp damageb2,1 ; si el daño de la bala es de 1 (desaparece la bala) ya no tiene el daño necesario
         je finmovimiento
@@ -1241,6 +1263,74 @@ pMovbala2 proc
     ret 
 pMovbala2 endp 
 
+pMovbala3 proc 
+    mov cx,3t
+    movnormal:
+        cmp bala3x,5t ;si llega al tope de la pantalla se detiene 
+        je  finmovimiento
+        push cx 
+        ;OBTENER EL VALOR DE UN PIXEL 
+        dec bala3x
+        mov cx,bala3y ;column
+        dec cx 
+        mov dx,bala3x ;fila
+        dec dx  ;dec dx no tiene que ver con el procedimiento para dibujar la bala
+        dec dx  ;si embargo se decrementa dos veces para saber como es el pixel  a la bala dos posiciones arriba 
+        mov ah, 0Dh
+        int 10h 
+        cmp al,1t; si es igual al enemigo tipo 1 lo destruye y la bala sigue el recorrido con el daño de esta restada en 1 
+        je DestEnemigot1
+        cmp al,2t ;si es igual al enemigo tipo 2 lo destruye y y la bala sigue el recorrido con el daño de esta restada en 2 
+        je DestEnemigot2
+        cmp al,44t ;si es igual al enemigo tipo 3 lo destruye y la bala desaparece 
+        je DestEnemigot3
+        call pDrawBala3 ;pinta la bala 
+        mIncVar bala3x,3t ;para borrar el rastro de la bala se posiciona en el ultimo pixel pintado de esta
+        mDrawPixel bala3x,bala3y,0t ;se pinta de negro 
+        inc dx 
+        inc dx 
+        mov bala3x,dx 
+        pop cx 
+    loop movnormal
+    jmp salir
+    DestEnemigot1: 
+        pop cx 
+        mDrawNaveEdestruida bala3x,bala3y
+        mSumarDw scoreG, 100t  
+        cmp damageb3,1 ; si el daño de la bala es de 1 (desaparece la bala)
+        je finmovimiento
+            dec damageb3 ;si es de 2 o mas se le resta 1 al daño de la bala y sigue su camino 
+            mLimpiarDisparo bala3x,bala3y ;borrar bala 
+            jmp salir ;no desaparece la bala 
+    DestEnemigot2: 
+        pop cx 
+        cmp damageb3,1 ; si el daño de la bala es menor a 1 ya no tiene el daño necesario para destruir al enemigo 2 
+        je finmovimiento ;se borra la nave 
+        mDrawNaveEdestruida bala3x,bala3y
+        mSumarDw scoreG, 200t  
+        cmp damageb3,2 ; si el daño de la bala es de 2 (desaparece la bala)
+        je finmovimiento
+            dec damageb3 
+            dec damageb3 ;si es de 3 se le resta 2 al daño de la bala y sigue su camino 
+            mLimpiarDisparo bala3x,bala3y ;borrar bala 
+            jmp salir ;no desaparece la bala 2 
+    DestEnemigot3:  
+        pop cx 
+        cmp damageb3,2 ; si el daño de la bala es menor o igual que 2 ya no tiene el daño necesario para destruir al enemigo 3 
+        jle finmovimiento ;se borra la bala
+        mDrawNaveEdestruida bala2x,bala2y ;si tiene los 3 justos si destruye la nave y suma al score 
+        mSumarDw scoreG, 500t  
+        jmp finmovimiento    
+    finmovimiento:
+        mov damageb3,3t 
+        mLimpiarDisparo  bala3x,bala3y ;borrarbala 
+        mov estD3,0 ;estado disparo 3 
+    salir: 
+    pop dx 
+    pop ax 
+    ret 
+pMovbala3 endp 
+;MOVIMIENTO DE LOS ENEMIGOS 
 pMovEnemys proc  
     push cx 
     cmp estEnem,3
