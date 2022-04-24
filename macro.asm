@@ -1614,7 +1614,7 @@ mDrawNaveEdestruida macro  x,y  ;NAVE ENEMIGA DESTRUIDA
     xor ax, ax 
     xor dx, dx 
     xor cx, cx 
-    mov cx, 10t
+    mov cx, 11t
     mov ax, x
     mov dx, y
     inc x 
@@ -1628,6 +1628,17 @@ mDrawNaveEdestruida macro  x,y  ;NAVE ENEMIGA DESTRUIDA
     mov x,ax
     pop dx
     pop ax
+    pop cx 
+endm 
+;borrar la bala luego de que finalice el movimiento de esta 
+mLimpiarDisparo macro x,y 
+    local borrarMovBala
+    push cx 
+    mov cx, 4 
+    borrarMovBala:
+        mDrawPixel x,y,0t
+        inc x
+        loop borrarMovBala
     pop cx 
 endm 
 

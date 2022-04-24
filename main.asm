@@ -438,14 +438,15 @@ pMovimientoGame proc
         int 21
         cmp dl, auxfpsT
         je fps
-    mov auxfpsT, dl 
+    mov auxfpsT, dl
+    call pDrawCleansCorazones
+    call pDrawCorazones 
     cmp nivelGame,4 ; si se finalizo el 3 nivel, nivelgame llegara a 4 indicando que finalizo el juego 
     je gameover
     cmp liNave,0 ;si la vida de la nave llego a 0 es game over 
     je gameover
     ;MOVIMIENTO 
-    call pDrawCleansCorazones
-    call pDrawCorazones
+    
     call pLevel 
     call pScore
     call pTimeGame
@@ -472,16 +473,24 @@ pMovimientoGame proc
         mov filaIgame,45t  ;auxiliar que contendra la fila actual recorrida 
         mMultiplicacionDw filaIgame,nivelGame
     yaimpresoEnemy: 
+    call pMovEnemys ;mover enemigos 
 
-    call pMovEnemys 
     ;MOVIMIENTO DE BALAS
-    cmp estD1,0 ;BALA ESTA EN MOVIMIENTO 
-    je sinAccion
-    movBala1: ;NO ESTA EN MOVIMIENTO LISTA PARA SER DISPARADA 
-        call pMovbala
-        jmp sinAccion
-    sinAccion: 
-    jmp fps 
+    ;BALA 1 
+        cmp estD1,0 ;no se tiene permitido imprimir la bala 
+        je sinAccion
+        ;si se tiene permitido disparar la bala 
+            call pMovbala
+        sinAccion: 
+        cmp nivelGame,1
+        je fps 
+
+        cmp estD2,0 
+        je sinAccion2 
+        ;si se tiene permitido disparar la bala 
+            call pMovbala2
+        sinAccion2: 
+        jmp fps 
     gameover:
         mImprimirLetreros letGover,8t,23t,15t ;imprimir letrero de game over 
         mImprimirLetreros letEsp,12t,18t,15t ;mensaje indicando accion a realizar 
@@ -1067,13 +1076,19 @@ pMovNave proc
         je movDerecha
         cmp al, "D"
         je movDerecha
-        cmp al, 27t 
+        cmp al, 27t ;escape 
         je Pausa 
         cmp al, "v"
         je Disparo1
         cmp al, "V"
         je Disparo1
-        jmp salir 
+        cmp nivelGame,1t ;si el el nivel es 1 solo debera de cumplir con estas instrucciones  
+        je salir 
+        ;NIVEL 2 O MAS
+        cmp al,"b"
+        je Disparo2
+        cmp al,"B"
+        je Disparo2
     movIzquierda:
         cmp cNave_y,132t
         jb salir 
@@ -1088,13 +1103,28 @@ pMovNave proc
         call pPauseGame ;PAUSA DONDE SOLO HABRA O
         jmp salir 
     Disparo1:
-        cmp estD1,1t 
+        ;tomar en cuanta que esta opcion solo se tomara cuando se presione el boton indicado   
+        cmp estD1,1t ;si ya se presiono una vez y la bala se esta moviendo se ignora las otras instrucciones
         je salir 
+        ;CASO CONTRARIO
+        ;se reestablece el punto de partida de la bala 
         MovVariablesDw bala1x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
         mDecVar bala1x,3t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
         movVariablesDw bala1y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-        mov estD1,1 ; si esta en estado 1 significa que esta en movimiento la bala, asi que no se puede lanzar otra hasta que la anterior desapareca 
+        mov estD1,1 ;se le autoriza al programa a pintar la bala
+        ;cuando la bala llegue al fin del movimiento estD volver a 0 y le prohibira al programa pintar la bala
+        ;EL METODO PARA PINTAR BALA SE LLAMA EN OTRO PROC (el corazon del movimiento del juego)
         jmp salir 
+    Disparo2:
+        cmp estD2,1 
+        je salir 
+        MovVariablesDw bala2x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
+        mIncVar bala2x,2t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
+        movVariablesDw bala2y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
+        mDecVar bala2y,8t
+        mov estD2,1 ;  se le autoriza al programa a pintar la bala
+        jmp salir 
+    nivel3: 
     salir: 
     pop ax 
     ret 
@@ -1103,11 +1133,13 @@ pMovNave endp
 pMovbala proc
     push ax
     push dx
-    cmp bala1x,5t
-    je  finmovimiento
+    
     mov cx,3t
     movnormal:
+    cmp bala1x,5t
+    je  finmovimiento
         push cx 
+        
         ;OBTENER EL VALOR DE UN PIXEL 
         dec bala1x
         mov cx,bala1y ;column
@@ -1123,6 +1155,7 @@ pMovbala proc
         je colision
         cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
         je colision
+        ;DIBUJO DE LA BALA 
         call pDrawBala1
         mIncVar bala1x,3t
         mDrawPixel bala1x,bala1y,0t
@@ -1140,11 +1173,7 @@ pMovbala proc
     colision:  ;enemigo no posible de eliminar 
         pop cx     
     finmovimiento:
-        mov cx, 4 
-        borrarMovBala:
-            mDrawPixel bala1x,bala1y,0t
-            inc bala1x
-            loop borrarMovBala
+        mLimpiarDisparo bala1x,bala1y ;borrar bala 
         mov estD1,0
     salir: 
     pop dx 
@@ -1155,10 +1184,10 @@ pMovbala endp
 pMovbala2 proc
     push ax
     push dx
-    cmp bala2x,5t
-    je  finmovimiento
     mov cx,3t
     movnormal:
+        cmp bala2x,5t
+        je  finmovimiento
         push cx 
         ;OBTENER EL VALOR DE UN PIXEL 
         dec bala2x
@@ -1171,11 +1200,11 @@ pMovbala2 proc
         int 10h 
         cmp al,1t; si es igual al enemigo tipo 1 lo destruye y la bala sigue el recorrido con el daño de esta restada en 1 
         je DestEnemigot1
-        cmp al,44t ;si es igual al enemigo tipo 2 lo destruye y la bala desaparece
+        cmp al,2t ;si es igual al enemigo tipo 2 lo destruye y la bala desaparece
         je DestEnemigot2
-        cmp al,2t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
+        cmp al,44t ;si es igual al enemigo tipo 3 desaparece la bala pues no es de mayor calibre
         je colision
-        call pDrawBala1
+        call pDrawBala2
         mIncVar bala2x,3t
         mDrawPixel bala2x,bala2y,0t
         inc dx 
@@ -1187,27 +1216,24 @@ pMovbala2 proc
     DestEnemigot1: 
         pop cx 
         mDrawNaveEdestruida bala2x,bala2y
-        mov DestEnem,1 
         mSumarDw scoreG, 100t  
         cmp damageb2,1 ; si el daño de la bala es de 1 (desaparece la bala)
         je finmovimiento
-        dec damageb2 ;si es de 2 se le resta 1 al daño de la bala y sigue su camino 
-        jmp salir ;no desaparece la bala 2 
+            dec damageb2 ;si es de 2 se le resta 1 al daño de la bala y sigue su camino 
+            mLimpiarDisparo bala2x,bala2y ;borrar bala 
+            jmp salir ;no desaparece la bala 2 
     DestEnemigot2: ;DestEnemigo:
         pop cx 
+        cmp damageb2,1 ; si el daño de la bala es de 1 (desaparece la bala) ya no tiene el daño necesario
+        je finmovimiento
         mDrawNaveEdestruida bala2x,bala2y 
-        mov DestEnem,1 
-        mov damageb2,0 ;$$EN DUDAS$$
         mSumarDw scoreG, 200t  
         jmp finmovimiento
     colision: ;enemigo no posible de eliminar 
         pop cx     
     finmovimiento:
-        mov cx, 4 
-        borrarMovBala:
-            mDrawPixel bala2x,bala2y,0t
-            inc bala2x
-            loop borrarMovBala
+        mov damageb2,2t 
+        mLimpiarDisparo  bala2x,bala2y ;borrarbala 
         mov estD2,0 ;estado disparo 2 
     salir: 
     pop dx 
@@ -1432,9 +1458,9 @@ pDrawEborradoU endp
 pConfigIni proc 
     ;CUADROS DIVISORES PARA EL JUEGO
                    ;FILA,COLUMNA,ANCHO,ALTO,COLOR
-    mDrawRectangulo 1t,1t,120t,130t,1t
-    mDrawRectangulo 132t,1t,120t,67t,1t
-    mDrawRectangulo 1t,121t,200t,198t,1t
+    mDrawRectangulo 1t,1t,120t,130t,53t
+    mDrawRectangulo 132t,1t,120t,67t,53t
+    mDrawRectangulo 1t,121t,200t,198t,53t
     ;RESTAURA VIDA DE NAVE 
     mov liNave, 3t
     ;LETREROS PRINCIPALES
@@ -1447,7 +1473,7 @@ pConfigIni proc
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
         mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
-        mov nivelGame,1 ;nivel del juego 
+        mov nivelGame,2 ;nivel del juego 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t ;fila inicial de la nave 
     mov cNave_y,220t ;columna inicial de la nave
