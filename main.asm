@@ -462,11 +462,10 @@ pMovimientoGame proc
     je yaimpresoEnemy
     ;SE ESPERA A QUE EL USUARIO PRESIONE ESPACIO PARA PODER IMPRIMIR LOS ENEMIGOS Y SEGUIR CON EL RESTO DEL JUEGO  
         call pEspInicial
-        mDelayt 1t  ;DELAY ANTES DE EMEPEZAR CADA NIVEL, ESTE DELAY ES DE 1 SEGUNDO 
+        ;mDelayt 1t  ;DELAY ANTES DE EMEPEZAR CADA NIVEL, ESTE DELAY ES DE 1 SEGUNDO 
     call pDrawEnemigos ;SE IMPRIME ENEMIGOS 
     mov printEnemyE,1 ;SE MARCA QUE YA SE IMPRIMIO 
-    ;COORDENADAS INICIALES PARA EL MOVIMIENTO DE ENEMIGOS 
-        
+    ;COORDENADAS INICIALES PARA EL MOVIMIENTO DE ENEMIGOS    
         mov ce_x,45t
         mMultiplicacionDw ce_x,nivelGame
         mov ce_y, 140t
@@ -1083,6 +1082,8 @@ pMovNave proc
         je movDerecha
         cmp al, "D"
         je movDerecha
+        cmp al, " " ;espacio 
+        je Tdisparos
         cmp al, 27t ;escape 
         je Pausa 
         cmp al, "v"
@@ -1132,19 +1133,49 @@ pMovNave proc
     Disparo2:
         cmp estD2,1 
         je salir 
-        MovVariablesDw bala2x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
-        mIncVar bala2x,2t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
+        MovVariablesDw bala2x, cNave_x ;regresa la bala a su posicion inicial 
+        mIncVar bala2x,2t ; se le suma 2  para que comience en una posicion adecuada arriba del cañon izquierdo 
         movVariablesDw bala2y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-        mDecVar bala2y,8t
+        mDecVar bala2y,8t ;se le resta 8 para estar en la columna correcta del cañon izquierdo
         mov estD2,1 ;  se le autoriza al programa a pintar la bala
         jmp salir 
     Disparo3:
         cmp estD3,1 
         je salir 
-        MovVariablesDw bala3x, cNave_x ;regresa la bala a su posicion inicial en el cañon de enmedio 
-        mIncVar bala3x,2t ; le resta 3 para que la bala comience 3 espacios arriba de este cañon 
+        MovVariablesDw bala3x, cNave_x ;regresa la bala a su posicion inicial 
+        mIncVar bala3x,2t ; se le suma 2  para que comience en una posicion adecuada arriba del caño derecho
         movVariablesDw bala3y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
-        mIncVar bala3y,8t
+        mIncVar bala3y,8t ;se le suma 8 para estar en la columna correcta del cañon derecho
+        mov estD3,1 ;  se le autoriza al programa a pintar la bala
+        jmp salir 
+    Tdisparos:
+        cmp estD1,1t 
+        je nd1;no disparo 1  
+        MovVariablesDw bala1x, cNave_x 
+        mDecVar bala1x,3t 
+        movVariablesDw bala1y, cNave_y 
+        mov estD1,1 
+        nd1:
+        cmp nivelGame,1 ; si es nivel 1 es innecesario hacerle caso al resto de intrucciones de abajo
+        je salir 
+        ;BALA 2 
+        cmp estD2,1 
+        je nd2 
+        MovVariablesDw bala2x, cNave_x ;regresa la bala a su posicion inicial 
+        mIncVar bala2x,2t ; se le suma 2  para que comience en una posicion adecuada arriba del cañon izquierdo 
+        movVariablesDw bala2y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
+        mDecVar bala2y,8t ;se le resta 8 para estar en la columna correcta del cañon izquierdo
+        mov estD2,1 ;  se le autoriza al programa a pintar la bala
+        nd2: 
+        cmp nivelGame,2 ; si es nivel 2 es innecesario hacerle caso al resto de intrucciones de abajo
+        je salir
+        ;BALA 3  
+        cmp estD3,1 
+        je salir 
+        MovVariablesDw bala3x, cNave_x ;regresa la bala a su posicion inicial 
+        mIncVar bala3x,2t ; se le suma 2  para que comience en una posicion adecuada arriba del caño derecho
+        movVariablesDw bala3y, cNave_y ;es la columna de la posicion del cañon 1 de la nave
+        mIncVar bala3y,8t ;se le suma 8 para estar en la columna correcta del cañon derecho
         mov estD3,1 ;  se le autoriza al programa a pintar la bala
         jmp salir 
     salir: 
@@ -1570,7 +1601,7 @@ pConfigIni proc
     mImprimirLetreros toStartG,20t,1t,9t
     ;NIVELES 
         mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
-        mov nivelGame,1 ;nivel del juego 
+        mov nivelGame,3 ;nivel del juego 
     ;COORDENADAS INICIALES PARA LOS ENEMIGOS Y NAVE PRINCIPAL 
     mov cNave_x,185t ;fila inicial de la nave 
     mov cNave_y,220t ;columna inicial de la nave
