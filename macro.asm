@@ -1518,68 +1518,7 @@ mDrawRectangulo macro x,y,ancho,alto,color
     pop bx 
     pop cx 
 endm 
-;MACRO PARA BORRAR DESPLAZAMIENTOS
-;E1l life enemigo 1, si sigue vivo imprimir su limpiador de movimiento tambien 
-mDrawBfila macro x,y,E1,E2,E3,E4,E5,E6,E7 
-    local Enovivo1,Enovivo2,Enovivo3,Enovivo4,Enovivo5,Enovivo6,Enovivo7
-    push ax
-    push dx 
-    xor ax, ax 
-    xor dx, dx
-    mov ax, x ;aux para reestablecer el valor de la fila escogida 
-    mov dx, y
-    ;DIBUJAR NAVE 1
-        cmp E1,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo1
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo1:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 2
-        cmp E2,1 ;saber si esta vivo si no,no graficar 
-        jne Enovivo2
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo2:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 3
-        cmp E3,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo3
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original para graficar otro ahi mismo 
-        Enovivo3:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 4
-        cmp E4,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo4
-        mDrawEborrado x,y 
-        mov x,ax;volver a la fila original para graficar otro ahi mismo 
-        Enovivo4:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 5
-        cmp E5,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo5
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo5:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 6
-        cmp E6,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo6
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original para graficar otro ahi mismo
-        Enovivo6:
-        mIncVar y,28t ;aumentar siempre la columna a graficar para el siguiente
-    ;DIBUJAR NAVE 7
-        cmp E7,1 ;saber si esta vivo si no,no graficar
-        jne Enovivo7
-        mDrawEborrado x,y 
-        mov x,ax ;volver a la fila original 
-        Enovivo7:
-    mov y, dx 
-    pop dx
-    pop ax 
-endm 
+
 
 mDrawEborrado macro  x,y 
     local figuraB
@@ -1612,9 +1551,10 @@ mDrawNaveEdestruida macro  x,y  ;NAVE ENEMIGA DESTRUIDA
     xor ax, ax 
     xor dx, dx 
     xor cx, cx 
-    mov cx, 11t
+    mov cx, 12t
     mov ax, x
     mov dx, y
+    inc x 
     inc x 
     inc x 
     figuraB:

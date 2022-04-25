@@ -1074,14 +1074,12 @@ pMovNave proc
         jz salir ; no hay pulsacion, salir 
         mov ah, 00  ;Espera a que se presione una tecla y la lee
         int 16h
-        cmp al,"a"
+        
+        cmp ah,"K"  ;FLECHA IZQUIERDA - se encuentra en el lado izuierdo de ax 
         je movIzquierda
-        cmp al,"A"
-        je movIzquierda
-        cmp al, "d"
+        cmp ah,  "M" ;FLECHA DERECHA - se encuentra en el lado izquierdo de ax 
         je movDerecha
-        cmp al, "D"
-        je movDerecha
+        ;la flecha de arriba es H y la de abajo es P tambien en ah 
         cmp al, " " ;espacio 
         je Tdisparos
         cmp al, 27t ;escape 
