@@ -36,12 +36,14 @@ mVariables macro
         usDesBloq db "Usuario a desbloquear: $"
         usDarAdmin db "Usuario a dar admin: $"
         usQuitarAdmin db "Usuario a remover admin: $"
+        msgQuitAdminG db "==No se puede degradar al admin generaL==$"
         uNoBlock db "==El usuario no estaba bloqueado==",0A,"$"
         Uadmin db "==El usuario ya era admin==",0A,"$"
         uNoAdmin db "==El usuario no era admin==",0A,"$"
         Udesbloqueado db "==El usuario ha sido desbloqueado==$"
         Udadoadmin db "==Se ascendio a admin a el usuario==$"
         UquitAdmin db "==Se removio de admin al usuario==$"
+
         MenuAdmin db "F1. Unlock User",0A,"F2. Promote user to admin",0A,"F3. Demote user from admin",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
         Umoderado db 25 dup (24)
         ;DELAY
@@ -58,6 +60,7 @@ mVariables macro
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
     adminG db "201800534BADM$$$$$$$$$$$$",01,"435008102$$$$$$$$$$$$$$$$",01,"0",01,"N",01,"A",0A," "
+    nameAdminG db "201800534BADM$$$$$$$$$$$$"
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
 

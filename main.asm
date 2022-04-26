@@ -59,6 +59,392 @@ pBaseDatos proc
     mCloseFile
     ret 
 pBaseDatos endp 
+
+;MENU PRINCIPAL  
+pMenuPrincipal proc    
+    ciclomenu: 
+        mov opcion,0
+        mMostrarString Menu
+        ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+        ; para que los reconozca por tal motivo s   e hizo esto dos veces para que se pudiera a trapar el valor de Fn
+        mov ah,01
+        int 21
+        mov ah,01  ;atrapa la tecla fn 
+        int 21
+        mov opcion,al
+        cmp opcion,59t
+        je Login
+        cmp opcion,"<"
+        je Register
+        cmp opcion,"C"
+        je salir
+        mMostrarString opi
+        jmp ciclomenu
+    Login:
+        call pLogin
+        call pLimpiarConsola
+        jmp ciclomenu
+    Register:
+        call pResetFlagsE ;RESETEA LAS BANDERAS QUE DETECTAN DE ERRORES A LA HORA DE REGISTRAR
+        call pRegistrar
+        call pLimpiarConsola
+        jmp ciclomenu   
+    salir: 
+        call pLimpiarConsola
+    ret 
+pMenuPrincipal endp 
+
+;LOGIN 
+pLogin proc 
+    call pResetFlagsE
+    mOpenFile2Write usersb ;abre el archivo de users
+    cicloLogin:
+    call pLimpiarConsola
+    call pInidoc ;COLOCAR EL PUNTERO AL INICIO DEL DOCUMENTO 
+    mLimpiar UsuarioI,25,24 ;limpia el espacio para  almacenar el usuario ingresado
+    mLimpiar PasswordI,25,24 ;limpia el espacio donde se almacenara temporalmente la contra ingresada
+    mMostrarString msgLogin ;muestra mesaje de login
+    mMostrarString msgexit
+    ;captura de usuario y contraseña 
+    mMostrarString rU
+    mCapturarString UsuarioI
+    mMostrarString rP 
+    mCapturarPassword PasswordI
+    ;ADMIN PRINCIPAL==================================================
+    cmp UsuarioI[0],09 ;tab=Exit  ;POR SI SE QUIERE SALIR DEL MENU 
+    je exitab
+    mReadFile eleActual
+    mEncontrarId UsuarioI
+    cmp idEncontrado,0
+    je noesadmin
+    esadmin: ;ES EL ADMIN PRINCIPAL
+        mHallarSimbolo 01 ;pasa al separador que esta alapar de contraseña
+        mReadFile eleActual;se salta el separador
+        mEncontrarId PasswordI;verificar si la contraseña es la correcta 
+        cmp idEncontrado,0
+        je PasswordIncorrect
+        ;USUARIO GENERAL PRINCIPAL==========================================
+        cAdminCor:;password de admin correcta
+            call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
+            mCloseFile
+            call pLimpiarConsola
+            call pMenuAdmin
+            jmp salir 
+    ;USUARIO O USUARIO ADMIN==================================================
+    noesadmin: ;ENTONCES ES UN USUARIO NORMAL o ADMIN SECUNDARIO 
+        mUserExiste UsuarioI
+        cmp existee,1 ;EXISTE USUARIO?
+        jne Noexiste  ;NO EXISTE
+        ;luego del metodo mUserExiste  estara posicionado justo en la linea deseada
+        mHallarSimbolo 01 ;Separador alapar de contraseña 
+        mReadFile eleActual ;Primer elemento de contraseña 
+        mEncontrarId PasswordI
+        cmp idEncontrado,1
+        jne PasswordIncorrect
+        je PasswordCorrect
+        ;EXISTE?
+    PasswordCorrect:
+        mHallarSimbolo 01 ;separador a la par de N veces repetido
+        mHallarSimbolo 01 ;separador a la par de bloqueado o no bloqueado
+        mReadFile eleActual ;B o N
+        cmp eleActual,"B" ;si esta bloqueado a pesar de tener buena la contraseña, no ingresara
+        je Ubloqueado
+        mHallarSimbolo 01 ;separador a la par de admin o no admin 
+        mReadFile eleActual ;A o N
+        cmp eleActual,"A"
+        je Usuarioadmin
+        jne UsuarioNormal
+    ;USUARIO NORMAL=================================================
+    UsuarioNormal: 
+        mCloseFile
+        call pLimpiarConsola
+        call pMenuUser ;MUESTRA MENU CORRESPONDIENTE  
+        jmp salir 
+    ;USUARIO ADMIN==================================================
+    Usuarioadmin: 
+        mCloseFile
+        call pLimpiarConsola
+        call pMenuU_admin ;MUESTRA MENU CORRESPONDIENTE
+        jmp salir        
+    Ubloqueado:
+        mMostrarString msgUbloqueado
+        call pespEnter
+        jmp cicloLogin
+    Adminbloqueado:
+        call pDelay30
+        jmp cicloLogin
+    PasswordIncorrect:
+        ;LE SUMA UNO AL NUMERO DE ERRORES 
+        mMostrarString msgPinc
+        call pIncVEquivoco
+        call pDarbloqueo
+        call pEspEnter
+        ;SABER SI ES ADMIN O NO, AQUI YA RECORRIO LA POSICION DE NVECES ERROR Y LA DE BLOQUEO CON
+        ;UN SOLO HALLAR SIMBOLO SE PASARIA AL APARTADO PARA SABER SI ES ADMIN O NO
+        mHallarSimbolo 01
+        mReadFile eleActual
+        cmp eleActual,"A"
+        je PasswordIAdmin;SI ES ADMIN
+        ;SI NO SEGUIR 
+        jmp cicloLogin
+    PasswordIAdmin:
+        call pPosAnterior ;A/n
+        call pPosAnterior ;separador antes de A/n
+        call pPosAnterior ;B/No bloqueado
+        mReadFile eleActual
+        cmp eleActual,"B"
+        je Adminbloqueado
+        jmp cicloLogin
+    Noexiste:
+        mMostrarString msgUnE ;MENSAJE USUARIO NO EXISTE 
+        call pEspEnter
+        jmp cicloLogin
+    ;NO EXISTE
+    exitab:
+        mCloseFile
+    salir:
+    ret 
+pLogin endp  
+
+;REGISTER 
+pRegistrar proc  
+    mov eerror,0
+    mLimpiar UsuarioRegis,25,24
+    mLimpiar PasswordRegis,25,24
+    call pLimpiarConsola
+    mMostrarString msgRegister
+    mMostrarString rU
+    mCapturarString UsuarioRegis
+    mMostrarString rP
+    mCapturarPassword PasswordRegis
+    ;RESTRICCIONES 
+    mUserInicial
+    mSizeUser
+    mUserExisteR
+    mRequisitoCletra
+    mAMayus
+    mANum
+    mASigno
+    mSizePassword 
+    ;EXISTE ERROR?
+    mComparar eerror,1
+    je ErrorRegistro
+    jne noErrorRegistro
+    ErrorRegistro:
+        mMostrarString ActionR
+        ;NUMERO INICIAL
+        mComparar numinicio,0
+        je nNinicial
+        yNinicial:;error posee un numero en su caracter incial
+            mMostrarString msginitialbad 
+        nNinicial:; no posee error de este tipo
+        
+        mComparar largoe,0
+        je nLerornea
+        ;LONGITUD ERRONEA
+        yLerronea: ; posee error 
+            mMostrarString msglengtherror
+        nLerornea:; no posee error de este tipo
+        
+        ;USUARIO EXISTENTE
+        mComparar existee,0
+        je nUexist
+        yUexist:;usuario existe
+            mMostrarString msgUExist
+        nUexist:; no posee error de este tipo
+
+        ;CARACTERES ESPECIALES NO PERMITIDOS PRESENTES
+        mComparar caractNp,0
+        je nCnexist
+        yCnexist: ; error carateres especiales no permitidos presentes
+            mMostrarString msgCaractP
+        nCnexist: ; no posee error de este tipo
+        
+        ;PASSWORD SIN AL MENOS UNA MAYUSCULA
+        mComparar mayuse,0
+        je nPsm
+        yPsm:; Password sin mayuscula
+            mMostrarString msgunaM
+        nPsm:; no posee error de este tipo
+        
+        ;PASSWORD SIN AL MENOS UN NUMERO
+        mComparar nume,0
+        je nPsn
+        yPsn: ; Password sin numero
+            mMostrarString msgunN
+        nPsn:; no posee error de este tipo
+        
+        ;PASWORD SI AL MENOS UN SIMBOLO ESPECIAL(!>%;*)
+        mComparar sinCaractE,0
+        je nPss
+        yPss: ;password sin simbolos
+            mMostrarString msgunS
+        nPss:; no posee error de este tipo
+        
+        ;PASSWORD CON LONGITUD ERRONEA
+        mComparar largoe2,0
+        je nPlongitud
+        yPlongitud:; hay error respecto a la longitud 
+            mMostrarString msglengtherror2
+        nPlongitud:; no posee error de este tipo
+
+        call pEspEnter
+        jmp salir 
+
+    noErrorRegistro: ;registro sin error
+        call pAlmacenaruser
+        mMostrarString RUSucces
+        call pEspEnter
+    salir: 
+    ret 
+pRegistrar endp
+
+;---------------------------------MENUS PARA LOS DISTINTOS TIPOS DE USUARIOS 
+;MENU PARA EL ADMIN GENERAL
+pMenuAdmin proc 
+    mOpenFile2Write usersb 
+    ciclomenu:
+    call pResetFlagsE
+    mMostrarString msgMenuAdmin ;MENU ADMIN
+    mMostrarString UsuarioI ; IMPRIME AL USUARIO ACTUAL
+    mMostrarString enteraux ;ENTER A LA LINEA USADA 
+    mMostrarString MenuAdmin  ;MUESTRA EL MENU 
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21;atrapa la tecla fn 
+    mov ah,01  ;atrapa otras teclas 
+    int 21
+    mov opcion,al
+    cmp opcion, 59t
+    je unlockUser
+    cmp opcion, "<"
+    je darAdmin
+    cmp opcion, "="
+    je quitarAdmin
+    cmp opcion, "?"
+    je Bublesort
+    cmp opcion, "@"
+    je heapsort
+    cmp opcion, "A"
+    je Timsort
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp ciclomenu
+    unlockUser:
+        call pQuitarbloqueo
+        call pLimpiarConsola
+        jmp ciclomenu
+    darAdmin:
+        call pDarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    quitarAdmin:
+        call pQuitarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    Bublesort:
+    heapsort:
+    Timsort:
+    salir:
+    ret 
+pMenuAdmin endp 
+
+;MENU PARA EL USUARIO NORMAL
+pMenuUser proc 
+    menuUser: 
+    ;MENU DE USUARIO 
+    mMostrarString msgMenuU  ;MENU DE USUARIO NORMAL
+    mMostrarString UsuarioI  ;IMPRESION DEL USUARIO ACTUAL
+    mMostrarString enteraux ;IMPRESION DE UN ENTER 
+    mMostrarString MenuUsuario ;IMPRESION DE MENU USUARIO 
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21
+    mov ah,01  ;atrapa la tecla fn 
+    int 21
+    mov opcion,al
+    cmp opcion, "<"
+    je game
+    cmp opcion, "="
+    je totalscorboard
+    cmp opcion, "?"
+    je myscorboards
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp menuUser
+    game:
+    call pGame
+    jmp menuUser
+    totalscorboard:
+
+    myscorboards:
+
+
+    salir: 
+    ret 
+pMenuUser endp 
+
+;MENU PARA EL USUARIO ADMIN
+pMenuU_admin proc  
+    ciclomenu:
+    mMostrarString msgMuA   ;TITULO: MENU DE USUARIO ADMIN
+    mMostrarString UsuarioI ;IMPRESION DEL NOMBRE DE USUARIO ACTUAL
+    mMostrarString enteraux ;ENTER PARA SALTAR DE LA LINEA ACTUAL
+    mMostrarString MenuUsuarioAdmin ;OPCIONES DEL MENU DE USUARIO ADMIN 
+    mov opcion,0
+    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
+    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
+    mov ah,01
+    int 21
+    mov ah,01  ;atrapa la tecla fn 
+    int 21
+    mov opcion,al
+    cmp opcion, 59t
+    je unlockUser
+    cmp opcion, "<"
+    je totalscorboard
+    cmp opcion, "="
+    je myscorboards
+    cmp opcion, ">"
+    je game 
+    cmp opcion, "?"
+    je Bublesort
+    cmp opcion, "@"
+    je heapsort
+    cmp opcion, "A"
+    je Timsort
+    cmp opcion, "C"
+    je salir 
+    mMostrarString opi
+    jmp ciclomenu
+    unlockUser:
+        call pQuitarbloqueo
+        call pLimpiarConsola
+        jmp ciclomenu
+    totalscorboard:
+        call pDarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    myscorboards:
+        call pQuitarAdmin
+        call pLimpiarConsola
+        jmp ciclomenu
+    game:
+        call pGame
+        jmp ciclomenu
+    Bublesort:
+    heapsort:
+    Timsort:
+    salir:
+    ret 
+pMenuU_admin endp  
+
 ;PROC PARA DELAY DE 30 SEGUNDOS CON IMPRESION DE SEGUNDOS EN LA CONSOLA 
 pDelay30 proc  
     push ax 
@@ -323,23 +709,28 @@ pDarAdmin endp
 
 ;QUITAR ADMIN
 pQuitarAdmin proc
-    call pLimpiarConsola
-    mLimpiar Umoderado,25,24
-    mOpenFile2Write usersb
-    call pResetFlagsE
-    mMostrarString usQuitarAdmin
+    call pLimpiarConsola ;LIMPIA LA CONSOLA 
+    mLimpiar Umoderado,25,24 ;Limpiar la variable donde se almacenara el usuario a quitar admin 
+    mOpenFile2Write usersb ;ABRE EL ARCHIVO DE USUARIOS PARA LEER Y ESCRIBIR 
+    call pResetFlagsE ;RESETEA TODAS LAS BANDERAS 
+
+    mMostrarString usQuitarAdmin ;MENSAJE PARA QUITAR ADMIN 
     mCapturarString Umoderado; CAPTURAR STRING DE USUARIO
-    call pExisteUserM
-    cmp existee,0 ;no existe el usuario ingresado?
-    je Unoexiste ; no existe, entonces marca error y se sale
+    mCompararStrings Umoderado,nameAdminG
+    cmp cadIguales, 1
+    je Admin_G
+
+    call pExisteUserM ;EXISTE USUARIO?
+    cmp existee,0 ;no existe el usuario 
+    je U_noexiste ; no existe, entonces marca error y se sale
     ;SI EXISTE, ENTONCES EL ARCHIVO YA SE ENCUENTRA POSICIONADO EN EL ESPACIO DESEADO 
     mHallarSimbolo separador; contraseña
     mHallarSimbolo separador ; n veces error
     mHallarSimbolo separador; B/n 
     mHallarSimbolo separador; separador antes de Admin/No admin 
     mReadFile eleActual
-    cmp eleActual, "N" ; el elemento es admin
-    je AdminAnt
+    cmp eleActual, "N" ; el elemento es admin para poder degradarlo?
+    je AdminAnt ;el elemento no es admin, por tal motivo no es posible degradarlo
     call pPosAnterior ; separador antes de Admin/No admin
     mWriteToFile admindef
     mMostrarString UquitAdmin
@@ -349,10 +740,14 @@ pQuitarAdmin proc
         mMostrarString uNoAdmin ;el usuario no era admin
         call pEspEnter
         jmp salir 
-    Unoexiste:
-    mMostrarString MsgUnE ;usuario no existe
-    call pEspEnter
-    jmp salir 
+    U_noexiste:
+        mMostrarString MsgUnE ;usuario no existe
+        call pEspEnter
+        jmp salir 
+    Admin_G:;se intento quitar el admin al admin general 
+        mMostrarString msgQuitAdminG
+        call pEspEnter
+        jmp salir 
     salir: 
     mCloseFile
     ret
@@ -385,388 +780,7 @@ pExisteUserM proc
     ret 
 pExisteUserM endp 
 
-;MENU PRINCIPAL  
-pMenuPrincipal proc    
-    ciclomenu: 
-        mov opcion,0
-        mMostrarString Menu
-        ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-        ; para que los reconozca por tal motivo s   e hizo esto dos veces para que se pudiera a trapar el valor de Fn
-        mov ah,01
-        int 21
-        mov ah,01  ;atrapa la tecla fn 
-        int 21
-        mov opcion,al
-        cmp opcion,59t
-        je Login
-        cmp opcion,"<"
-        je Register
-        cmp opcion,"C"
-        je salir
-        mMostrarString opi
-        jmp ciclomenu
-    Login:
-        call pLogin
-        jmp ciclomenu
-    Register:
-        call pResetFlagsE ;RESETEA LAS BANDERAS QUE DETECTAN DE ERRORES A LA HORA DE REGISTRAR
-        call pRegistrar
-        call pLimpiarConsola
-        jmp ciclomenu   
-    salir: 
-    ret 
-pMenuPrincipal endp 
 
-;LOGIN 
-pLogin proc 
-    call pResetFlagsE
-    mOpenFile2Write usersb ;abre el archivo de users
-    cicloLogin:
-    call pLimpiarConsola
-    call pInidoc ;COLOCAR EL PUNTERO AL INICIO DEL DOCUMENTO 
-    mLimpiar UsuarioI,25,24 ;limpia el espacio para  almacenar el usuario ingresado
-    mLimpiar PasswordI,25,24 ;limpia el espacio donde se almacenara temporalmente la contra ingresada
-    mMostrarString msgLogin ;muestra mesaje de login
-    mMostrarString msgexit
-    ;captura de usuario y contraseña 
-    mMostrarString rU
-    mCapturarString UsuarioI
-    mMostrarString rP 
-    mCapturarPassword PasswordI
-    ;ADMIN PRINCIPAL==================================================
-    cmp UsuarioI[0],09 ;tab=Exit  ;POR SI SE QUIERE SALIR DEL MENU 
-    je exitab
-    mReadFile eleActual
-    mEncontrarId UsuarioI
-    cmp idEncontrado,0
-    je noesadmin
-    esadmin: ;ES EL ADMIN PRINCIPAL
-        mHallarSimbolo 01 ;pasa al separador que esta alapar de contraseña
-        mReadFile eleActual;se salta el separador
-        mEncontrarId PasswordI;verificar si la contraseña es la correcta 
-        cmp idEncontrado,0
-        je PasswordIncorrect
-        ;USUARIO GENERAL PRINCIPAL==========================================
-        cAdminCor:;password de admin correcta
-            call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
-            mCloseFile
-            call pLimpiarConsola
-            call pMenuAdmin
-            jmp salir 
-    ;USUARIO O USUARIO ADMIN==================================================
-    noesadmin: ;ENTONCES ES UN USUARIO NORMAL o ADMIN SECUNDARIO 
-        mUserExiste UsuarioI
-        cmp existee,1 ;EXISTE USUARIO?
-        jne Noexiste  ;NO EXISTE
-        ;luego del metodo mUserExiste  estara posicionado justo en la linea deseada
-        mHallarSimbolo 01 ;Separador alapar de contraseña 
-        mReadFile eleActual ;Primer elemento de contraseña 
-        mEncontrarId PasswordI
-        cmp idEncontrado,1
-        jne PasswordIncorrect
-        je PasswordCorrect
-        ;EXISTE?
-    PasswordCorrect:
-        mHallarSimbolo 01 ;separador a la par de N veces repetido
-        mHallarSimbolo 01 ;separador a la par de bloqueado o no bloqueado
-        mReadFile eleActual ;B o N
-        cmp eleActual,"B" ;si esta bloqueado a pesar de tener buena la contraseña, no ingresara
-        je Ubloqueado
-        mHallarSimbolo 01 ;separador a la par de admin o no admin 
-        mReadFile eleActual ;A o N
-        cmp eleActual,"A"
-        je Usuarioadmin
-        jne UsuarioNormal
-    ;USUARIO NORMAL=================================================
-    UsuarioNormal: 
-        mCloseFile
-        call pLimpiarConsola
-        call pMenuUser ;MUESTRA MENU CORRESPONDIENTE  
-        jmp salir 
-    ;USUARIO ADMIN==================================================
-    Usuarioadmin: 
-        mCloseFile
-        call pLimpiarConsola
-        call pMenuU_admin ;MUESTRA MENU CORRESPONDIENTE
-        jmp salir        
-    Ubloqueado:
-        mMostrarString msgUbloqueado
-        call pespEnter
-        jmp cicloLogin
-    Adminbloqueado:
-        call pDelay30
-        jmp cicloLogin
-    PasswordIncorrect:
-        ;LE SUMA UNO AL NUMERO DE ERRORES 
-        mMostrarString msgPinc
-        call pIncVEquivoco
-        call pDarbloqueo
-        call pEspEnter
-        ;SABER SI ES ADMIN O NO, AQUI YA RECORRIO LA POSICION DE NVECES ERROR Y LA DE BLOQUEO CON
-        ;UN SOLO HALLAR SIMBOLO SE PASARIA AL APARTADO PARA SABER SI ES ADMIN O NO
-        mHallarSimbolo 01
-        mReadFile eleActual
-        cmp eleActual,"A"
-        je PasswordIAdmin;SI ES ADMIN
-        ;SI NO SEGUIR 
-        jmp cicloLogin
-    PasswordIAdmin:
-        call pPosAnterior ;A/n
-        call pPosAnterior ;separador antes de A/n
-        call pPosAnterior ;B/No bloqueado
-        mReadFile eleActual
-        cmp eleActual,"B"
-        je Adminbloqueado
-        jmp cicloLogin
-    Noexiste:
-        mMostrarString msgUnE ;MENSAJE USUARIO NO EXISTE 
-        call pEspEnter
-        jmp cicloLogin
-    ;NO EXISTE
-    exitab:
-        mCloseFile
-    salir:
-    ret 
-pLogin endp  
-
-;REGISTER 
-pRegistrar proc  
-    mov eerror,0
-    mLimpiar UsuarioRegis,25,24
-    mLimpiar PasswordRegis,25,24
-    call pLimpiarConsola
-    mMostrarString msgRegister
-    mMostrarString rU
-    mCapturarString UsuarioRegis
-    mMostrarString rP
-    mCapturarPassword PasswordRegis
-    ;RESTRICCIONES 
-    mUserInicial
-    mSizeUser
-    mUserExisteR
-    mRequisitoCletra
-    mAMayus
-    mANum
-    mASigno
-    mSizePassword 
-    ;EXISTE ERROR?
-    mComparar eerror,1
-    je ErrorRegistro
-    jne noErrorRegistro
-    ErrorRegistro:
-        mMostrarString ActionR
-        ;NUMERO INICIAL
-        mComparar numinicio,0
-        je nNinicial
-        yNinicial:;error posee un numero en su caracter incial
-            mMostrarString msginitialbad 
-        nNinicial:; no posee error de este tipo
-        
-        mComparar largoe,0
-        je nLerornea
-        ;LONGITUD ERRONEA
-        yLerronea: ; posee error 
-            mMostrarString msglengtherror
-        nLerornea:; no posee error de este tipo
-        
-        ;USUARIO EXISTENTE
-        mComparar existee,0
-        je nUexist
-        yUexist:;usuario existe
-            mMostrarString msgUExist
-        nUexist:; no posee error de este tipo
-
-        ;CARACTERES ESPECIALES NO PERMITIDOS PRESENTES
-        mComparar caractNp,0
-        je nCnexist
-        yCnexist: ; error carateres especiales no permitidos presentes
-            mMostrarString msgCaractP
-        nCnexist: ; no posee error de este tipo
-        
-        ;PASSWORD SIN AL MENOS UNA MAYUSCULA
-        mComparar mayuse,0
-        je nPsm
-        yPsm:; Password sin mayuscula
-            mMostrarString msgunaM
-        nPsm:; no posee error de este tipo
-        
-        ;PASSWORD SIN AL MENOS UN NUMERO
-        mComparar nume,0
-        je nPsn
-        yPsn: ; Password sin numero
-            mMostrarString msgunN
-        nPsn:; no posee error de este tipo
-        
-        ;PASWORD SI AL MENOS UN SIMBOLO ESPECIAL(!>%;*)
-        mComparar sinCaractE,0
-        je nPss
-        yPss: ;password sin simbolos
-            mMostrarString msgunS
-        nPss:; no posee error de este tipo
-        
-        ;PASSWORD CON LONGITUD ERRONEA
-        mComparar largoe2,0
-        je nPlongitud
-        yPlongitud:; hay error respecto a la longitud 
-            mMostrarString msglengtherror2
-        nPlongitud:; no posee error de este tipo
-
-        call pEspEnter
-        jmp salir 
-
-    noErrorRegistro: ;registro sin error
-        call pAlmacenaruser
-        mMostrarString RUSucces
-        call pEspEnter
-    salir: 
-    ret 
-pRegistrar endp
-
-;---------------------------------MENUS PARA LOS DISTINTOS TIPOS DE USUARIOS 
-;MENU PARA EL ADMIN GENERAL
-pMenuAdmin proc 
-    mOpenFile2Write usersb 
-    ciclomenu:
-    call pResetFlagsE
-    mMostrarString msgMenuAdmin ;MENU ADMIN
-    mMostrarString UsuarioI ; IMPRIME AL USUARIO ACTUAL
-    mMostrarString enteraux ;ENTER A LA LINEA USADA 
-    mMostrarString MenuAdmin  ;MUESTRA EL MENU 
-    mov opcion,0
-    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
-    mov ah,01
-    int 21
-    mov ah,01  ;atrapa la tecla fn 
-    int 21
-    mov opcion,al
-    cmp opcion, 59t
-    je unlockUser
-    cmp opcion, "<"
-    je darAdmin
-    cmp opcion, "="
-    je quitarAdmin
-    cmp opcion, "?"
-    je Bublesort
-    cmp opcion, "@"
-    je heapsort
-    cmp opcion, "A"
-    je Timsort
-    cmp opcion, "C"
-    je salir 
-    mMostrarString opi
-    jmp ciclomenu
-    unlockUser:
-        call pQuitarbloqueo
-        call pLimpiarConsola
-        jmp ciclomenu
-    darAdmin:
-        call pDarAdmin
-        call pLimpiarConsola
-        jmp ciclomenu
-    quitarAdmin:
-        call pQuitarAdmin
-        call pLimpiarConsola
-        jmp ciclomenu
-    Bublesort:
-    heapsort:
-    Timsort:
-    salir:
-    ret 
-pMenuAdmin endp 
-
-;MENU PARA EL USUARIO NORMAL
-pMenuUser proc 
-    menuUser: 
-    ;MENU DE USUARIO 
-    mMostrarString msgMenuU  ;MENU DE USUARIO NORMAL
-    mMostrarString UsuarioI  ;IMPRESION DEL USUARIO ACTUAL
-    mMostrarString enteraux ;IMPRESION DE UN ENTER 
-    mMostrarString MenuUsuario ;IMPRESION DE MENU USUARIO 
-    mov opcion,0
-    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
-    mov ah,01
-    int 21
-    mov ah,01  ;atrapa la tecla fn 
-    int 21
-    mov opcion,al
-    cmp opcion, "<"
-    je game
-    cmp opcion, "="
-    je totalscorboard
-    cmp opcion, "?"
-    je myscorboards
-    cmp opcion, "C"
-    je salir 
-    mMostrarString opi
-    jmp menuUser
-    game:
-    call pGame
-    jmp menuUser
-    totalscorboard:
-
-    myscorboards:
-
-
-    salir: 
-    ret 
-pMenuUser endp 
-
-;MENU PARA EL USUARIO ADMIN
-pMenuU_admin proc  
-    ciclomenu:
-    mMostrarString msgMuA   ;TITULO: MENU DE USUARIO ADMIN
-    mMostrarString UsuarioI ;IMPRESION DEL NOMBRE DE USUARIO ACTUAL
-    mMostrarString enteraux ;ENTER PARA SALTAR DE LA LINEA ACTUAL
-    mMostrarString MenuUsuarioAdmin ;OPCIONES DEL MENU DE USUARIO ADMIN 
-    mov opcion,0
-    ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
-    ; para que los reconozca por tal motivo se hizo esto dos veces para que se pudiera a trapar el valor de Fn
-    mov ah,01
-    int 21
-    mov ah,01  ;atrapa la tecla fn 
-    int 21
-    mov opcion,al
-    cmp opcion, 59t
-    je unlockUser
-    cmp opcion, "<"
-    je totalscorboard
-    cmp opcion, "="
-    je myscorboards
-    cmp opcion, ">"
-    je game 
-    cmp opcion, "?"
-    je Bublesort
-    cmp opcion, "@"
-    je heapsort
-    cmp opcion, "A"
-    je Timsort
-    cmp opcion, "C"
-    je salir 
-    mMostrarString opi
-    jmp ciclomenu
-    unlockUser:
-        call pQuitarbloqueo
-        call pLimpiarConsola
-        jmp ciclomenu
-    totalscorboard:
-        call pDarAdmin
-        call pLimpiarConsola
-        jmp ciclomenu
-    myscorboards:
-        call pQuitarAdmin
-        call pLimpiarConsola
-        jmp ciclomenu
-    game:
-        call pGame
-        jmp ciclomenu
-    Bublesort:
-    heapsort:
-    Timsort:
-    salir:
-    ret 
-pMenuU_admin endp  
 
 ;APARTADO PARA EL JUEGO #######################################################################################
 
