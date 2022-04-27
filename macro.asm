@@ -5,14 +5,12 @@ mVariables macro
     espEnter db 0A,"(Presiona enter para poder continuar): $"
     ;MENU PRINCIPAL 
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
-    ;Menu DE USUARIO
-    ;MENU DE ADMIN
-    ;MENU DE USUARIO ADMIN
     ; Opcion incorrecta
     opi db 0A,"**No se escogio una opcion entre las que existen**$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
-    ;INGRESO DE USUARIO
+    
+    ;LOGIN=====================================================================================
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
     msgexit db "(presione tab y luego 2 enter para salir)",0A,"$"
     UsuarioI db 25 dup (24) ;nombre de usuario a ingresar
@@ -56,14 +54,14 @@ mVariables macro
         StringNumT db 4 dup(24)
     ;COMO AUXILIAR PARA LA MACRO NUM2STRING
     contador db 0
-    ;REGISTRO DE USUARIOS
+
+    ;REGISTRO DE USUARIOS=======================================================================
     msgRegister db 0A,"============Register",58t,"============",0A,"$"
     ;adminG db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
     adminG db "201800534BADM$$$$$$$$$$$$",01,"435008102$$$$$$$$$$$$$$$$",01,"0",01,"N",01,"A",0A," "
     nameAdminG db "201800534BADM$$$$$$$$$$$$"
     rU db "Ingrese usuario",58t," $"
     rP db "Password",58t," $"
-
     UsuarioRegis db 25 dup (24) ;nombre de usuario a registrar
     PasswordRegis db 25 dup (24)   ;contraseña a registrar 
     validador db 0              ;validador 
@@ -101,14 +99,9 @@ mVariables macro
         enrango db 0
         eerror db 0
         contadoraux db 0
-        
-
         RUSucces db "Registro exitoso",0A,"$"
             ;MENSAJE SUCCES
             msgRegistroSucces db "Se registro el usuario de forma exitosa"
-        
-        ;SIZE PILA 
-        sizepila db 0
 
     ; Opcion escogida del menu
     opcion db 0 
@@ -117,53 +110,13 @@ mVariables macro
     stringNumactual db 20 dup (24)
     Numactual dw 0 
     auxs db "$"
+    espacioL db " " ;espacio limpio 
     espacio db " ","$"
     retroceso db 08, "$"
     asterisco db "*","$"
 
-    ;ARCHIVO
-    eleActual db 0 ;variable que contendra cada elemento leido por el programa
-    a db "$"
-    handler dw  0
-    msgcargar db 0A,"Ingrese el nombre del archivo a cargar: ",'$'
-    nameFile db 20 dup(0)
-    nfcaux db '$'
-    cargood db 0A,"Cargo con exito! (presione cualquier tecla)","$" 
-    carbad  db 0A,"Fallo la carga! (presione cualquier tecla)","$"
-    estadocarga db 0 ;si se logro cargar algo o no
-    savegood db 0A,"Guardado con exito!", "$"
-    savebad db 0A, "No se guardo el archivo!","$"
-    creacionCorrecta db 0       ;si se creo  con exito un nuevo documento su valor sera 1, caso contrario sera 0
-    posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
-    ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
-    idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
-        ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS
-        usersb db "users.gal",0
-        scoresb db "scores.gal",0
-        auxarchivo db 0
-        aux1 db "$"
-    ;FECHA 
-    dia db 4 dup (0)
-    mes db 4 dup (0)
-    anio db 4 dup (0)
-    hora db 4 dup (0)
-    min db 4 dup (0)
-    segun db 4 dup (0)
-    year dw 0
-    month dw 0
-    day  dw 0
-    hours dw 0
-    minutes dw 0
-    seconds dw 0
-    ;CONTADOR DELAY
-    cdelay db 0
-
-    ;PARA LA COMPARACION DE CADENAS
-    cadIguales db 0
-    ;DEBUGER
-    eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
-
-    ;JUEGO
+    ;JUEGO===========================================================================
+        NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
         ;MENSAJES
             Usergame db "Username:"
@@ -236,10 +189,12 @@ mVariables macro
             mingameS db 4 dup (0)
             seggameS db 4 dup (0)
             cengameS db 4 dup (0)
+            segGameReporteS db 5 dup (0)
             dospuntosg db ":"
             mingameN dw 0
             seggameN dw 0
             cengameN dw 0
+            segGameReporte dw 0
         ;PAUSA Y EXIT GAME 
             letGover db "Game over!"
             letEsp db "(Press Esp to Exit)"
@@ -254,6 +209,47 @@ mVariables macro
             eleactualG db 0
             exitGame db 0
             auxDw dw 0
+    ;FECHA ====================================================================================
+        dia db 4 dup (0)
+        mes db 4 dup (0)
+        anio db 4 dup (0)
+        hora db 4 dup (0)
+        min db 4 dup (0)
+        segun db 4 dup (0)
+        year dw 0
+        month dw 0
+        day  dw 0
+        hours dw 0
+        minutes dw 0
+        seconds dw 0
+    ;MANEJO DE UN ARCHIVO EXTERNO ==============================================================
+        eleActual db 0 ;variable que contendra cada elemento leido por el programa
+        a db "$"
+        handler dw  0
+        msgcargar db 0A,"Ingrese el nombre del archivo a cargar: ",'$'
+        nameFile db 20 dup(0)
+        nfcaux db '$'
+        cargood db 0A,"Cargo con exito! (presione cualquier tecla)","$" 
+        carbad  db 0A,"Fallo la carga! (presione cualquier tecla)","$"
+        estadocarga db 0 ;si se logro cargar algo o no
+        savegood db 0A,"Guardado con exito!", "$"
+        savebad db 0A, "No se guardo el archivo!","$"
+        creacionCorrecta db 0       ;si se creo  con exito un nuevo documento su valor sera 1, caso contrario sera 0
+        posLectura dw 0 ;VARIABLE CON LA CUAL SI LLEGA A 0 LUEGO DE INSTANCIAR LA MARCO READFILE SIGNIFICA QUE
+        ;EL DOCUMENTO LLEGO AL FINAL DE ESTE
+        idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
+    
+    ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS==================================
+        usersb db "users.gal",0
+        scoresb db "scores.gal",0
+        auxarchivo db 0
+        aux1 db "$"
+    ;CONTADOR DELAY
+    cdelay db 0
+    ;PARA LA COMPARACION DE CADENAS==================================================
+    cadIguales db 0
+    ;DEBUGER ========================================================================
+    eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
 endm 
 
 mFlujoProyecto2 macro
@@ -268,8 +264,6 @@ mFlujoProyecto2 macro
         call pMenuPrincipal
     call pRetControl
 endm 
- ;call pGame
-
 
 ;METODOS PARA LOGIN################################################################################################
 

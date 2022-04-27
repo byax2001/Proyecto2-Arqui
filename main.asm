@@ -50,12 +50,13 @@ pAjustarMemoria proc
     mov es,dx
     ret
 pAjustarMemoria endp
-;PROC PARA CREAR BASE DE DATOS USUARIOS, SCORES
+;PROC PARA CREAR BASE DE DATOS (USUARIOS Y SCORES)
 pBaseDatos proc
     mCrearFile usersb
     mWriteToFile adminG
     mCloseFile
     mCrearFile scoresb
+    mWriteToFile espacioL
     mCloseFile
     ret 
 pBaseDatos endp 
@@ -379,7 +380,8 @@ pMenuUser proc
     mMostrarString opi
     jmp menuUser
     game:
-    call pGame
+    call pGame ;llama al juego 
+    call pAlmacenarScore ;almacena el score 
     jmp menuUser
     totalscorboard:
 
@@ -436,7 +438,8 @@ pMenuU_admin proc
         call pLimpiarConsola
         jmp ciclomenu
     game:
-        call pGame
+        call pGame ;llama al juego 
+        call pAlmacenarScore ;almacena el score
         jmp ciclomenu
     Bublesort:
     heapsort:
@@ -483,6 +486,7 @@ pDelay30 proc
     ret 
 pDelay30 endp 
 
+;ALMACENA EL USUARIO ACTUAL EN EL ARCHIVO DE USERS
 pAlmacenaruser proc
     mOpenFile2Write usersb
     call pFinaldoc
@@ -500,26 +504,23 @@ pAlmacenaruser proc
     ret 
 pAlmacenaruser endp 
 
-pincSizePila proc
-    push dx 
-    xor dl,dl 
-    mov dl,sizePila
-    add dl,1
-    mov sizePila,dl 
-    pop dx 
-    ret
-pincSizePila endp 
-
-pdecSizePila proc
-    push dx
-    xor dl,dl
-    mov dl,sizePila
-    sub dl,1
-    mov sizePila,dl 
-    pop dx 
-    ret
-pdecSizePila endp 
-
+;ALMACENA EL SCORE ACTUAL  EN EL ARCHIVO DE SCORES 
+pAlmacenarScore proc
+    mLimpiar segGameReporteS,5,0
+    Num2String segGameReporte,segGameReporteS
+    mOpenFile2Write scoresb
+    call pFinaldoc
+    mWriteToFile NameUserG
+    mWriteToFile separador
+    mWriteToFile nivelGameS
+    mWriteToFile separador
+    mWriteToFile scoreGString
+    mWriteToFile separador
+    mWriteToFile segGameReporteS
+    mWriteToFile enterg 
+    mCloseFile
+    ret 
+pAlmacenarScore endp 
 
 pEspEnter proc
     push ax 
@@ -1958,21 +1959,23 @@ pDrawEborradoU endp
 
 ;CONFIGURACIONES 
 pConfigIni proc 
-    ;CUADROS DIVISORES PARA EL JUEGO
-                   ;FILA,COLUMNA,ANCHO,ALTO,COLOR
-    mDrawRectangulo 1t,1t,120t,130t,53t
-    mDrawRectangulo 132t,1t,120t,67t,53t
-    mDrawRectangulo 1t,121t,200t,198t,53t
-    ;RESTAURA VIDA DE NAVE 
-    mov liNave, 3t
     ;LETREROS PRINCIPALES
-    mImprimirLetreros Usergame,1t,1t,9t
+    mImprimirLetreros Usergame,1t,0t,9t
     mImprimirLetreros Leveltitle,4t,1t,9t
     mImprimirLetreros Scoregame,7t,1t,9t
     mImprimirLetreros Timegame,10t,1t,9t
     mImprimirLetreros Livesgame,13t,1t,9t
     mImprimirLetreros PressSpace,18t,1t,9t
     mImprimirLetreros toStartG,20t,1t,9t
+    call pNameUser ;rellena la variable que almacenara el nickname del usuario
+    mImprimirLetreros NameUserG,2t,0t,15t ;imprime el nickname 
+    ;CUADROS DIVISORES PARA EL JUEGO
+                   ;FILA,COLUMNA,ANCHO,ALTO,COLOR
+    mDrawRectangulo 1t,1t,120t,130t,53t
+    mDrawRectangulo 132t,1t,120t,67t,53t
+    mDrawRectangulo 1t,121t,200t,198t,53t
+    ;RESTAURA VIDA DE NAVE 
+    mov liNave, 3t 
     ;NIVELES 
         mov printEnemyE,0  ; para saber si ya se pinto las filas de los enemigos o no 
         mov nivelGame,1 ;nivel del juego 
@@ -1983,21 +1986,43 @@ pConfigIni proc
     mov mingameN,0 ;minutos desde que se inicio el juego 
     mov seggameN,0 ;segundos desde que se inicio el juego 
     mov cengameN,0 ;centisegundos desde que se inicio el juego 
+    mov segGameReporte,0 ;segundos para el reporte 
     ;RESET VARIABLES
     mov scoreG,0
     mLimpiar scoreGString,5t,0
     mov exitGame, 0
     ret 
 pConfigIni endp  
+
+;Rellena la variable donde estara el nombre de usuario actual 
+pNameUser proc 
+    push cx 
+    push si
+    mLimpiar NameUserG,15t,0 
+    mov cx,15t 
+    mov si,0
+    ciclo:
+        cmp UsuarioI[si],"$"
+        je salir 
+        MovVariables NameUserG[si],UsuarioI[si]
+        inc si 
+    loop ciclo 
+    salir: 
+    pop si 
+    pop cx 
+    ret 
+pNameUser endp 
+
 ;IMPRIME EL TIEMPO DEL JUEGO 
 pTimeGame proc 
     inc cengameN
-    cmp cengameN,100t
+    cmp cengameN,100t ;cuando llegue a 100 el contador de centisegundos volvera a 0 y se le sumara 1 a los segundos caso contrario solo sumara uno y se saldra 
     jne salir 
 
     mov cengameN,0 ;centisegundos vuelve a 0
     inc seggameN ;se aumenta a uno los segundos 
-    cmp seggameN,60t;cuando llegue a 60 se repetira lo mismo 
+    inc segGameReporte; se aumenta en uno los segundos para el reporte 
+    cmp seggameN,60t;cuando llegue a 60 volvera a 0 los segundos y se le sumara uno a los minutos 
     jne salir 
 
     mov seggameN,0t
@@ -2020,7 +2045,7 @@ pTimeGame endp
 pLevel proc
     movVariablesDw nivelGameS,nivelGame
     add nivelGameS,30h
-    mImprimirLetreros nivelGameS,6,10t,15t 
+    mImprimirLetreros nivelGameS,6t,10t,15t 
     ret 
 pLevel endp 
 ;IMPRIME EL SCORE DEL JUEGO 
