@@ -114,7 +114,18 @@ mVariables macro
     espacio db " ","$"
     retroceso db 08, "$"
     asterisco db "*","$"
-
+    ;ORDENAMIENTOS Y SCORE==========================================================================
+        MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F3. Go back",0A,"$"
+        MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
+        datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
+        indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+        CantDatos db 0
+        anchoBarra db 0
+        altoBarra db 0 
+        NumactualDocS db 5 dup ("$")
+        NumactualDoc dw 0
+        
+    
     ;JUEGO===========================================================================
         NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
@@ -363,11 +374,11 @@ mUserExisteR macro
     Existe:
         mov existee,1 ;se reporta error pues existe usuario que se intenta registrar
         mov eerror,1  ;se reporta error general al registro
-        mCloseFile
+        call pCloseFile
         jmp salir 
     Noexiste:
         mov existee, 0 ; no existe usuario, no hay error
-        mCloseFile
+        call pCloseFile
     salir:
 endm 
 
@@ -596,9 +607,12 @@ mMostrarString macro var
     pop dx 
 endm
 ;MACRO PARA CONVERTIR STRINGS A NUMEROS
-String2Num macro stringToRead,whereToStore
+String2Num macro stringToRead,whereToStore,simbol2stop 
     local readStringValue
     push ax 
+    push dx 
+    push bx 
+    push si 
     xor dx,dx ;limpia dx y la vuelve 0
     mov ax,dx ;ax = 0
     mov si,dx ;si = 0
@@ -610,11 +624,15 @@ String2Num macro stringToRead,whereToStore
     mul bx    ; ax= ax*bx  se multiplica por 10 el valor actual de ax 
     add ax,cx ; se suma a ax el valor de cx
     inc si
-    mCompararaux stringToRead[si],24  ; 24= "$"
+    cmp stringToRead[si],simbol2stop ; simbolo para saber cuando finalizo lo relevante de la cadena y parar de convertir 
     jne readStringValue
     mov whereToStore,ax 
+    pop si 
+    pop bx 
+    pop dx 
     pop ax 
 endm 
+
 ;NUMEROS A STRING
 Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el numero
     local cNumerador,Convertir
@@ -936,11 +954,7 @@ mReadFile macro varAlmacenadora
     pop bx 
     pop ax 
 endm
-mCloseFile macro
-    mov bx, handler
-    mov ah, 3Eh
-    int 21
-endm
+
 ;ARCHIVO
 mOpenFile macro fileName
     local errorOpen,Opencorrecto,salidaOpen
@@ -1000,6 +1014,7 @@ mHallarSimbolo macro simbolo
     salir:
 endm 
 
+;MACROS PARA JUEGO ################################################################################
 
 ;NO IMPRIME LOS SEGUNDOS, PARA HACERLO SOLO AGREGARLE UNA CONVERSION DEL CONTADOR A STRING Y LUEGO IMPRIMIRLO
 mDelayt macro tiempo
@@ -1248,3 +1263,26 @@ mWaitKey macro key
     jne ciclo 
     pop ax 
 endm 
+
+;MACROS PARA ORDENAMIENTO ################################################################################
+
+;MACRO PARA CAPTURAR STRINGS DE UN DOCUMENTO EXTERNO EN UNA VARIABLE 
+mCapturarStringDoc macro variableAlmacenadora 
+    local salir,capturarString
+    push si 
+    mov si,0
+    capturarString:
+        MovVariables variableAlmacenadora[si],eleActual
+        inc si
+        mReadFile eleActual
+        cmp eleActual,0 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
+        je salir  ; si, terminar de capturar
+        cmp eleActual,1 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
+        je salir  ; si, terminar de capturar
+        cmp eleActual,0A ;es igual a enter tipo1
+        je salir  ; si, terminar de capturar
+        jmp capturarString
+    salir:
+    pop si 
+endm
+

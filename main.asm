@@ -54,10 +54,10 @@ pAjustarMemoria endp
 pBaseDatos proc
     mCrearFile usersb
     mWriteToFile adminG
-    mCloseFile
+    call pCloseFile
     mCrearFile scoresb
     mWriteToFile espacioL
-    mCloseFile
+    call pCloseFile
     ret 
 pBaseDatos endp 
 
@@ -127,7 +127,7 @@ pLogin proc
         ;USUARIO GENERAL PRINCIPAL==========================================
         cAdminCor:;password de admin correcta
             call pQuitarbloqAdmin ;al ingresar la contraseña correcta tanto nveces error y bloqueo se vuelven a su valor default
-            mCloseFile
+            call pCloseFile
             call pLimpiarConsola
             call pMenuAdmin
             jmp salir 
@@ -157,13 +157,13 @@ pLogin proc
         jne UsuarioNormal
     ;USUARIO NORMAL=================================================
     UsuarioNormal: 
-        mCloseFile
+        call pCloseFile
         call pLimpiarConsola
         call pMenuUser ;MUESTRA MENU CORRESPONDIENTE  
         jmp salir 
     ;USUARIO ADMIN==================================================
     Usuarioadmin: 
-        mCloseFile
+        call pCloseFile
         call pLimpiarConsola
         call pMenuU_admin ;MUESTRA MENU CORRESPONDIENTE
         jmp salir        
@@ -202,7 +202,7 @@ pLogin proc
         jmp cicloLogin
     ;NO EXISTE
     exitab:
-        mCloseFile
+        call pCloseFile
     salir:
     ret 
 pLogin endp  
@@ -500,7 +500,7 @@ pAlmacenaruser proc
     mWriteToFile separador
     mWriteToFile admindef
     mWriteToFile enterg 
-    mCloseFile
+    call pCloseFile
     ret 
 pAlmacenaruser endp 
 
@@ -518,7 +518,7 @@ pAlmacenarScore proc
     mWriteToFile separador
     mWriteToFile segGameReporteS
     mWriteToFile enterg 
-    mCloseFile
+    call pCloseFile
     ret 
 pAlmacenarScore endp 
 
@@ -553,7 +553,7 @@ pResetFlagsE proc
     ret 
 pResetFlagsE endp
 
-
+;PROCEDIMIENTOS PARA MANIPULAR O MOVERSE EN UN DOCUMENTO EXTERNO 
 ;cx: me coloco en esta posicion --- dx: me mueve tantas cantidades de posiciones desde la posicion de cx
 ;cx:1 me quedo en la posicion actual  dx:  me mueve tantas cantidades de posiciones desde la posicion de cx
 ;cx:0 inicio
@@ -589,6 +589,16 @@ pPosAnterior proc
     ret
 pPosAnterior endp 
 
+pCloseFile proc 
+    push bx 
+    push ax 
+    mov bx, handler
+    mov ah, 3Eh
+    int 21
+    pop ax 
+    pop bx 
+    ret 
+pCloseFile endp 
 
 ;user db "Nombre",01,"Contraseña",01,Numero de veces que se equivoco,01,"Bloqueado/n","Admin/n" enter (0A)
    
@@ -667,7 +677,7 @@ pQuitarbloqueo proc
     call pEspEnter
     jmp salir 
     salir: 
-    mCloseFile
+    call pCloseFile
     ret
 pQuitarbloqueo endp 
 
@@ -704,7 +714,7 @@ pDarAdmin proc
     call pEspEnter
     jmp salir 
     salir: 
-    mCloseFile
+    call pCloseFile
     ret
 pDarAdmin endp 
 
@@ -750,7 +760,7 @@ pQuitarAdmin proc
         call pEspEnter
         jmp salir 
     salir: 
-    mCloseFile
+    call pCloseFile
     ret
 
 pQuitarAdmin endp 
@@ -2120,7 +2130,7 @@ pGuardarMatrizVideo proc
         mWriteToFile eleactualG
         inc si 
     loop copiarmatriz
-    mCloseFile
+    call pCloseFile
     pop si 
     pop bx 
     pop cx 
@@ -2141,11 +2151,35 @@ pCargarMatrizVideo proc
         mov  es:[si],bl
         inc si 
     loop copiarmatriz2
-    mCloseFile
+    call pCloseFile
     pop si 
     pop bx 
     pop cx 
     ret
 pCargarMatrizVideo endp 
+
+
+;ORDENAMIENTOS#########################################################################################
+;rellenar array de datos con los datos de puntaje del juego 
+pRDatosOrdPuntos proc
+    push si 
+    ;NAMEUSER -01- NIVEL -01- PUNTOS -01- TIEMPO ENTER ESPACIO 
+    mOpenFile2Write scoresb 
+    call pInidoc
+    ciclo:
+    mReadFile eleactual
+    cmp eleactual," "
+    je salir 
+    mHallarSimbolo 01
+    mHallarSimbolo 01 
+    mLimpiar NumactualDocS,5,"$"
+    mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
+    String2Num NumactualDocS,NumactualDoc,"$"; 
+    salir: 
+    call pCloseFile
+    pop si 
+    ret 
+pRDatosOrdPuntos endp 
+
 
 END start 
