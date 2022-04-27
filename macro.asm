@@ -119,7 +119,7 @@ mVariables macro
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
         datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-        CantDatos db 0
+        CDatos db 0
         anchoBarra db 0
         altoBarra db 0 
         NumactualDocS db 5 dup ("$")

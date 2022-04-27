@@ -2163,6 +2163,8 @@ pCargarMatrizVideo endp
 ;rellenar array de datos con los datos de puntaje del juego 
 pRDatosOrdPuntos proc
     push si 
+    mov si, 0
+    mov CDatos,0
     ;NAMEUSER -01- NIVEL -01- PUNTOS -01- TIEMPO ENTER ESPACIO 
     mOpenFile2Write scoresb 
     call pInidoc
@@ -2175,6 +2177,11 @@ pRDatosOrdPuntos proc
     mLimpiar NumactualDocS,5,"$"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
     String2Num NumactualDocS,NumactualDoc,"$"; 
+    MovVariablesDw datosOrd[si], NumactualDoc
+    mov indexDato[si],si 
+    inc si 
+    inc CDatos
+    jmp ciclo 
     salir: 
     call pCloseFile
     pop si 
