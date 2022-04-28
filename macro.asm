@@ -1057,6 +1057,8 @@ mDelaytCenti macro tiempo
     local ciclodelay,centisegundo,salir 
     push ax 
     push dx 
+    push bx 
+    push cx 
     mov valort1,0
     mov auxt, 0 ;borrar
     mov contadort,0
@@ -1078,6 +1080,8 @@ mDelaytCenti macro tiempo
             inc contadort; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
+        pop cx 
+        pop bx 
         pop dx
         pop ax 
 endm 

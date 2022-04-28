@@ -2184,7 +2184,10 @@ pMoveOrdenamiento proc
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-        
+    call pOrdMando
+    cmp EstOrd,0
+    je sinAccion
+        call pBurbleSortDesc
     sinAccion:
     jmp fps 
     ret 
@@ -2287,12 +2290,12 @@ pBurbleSortDesc proc
             cmp ax, [datosOrd+bx+2]
             ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
             ;swap 
+            mDelaytCenti 10t 
             mov dx,[datosOrd+bx+2]
             mov [datosOrd+bx+2],ax
             mov [datosOrd+bx],dx 
             noswap:
             add bx,2
-            mDelaytCenti 10t 
             call pDrawBarras
         loop compEvery
         pop cx 
