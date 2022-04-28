@@ -114,10 +114,11 @@ mVariables macro
     espacio db " ","$"
     retroceso db 08, "$"
     asterisco db "*","$"
+
     ;ORDENAMIENTOS Y SCORE==========================================================================
         MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F3. Go back",0A,"$"
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
-        datosOrd dw 20 dup (0),"$"
+        datosOrd dw 0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,"$"
         indexDato dw 0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,"$"
         
         CDatos dw 0
@@ -125,8 +126,10 @@ mVariables macro
         altoBarra dw 0 
         x_barra dw 0
         y_barra dw 0
-        NumactualDocS db 5 dup ("$")
+        NumactualDocS db 5 dup ("#")
+        axm db "$"
         NumactualDoc dw 0
+        
         
     
     ;JUEGO===========================================================================
@@ -611,7 +614,7 @@ String2Num macro stringToRead,whereToStore,simbol2stop
     ;mov si, offset stringtoRead
     readStringValue:
     mov cl,stringToRead[si]
-    sub cl,30 ; se le resta 30 para convertirlo a un numero legible (num de 0-9)
+    sub cl,30h ; se le resta 30 para convertirlo a un numero legible (num de 0-9)
     mul bx    ; ax= ax*bx  se multiplica por 10 el valor actual de ax 
     add ax,cx ; se suma a ax el valor de cx
     inc si
@@ -1280,22 +1283,23 @@ endm
 ;MACRO PARA CAPTURAR STRINGS DE UN DOCUMENTO EXTERNO EN UNA VARIABLE 
 mCapturarStringDoc macro variableAlmacenadora 
     local salir,capturarString
-    push si 
-    push cx 
+    push si  
     mov si,0
     capturarString:
         MovVariables variableAlmacenadora[si],eleActual
         inc si
         mReadFile eleActual
-        cmp eleActual,00 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
+        cmp eleActual,0 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
-        cmp eleActual,01 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
+        cmp eleActual,1 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
         cmp eleActual,0A ;es igual a enter tipo1
         je salir  ; si, terminar de capturar
+        cmp eleActual," " ;es igual a enter tipo1
+        je salir  ; si, terminar de capturar
+        ;los 0 impresos en un documento externo se vuelven espacios
         jmp capturarString
     salir:
-    pop cx 
     pop si 
 endm
 

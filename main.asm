@@ -2175,7 +2175,7 @@ pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
         call pRDatosOrdPuntos
-        mMostrarString indexDato
+        ;mMostrarString datosOrd[0]
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
@@ -2204,14 +2204,16 @@ pRDatosOrdPuntos proc
     je salir 
     mHallarSimbolo 01
     mHallarSimbolo 01 
-    mLimpiar NumactualDocS,5,"$"
+    mReadFile eleactual
+    mLimpiar NumactualDocS,5t,"#"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
+    mMostrarString NumactualDocS
     String2Num NumactualDocS,NumactualDoc,"$"; 
-    ;MovVariablesDw datosOrd[si], NumactualDoc
+    
+    MovVariablesDw datosOrd[si], NumactualDoc
     movVariablesDw indexDato[si],auxDw
     inc auxDw 
     mHallarSimbolo 0A 
-   
     inc si 
     inc si 
     inc si 
