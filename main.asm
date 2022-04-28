@@ -2175,20 +2175,28 @@ pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
         call pRDatosOrdPuntos
-        ;mMostrarString datosOrd[0]
+       
+        
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
-    mov auxfpsT, dl
-  
-    ;call pDrawBarras
-    ;call pDrawNave
+    mov auxfpsT, dl 
+        call pDrawBarras
+    sinAccion:
     jmp fps 
     ret 
 pMoveOrdenamiento endp 
 
+
+pOrdenamiento proc
+    call pMemVideoMode
+    call pVideoMode 
+    call pMoveOrdenamiento
+    call pTextMode
+    ret 
+pOrdenamiento endp 
 
 pRDatosOrdPuntos proc
     push si 
@@ -2205,19 +2213,18 @@ pRDatosOrdPuntos proc
     mHallarSimbolo 01
     mHallarSimbolo 01 
     mReadFile eleactual
-    mLimpiar NumactualDocS,5t,"#"
+    mLimpiar NumactualDocS,5t,"$"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
-    mMostrarString NumactualDocS
-    String2Num NumactualDocS,NumactualDoc,"$"; 
-    
-    MovVariablesDw datosOrd[si], NumactualDoc
-    movVariablesDw indexDato[si],auxDw
+    String2Num NumactualDocS,NumactualDoc,"$"; convierte el numero string a numero decimal  
+    MovVariablesDw datosOrd[si], NumactualDoc ;mmueve el numeor a esta posicion de arreglo 
+    movVariablesDw indexDato[si],auxDw ; index 
     inc auxDw 
     mHallarSimbolo 0A 
     inc si 
     inc si 
-    inc si 
     inc CDatos
+    cmp CDatos,20t ;si son mas de 20 termina de recopilar 
+    je salir 
     jmp ciclo 
     salir: 
     call pCloseFile
@@ -2225,38 +2232,97 @@ pRDatosOrdPuntos proc
     ret 
 pRDatosOrdPuntos endp 
 
-pOrdenamiento proc
-    call pMemVideoMode
-    call pVideoMode 
-    call pMoveOrdenamiento
-    call pTextMode
-    ret 
-pOrdenamiento endp 
-
-
 pDrawBarras proc 
     push cx 
     push si 
-    mov cx, CDatos
-    mov si,0
+    push ax 
+
+    mov cx, CDatos ;se repetira el ciclo la n cantidad de datos tomados 
+    mov si,0  ; se inicia si 
+    mov x_barra , 16t ;empezara en el pixel 16t y fila 3 de un string 
+    mov y_barra , 50t ;empezara a graficar cada barra desde aqui
     cicloBarras: 
-    movVariablesDw anchoBarra, datosOrd[si]
-    mDivisionDw anchoBarra,100t
-    mov altoBarra, 200t
-    mDivisionDw altoBarra,CDatos
-    mov x_barra , 2
-    mov y_barra , 2
-    mIncVar x_barra, 10t 
-    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra
+    push x_barra;se guarda x 
+    ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
+    mDivisionDw x_barra,8t 
+    mov ax,x_barra
+    mov filaLetreroOrd,al
+    mLimpiar DatOrsb,5t, 0
+    Num2String  datosOrd[si],DatOrsb 
+    mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
+    pop x_barra;se recupera el valor inicial de la barra 
+
+    movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
+    mDivisionDw anchoBarra,80t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
+    mov altoBarra, 140t  ; 140t es el espacio de filas de pixeles libres  para graficar sin contar los rotulos 
+    mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
+    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra ;se grafica la barra 
+    mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+    inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8 
+    
+    inc si 
     inc si 
     dec cx 
     jne cicloBarras 
+    
+    pop ax 
     pop si 
     pop cx 
     ret 
 pDrawBarras endp 
 
+pBurbleSortDesc proc
+    push ax
+    push dx 
+    push cx
+    push bx
+    mov cx, CDatos
+    ciclo1:
+        push cx 
+        mov cx, CDatos
+        mov bx,0
+        compEvery: ;comparar dato con cada dato del arreglo 
+            mov ax, [datosOrd+bx]
+            cmp ax, [datosOrd+bx+2]
+            ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+            ;swap 
+            mov dx,[datosOrd+bx+2]
+            mov [datosOrd+bx+2],ax
+            mov [datosOrd+bx],dx 
+            noswap:
+            add bx,2
+            mDelaytCenti 10t 
+            call pDrawBarras
+        loop compEvery
+        pop cx 
+    loop ciclo1
+    mov EstOrd,0
+    pop bx 
+    pop cx 
+    pop dx 
+    pop ax 
+    ret 
+pBurbleSortDesc endp 
 
+pOrdMando proc 
+    push ax 
+    mov ah,01 ;existe pulsacion o no?
+    int 16h
+    jz salir ; no hay pulsacion, salir 
+    mov ah, 00  ;Espera a que se presione una tecla y la lee
+    int 16h
+    cmp al,"h"
+    je ordenamiento 
+    jmp salir 
+    ordenamiento:
+        cmp EstOrd,1
+        je salir 
+        mov EstOrd,1
+    jmp salir 
+    salir: 
+    pop ax 
+    ret 
+pOrdMando endp 
 ;LOOP 2
 ;mov cx,nvecesRepetir     
 ;ciclo: 

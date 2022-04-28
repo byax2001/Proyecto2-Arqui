@@ -118,19 +118,21 @@ mVariables macro
     ;ORDENAMIENTOS Y SCORE==========================================================================
         MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F3. Go back",0A,"$"
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
-        datosOrd dw 0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,"$"
-        indexDato dw 0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,"$"
-        
-        CDatos dw 0
-        anchoBarra dw 0
-        altoBarra dw 0 
-        x_barra dw 0
-        y_barra dw 0
-        NumactualDocS db 5 dup ("#")
-        axm db "$"
-        NumactualDoc dw 0
-        
-        
+        datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
+        indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
+        filaLetreroOrd db 0 ;fila donde estara cada numero que representa el valor de cada barra 
+        CDatos dw 0 ;cantidad de datos analizados 
+        anchoBarra dw 0 ;ancho de una barra
+        altoBarra dw 0  ;alto de una barra
+        x_barra dw 0 ;posicion x de la barra
+        y_barra dw 0 ;posicion y  de la barra
+        NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
+        auxDWS db "$"
+        NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
+        DatOrsb db 5 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
+        ascDec  db 0  ; si escogio ascending o descending
+        velocity db 10 ;velocidad para delay 
+        EstOrd db 0  ; inicio y fin del ordenamiento 
     
     ;JUEGO===========================================================================
         NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
@@ -840,12 +842,18 @@ endm
 mDivisionDw macro var1,var2
     push ax
     push bx 
+    push cx 
+    push dx 
     xor ax,ax
-    mov bx,ax 
+    xor bx, bx  
+    xor cx,cx 
+    xor dx,dx 
     mov ax, var1
     mov bx, var2
     div bx
     mov var1, ax 
+    pop dx 
+    pop cx 
     pop bx 
     pop ax 
 endm
@@ -871,22 +879,6 @@ MovVariablesDw macro var1,var2
     pop dx 
 endm
 
-mDelay macro  
-    local salir,ciclodelay 
-    mov cdelay,0
-    pop ax 
-    pop dx 
-    ciclodelay:
-        mov ah,2Ch
-        int 21h
-        mov cdelay,dh ;SEGUNDOS  
-        cmp cdelay,30t ; dara 0 en el mod si CDELAY ES UN MULTIPLO DE 30 POR LO CUAL PASARON 30 SEGUNDOS
-        je salir   
-        jmp ciclodelay 
-    salir: 
-    push ax 
-    push dx 
-endm 
 ;macro para rellenar las variables de tiempo
 mFechaTime macro
     push bx 
@@ -1032,7 +1024,6 @@ endm
 
 ;MACROS PARA JUEGO ################################################################################
 
-;NO IMPRIME LOS SEGUNDOS, PARA HACERLO SOLO AGREGARLE UNA CONVERSION DEL CONTADOR A STRING Y LUEGO IMPRIMIRLO
 mDelayt macro tiempo
     local ciclodelay,segundo,salir 
     push ax 
@@ -1055,6 +1046,35 @@ mDelayt macro tiempo
             cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             je salir  ;SI, SALIR 
             mov valort1,dh ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
+            inc contadort; SE LE SUMA UNO AL CONTADOR 
+            jmp ciclodelay
+    salir: 
+        pop dx
+        pop ax 
+endm 
+
+mDelaytCenti macro tiempo
+    local ciclodelay,centisegundo,salir 
+    push ax 
+    push dx 
+    mov valort1,0
+    mov auxt, 0 ;borrar
+    mov contadort,0
+
+    mov ah,2Ch
+    int 21h
+    mov valort1,dl  ;VALOR 1 TOMA UN TIEMPO INICIAL
+    ciclodelay:
+        ;segunda toma de tiempo 
+        mov ah,2Ch
+        int 21h
+        mComparar valort1,dl  ;los tiempos son distintos (si es asi paso un centisegundo)
+        jne centiSegundo ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 centisegundo
+        jmp ciclodelay
+        centiSegundo:
+            cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
+            je salir  ;SI, SALIR 
+            mov valort1,dl ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
             inc contadort; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
@@ -1289,15 +1309,12 @@ mCapturarStringDoc macro variableAlmacenadora
         MovVariables variableAlmacenadora[si],eleActual
         inc si
         mReadFile eleActual
-        cmp eleActual,0 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
-        je salir  ; si, terminar de capturar
         cmp eleActual,1 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
         cmp eleActual,0A ;es igual a enter tipo1
         je salir  ; si, terminar de capturar
-        cmp eleActual," " ;es igual a enter tipo1
+        cmp eleActual," " ;los 0's impresos en un documento externo se vuelven espacios
         je salir  ; si, terminar de capturar
-        ;los 0 impresos en un documento externo se vuelven espacios
         jmp capturarString
     salir:
     pop si 
