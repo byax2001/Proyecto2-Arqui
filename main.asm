@@ -15,15 +15,15 @@ start:
 
 pFlujoProyecto2 proc 
     call pAjustarMemoria
-        call pBaseDatos
-        call pLimpiarConsola
-        mMostrarString mensajeI
+        ;call pBaseDatos
+        ;call pLimpiarConsola
+        ;mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
-            call pEspEnter
+            ;call pEspEnter
         ;---------------------------------------------------
-        call pLimpiarConsola
-        call pMenuPrincipal
-    ;call pOrdenamiento
+        ;call pLimpiarConsola
+        ;call pMenuPrincipal
+    call pOrdenamiento
     call pRetControl
     ret 
 pFlujoProyecto2 endp 
@@ -2170,9 +2170,30 @@ pCargarMatrizVideo endp
 
 ;ORDENAMIENTOS#########################################################################################
 ;rellenar array de datos con los datos de puntaje del juego 
+
+pMoveOrdenamiento proc
+    mov auxfpsT,0
+    reset: 
+        call pRDatosOrdPuntos
+        mMostrarString indexDato
+    fps: ;ciclo que provoca un movimiento cada centisegundo 
+        mov ah,2Ch
+        int 21
+        cmp dl, auxfpsT
+        je fps
+    mov auxfpsT, dl
+  
+    ;call pDrawBarras
+    ;call pDrawNave
+    jmp fps 
+    ret 
+pMoveOrdenamiento endp 
+
+
 pRDatosOrdPuntos proc
     push si 
     mov si, 0
+    mov auxDw,0
     mov CDatos,0
     ;NAMEUSER -01- NIVEL -01- PUNTOS -01- TIEMPO ENTER ESPACIO 
     mOpenFile2Write scoresb 
@@ -2186,8 +2207,13 @@ pRDatosOrdPuntos proc
     mLimpiar NumactualDocS,5,"$"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
     String2Num NumactualDocS,NumactualDoc,"$"; 
-    MovVariablesDw datosOrd[si], NumactualDoc
-    mov indexDato[si],si 
+    ;MovVariablesDw datosOrd[si], NumactualDoc
+    movVariablesDw indexDato[si],auxDw
+    inc auxDw 
+    mHallarSimbolo 0A 
+   
+    inc si 
+    inc si 
     inc si 
     inc CDatos
     jmp ciclo 
@@ -2205,33 +2231,26 @@ pOrdenamiento proc
     ret 
 pOrdenamiento endp 
 
-pMoveOrdenamiento proc
-    mov auxfpsT,0
-    reset: 
-        ;call pConfigIni   configuraciones iniciales 
-    fps: ;ciclo que provoca un movimiento cada centisegundo 
-        mov ah,2Ch
-        int 21
-        cmp dl, auxfpsT
-        je fps
-    mov auxfpsT, dl
-    call pDrawBarras
-    jmp fps 
-    ret 
-pMoveOrdenamiento endp 
 
 pDrawBarras proc 
+    push cx 
+    push si 
     mov cx, CDatos
     mov si,0
-    barras: 
-    ;mov altoBarra, datosOrd[si]
-
-    mov anchoBarra ,125t
-    mov altoBarra ,10t 
+    cicloBarras: 
+    movVariablesDw anchoBarra, datosOrd[si]
+    mDivisionDw anchoBarra,100t
+    mov altoBarra, 200t
+    mDivisionDw altoBarra,CDatos
     mov x_barra , 2
     mov y_barra , 2
+    mIncVar x_barra, 10t 
     mDrawBarra x_barra,y_barra,altoBarra,anchoBarra
-    loop barras
+    inc si 
+    dec cx 
+    jne cicloBarras 
+    pop si 
+    pop cx 
     ret 
 pDrawBarras endp 
 

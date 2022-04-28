@@ -117,8 +117,9 @@ mVariables macro
     ;ORDENAMIENTOS Y SCORE==========================================================================
         MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F3. Go back",0A,"$"
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
-        datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
-        indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+        datosOrd dw 20 dup (0),"$"
+        indexDato dw 0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,0A,0,"$"
+        
         CDatos dw 0
         anchoBarra dw 0
         altoBarra dw 0 
@@ -833,7 +834,7 @@ mMultiplicacionDw macro var1,var2
     pop ax 
 endm 
 
-mDivisonDw macro var1,var2
+mDivisionDw macro var1,var2
     push ax
     push bx 
     xor ax,ax
@@ -1280,19 +1281,21 @@ endm
 mCapturarStringDoc macro variableAlmacenadora 
     local salir,capturarString
     push si 
+    push cx 
     mov si,0
     capturarString:
         MovVariables variableAlmacenadora[si],eleActual
         inc si
         mReadFile eleActual
-        cmp eleActual,0 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
+        cmp eleActual,00 ;es igual a 0 ASCII (no es igual al 0 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
-        cmp eleActual,1 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
+        cmp eleActual,01 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
         cmp eleActual,0A ;es igual a enter tipo1
         je salir  ; si, terminar de capturar
         jmp capturarString
     salir:
+    pop cx 
     pop si 
 endm
 
