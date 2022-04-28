@@ -9,8 +9,24 @@ mVariables
 ;APARTADO PARA EL CODIGO
 start:
     main proc
-        mFlujoProyecto2
+        call pFlujoProyecto2
     main endp
+
+
+pFlujoProyecto2 proc 
+    call pAjustarMemoria
+        call pBaseDatos
+        call pLimpiarConsola
+        mMostrarString mensajeI
+         ;apartado de espera de un enter----------------------
+            call pEspEnter
+        ;---------------------------------------------------
+        call pLimpiarConsola
+        call pMenuPrincipal
+    ;call pOrdenamiento
+    call pRetControl
+    ret 
+pFlujoProyecto2 endp 
 
 ;METODO PARA LIMPIAR LA CONSOLA 
 pLimpiarConsola proc 
@@ -453,32 +469,25 @@ pDelay30 proc
     push ax 
     push dx 
     mov valort1,0
-    mov auxt, 0
-    mov valort2,0
     mov contadort,0
     ;SE TOMA EL VALOR DE T1 
     mov ah,2Ch
     int 21h
     mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
     ciclodelay:
-        mov dx,ax 
         mov ah,2Ch
         int 21h
-        mov valort2,dh  ;VALOR 2 TOMA OTRO TIEMPO DESPUES DE VALOR 1
-        movVariables auxt,valort2 
-        mModdb valort1,2 ;para saber si es par o impar el  valor 1 
-        mModdb valort2,2 ;para saber si es par o impar el valor 2
-        mComparar valort1,valort2 ;EL CICLO SE REPETIRA HASTA QUE SEAN DISTINTOS
+        mComparar valort1,dh ;EL CICLO SE REPETIRA HASTA QUE SEAN DISTINTOS
         jne segundo ;ES DISTINTO POR LO CUAL YA CAMBIO DE SEGUNDO 
         jmp ciclodelay
-        segundo:
+        segundo:      
             mLimpiar StringNumT,4,24 ;SE LIMPIA EL STRING QUE ALMACENARA EL SEGUNDO
             Num2String contadort,StringNumT ;SE PASA EL CONTADOR ACTUAL A STRING 
-            mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR 
+            mMostrarString StringNumT ;SE IMPRIME EL STRING DEL CONTADOR  
             cmp contadort,30t ;CONTADOR ES IGUAL A 30?
-            jae salir  ;SI, SALIR 
-            MovVariables valort1,auxt ;NO, ENTONCES VALORT1=auxt (que contiene el valor2 sin el efecto de mod)
-            mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
+            je salir  ;SI, SALIR 
+            MovVariables valort1,dh ;NO, ENTONCES VALORT1=auxt (que contiene el valor2 sin el efecto de mod)
+            inc contadort ; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
         pop dx
@@ -2188,5 +2197,51 @@ pRDatosOrdPuntos proc
     ret 
 pRDatosOrdPuntos endp 
 
+pOrdenamiento proc
+    call pMemVideoMode
+    call pVideoMode 
+    call pMoveOrdenamiento
+    call pTextMode
+    ret 
+pOrdenamiento endp 
+
+pMoveOrdenamiento proc
+    mov auxfpsT,0
+    reset: 
+        ;call pConfigIni   configuraciones iniciales 
+    fps: ;ciclo que provoca un movimiento cada centisegundo 
+        mov ah,2Ch
+        int 21
+        cmp dl, auxfpsT
+        je fps
+    mov auxfpsT, dl
+    call pDrawBarras
+    jmp fps 
+    ret 
+pMoveOrdenamiento endp 
+
+pDrawBarras proc 
+    mov cx, CDatos
+    mov si,0
+    barras: 
+    ;mov altoBarra, datosOrd[si]
+
+    mov anchoBarra ,125t
+    mov altoBarra ,10t 
+    mov x_barra , 2
+    mov y_barra , 2
+    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra
+    loop barras
+    ret 
+pDrawBarras endp 
+
+
+;LOOP 2
+;mov cx,nvecesRepetir     
+;ciclo: 
+    ;INSTRUCCIONES
+;dec cx 
+;jne ciclo 
 
 END start 
+

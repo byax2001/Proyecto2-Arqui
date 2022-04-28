@@ -119,9 +119,11 @@ mVariables macro
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
         datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-        CDatos db 0
-        anchoBarra db 0
-        altoBarra db 0 
+        CDatos dw 0
+        anchoBarra dw 0
+        altoBarra dw 0 
+        x_barra dw 0
+        y_barra dw 0
         NumactualDocS db 5 dup ("$")
         NumactualDoc dw 0
         
@@ -263,18 +265,6 @@ mVariables macro
     eProgram db "PROGRAMA SE ENCUENTRA AQUI$"
 endm 
 
-mFlujoProyecto2 macro
-    call pAjustarMemoria
-        call pBaseDatos
-        call pLimpiarConsola
-        mMostrarString mensajeI
-         ;apartado de espera de un enter----------------------
-            call pEspEnter
-        ;---------------------------------------------------
-        call pLimpiarConsola
-        call pMenuPrincipal
-    call pRetControl
-endm 
 
 ;METODOS PARA LOGIN################################################################################################
 
@@ -637,6 +627,9 @@ endm
 Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el numero
     local cNumerador,Convertir
     push ax 
+    push bx
+    push dx 
+    push si 
     mov bx,0A
     mov ax, numero
     cNumerador:   ;condicion de numerador
@@ -655,6 +648,9 @@ Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el 
         dec contador
         cmp contador,0 
         jne Convertir
+    pop si
+    pop dx 
+    pop bx 
     pop ax 
 endm 
 ;MACRO PARA CAPTURAR STRINGS EN UNA VARIABLE
@@ -718,6 +714,7 @@ endm
 ;LIMPIA UNA VARIABLE
 mLimpiar macro lista,numero,signo
     local salir,borrar
+    push si  
     mov si,0
     borrar:
         mov lista[si],signo   
@@ -726,6 +723,7 @@ mLimpiar macro lista,numero,signo
         je salir
         jne borrar
     salir:
+    pop si 
 endm
 ;MUEVE EL CONTENIDO DE UNA VARIABLE A OTRA 
 MovVariables macro var1,var2
@@ -834,7 +832,20 @@ mMultiplicacionDw macro var1,var2
     pop bx
     pop ax 
 endm 
-;Division
+
+mDivisonDw macro var1,var2
+    push ax
+    push bx 
+    xor ax,ax
+    mov bx,ax 
+    mov ax, var1
+    mov bx, var2
+    div bx
+    mov var1, ax 
+    pop bx 
+    pop ax 
+endm
+;MOD 
 mModdb macro var1,var2
 ;CUANDO SE LEEN ARCHIVOS LOS 4 REGISTROS SON AFECTADOS 
     push ax
@@ -855,6 +866,7 @@ MovVariablesDw macro var1,var2
     mov var1, dx ; SE INGRESA A LA NUEVA POSICION EL SIMBOLO ACTUAL
     pop dx 
 endm
+
 mDelay macro  
     local salir,ciclodelay 
     mov cdelay,0
@@ -1023,7 +1035,6 @@ mDelayt macro tiempo
     push dx 
     mov valort1,0
     mov auxt, 0 ;borrar
-    mov valort2,0 ;borrar 
     mov contadort,0
 
     mov ah,2Ch
@@ -1031,7 +1042,6 @@ mDelayt macro tiempo
     mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
     ciclodelay:
         ;segunda toma de tiempo 
-        mov dx,ax 
         mov ah,2Ch
         int 21h
         mComparar valort1,dh  ;los tiempos son distintos (si es asi paso un segundo)
@@ -1041,7 +1051,7 @@ mDelayt macro tiempo
             cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             je salir  ;SI, SALIR 
             mov valort1,dh ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
-            mSumarDw contadort,1t ; SE LE SUMA UNO AL CONTADOR 
+            inc contadort; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
         pop dx
@@ -1286,3 +1296,29 @@ mCapturarStringDoc macro variableAlmacenadora
     pop si 
 endm
 
+mDrawBarra macro x,y,alto,ancho 
+    local cicloAncho,cicloAlto
+    push ax 
+    push dx
+    push cx 
+    ;ancho de x1 a x2
+    ;alto de y1 a y2
+    mov ax,x
+    mov dx,y 
+    mov cx,ancho
+    cicloAncho: 
+    push cx 
+        mov cx, alto 
+        cicloAlto:
+            mDrawPixel x,y,15t 
+            inc x 
+        loop cicloAlto
+        mov x,ax 
+    pop cx 
+    inc y 
+    loop cicloAncho
+    mov y, dx 
+    pop cx
+    pop dx 
+    pop ax 
+endm 
