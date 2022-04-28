@@ -2175,7 +2175,8 @@ pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
         call pRDatosOrdPuntos
-       
+        mDrawRectangulo 10t,1t,319t,1t,3t
+        call pDrawBarras
         
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
@@ -2183,7 +2184,7 @@ pMoveOrdenamiento proc
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-        call pDrawBarras
+        
     sinAccion:
     jmp fps 
     ret 
