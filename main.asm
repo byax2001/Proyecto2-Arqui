@@ -2171,27 +2171,7 @@ pCargarMatrizVideo endp
 ;ORDENAMIENTOS#########################################################################################
 ;rellenar array de datos con los datos de puntaje del juego 
 
-pMoveOrdenamiento proc
-    mov auxfpsT,0
-    reset: 
-        call pRDatosOrdPuntos
-        mDrawRectangulo 10t,1t,319t,1t,3t
-        call pDrawBarras
-        
-    fps: ;ciclo que provoca un movimiento cada centisegundo 
-        mov ah,2Ch
-        int 21
-        cmp dl, auxfpsT
-        je fps
-    mov auxfpsT, dl 
-    call pOrdMando
-    cmp EstOrd,0
-    je sinAccion
-        call pBurbleSortDesc
-    sinAccion:
-    jmp fps 
-    ret 
-pMoveOrdenamiento endp 
+
 
 
 pOrdenamiento proc
@@ -2201,6 +2181,28 @@ pOrdenamiento proc
     call pTextMode
     ret 
 pOrdenamiento endp 
+
+pMoveOrdenamiento proc
+    mov auxfpsT,0
+    reset: 
+        call pRDatosOrdPuntos
+        mDrawRectangulo 10t,1t,319t,1t,3t
+        call pDrawBarras
+    fps: ;ciclo que provoca un movimiento cada centisegundo 
+        mov ah,2Ch
+        int 21
+        cmp dl, auxfpsT
+        je fps
+    mov auxfpsT, dl 
+    
+    call pOrdMando
+    cmp EstOrd,0
+    je sinAccion
+        call pBurbleSortDesc
+    sinAccion:
+    jmp fps 
+    ret 
+pMoveOrdenamiento endp 
 
 pRDatosOrdPuntos proc
     push si 
@@ -2243,9 +2245,14 @@ pDrawBarras proc
 
     mov cx, CDatos ;se repetira el ciclo la n cantidad de datos tomados 
     mov si,0  ; se inicia si 
+    mov brEspOy, 0; para el borrado 
     mov x_barra , 16t ;empezara en el pixel 16t y fila 3 de un string 
     mov y_barra , 50t ;empezara a graficar cada barra desde aqui
+    mov altoBarra, 140t  ; 140t es el espacio de filas de pixeles libres  para graficar sin contar los rotulos 
+    mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
+
     cicloBarras: 
+    mDrawBarra x_barra,brEspOy,altoBarra,318t,0t
     push x_barra;se guarda x 
     ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
     mDivisionDw x_barra,8t 
@@ -2257,13 +2264,12 @@ pDrawBarras proc
     pop x_barra;se recupera el valor inicial de la barra 
 
     movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
-    mDivisionDw anchoBarra,80t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
-    mov altoBarra, 140t  ; 140t es el espacio de filas de pixeles libres  para graficar sin contar los rotulos 
-    mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
-    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra ;se grafica la barra 
-    mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
-    inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8 
+    mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
     
+    
+    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,15t ;se grafica la barra 
+    mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+    inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
     inc si 
     inc si 
     dec cx 
@@ -2281,6 +2287,7 @@ pBurbleSortDesc proc
     push cx
     push bx
     mov cx, CDatos
+    mov x_f1,2t 
     ciclo1:
         push cx 
         mov cx, CDatos
@@ -2290,16 +2297,25 @@ pBurbleSortDesc proc
             cmp ax, [datosOrd+bx+2]
             ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
             ;swap 
-            mDelaytCenti 10t 
+            mDelaytCenti 5t 
             mov dx,[datosOrd+bx+2]
             mov [datosOrd+bx+2],ax
             mov [datosOrd+bx],dx 
+            ;MOVER INDEX 
+            call pMoverIndex
             noswap:
             add bx,2
             call pDrawBarras
-        loop compEvery
+            cmp cx,1t 
+            je finbarras
+            call pDrawFlechasBurble
+            finbarras:
+        dec cx 
+        jne compEvery
+        mov x_f1,2t
         pop cx 
-    loop ciclo1
+    dec cx 
+    jne ciclo1
     mov EstOrd,0
     pop bx 
     pop cx 
@@ -2307,6 +2323,36 @@ pBurbleSortDesc proc
     pop ax 
     ret 
 pBurbleSortDesc endp 
+;mueve los indices 
+pMoverIndex proc
+    mov ax,[indexDato+bx]
+    mov dx,[indexDato+bx+2]
+    mov [indexDato+bx+2],ax 
+    mov [indexDato+bx],dx 
+    ret 
+pMoverIndex endp 
+;pinta las flechas 
+pDrawFlechasBurble proc
+    cmp x_f1,21t
+    jae reset
+    mImprimirLetreros flecha,x_f1,0t,15t 
+    mIncFilaBar x_f1
+    mImprimirLetreros flecha,x_f1,0t,15t
+    jmp salir 
+    reset: 
+        mov x_f1,2t
+    salir: 
+     
+    ret 
+pDrawFlechasBurble endp 
+;borra los movimientos anteriores 
+pLimpiaEspacioOrd proc
+    mov brEspOx,16t 
+    mov brEspOy,1t 
+    mDrawBarra brEspOx,brEspOy,156t,20t,0t 
+    ret 
+pLimpiaEspacioOrd endp 
+
 
 pOrdMando proc 
     push ax 

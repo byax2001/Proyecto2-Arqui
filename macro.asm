@@ -133,7 +133,11 @@ mVariables macro
         ascDec  db 0  ; si escogio ascending o descending
         velocity db 10 ;velocidad para delay 
         EstOrd db 0  ; inicio y fin del ordenamiento 
-    
+        ;FLECHAS ORDENAMIENTO
+        x_f1 db 0
+        flecha dw 175t
+        brEspOx dw 0
+        brEspOy dw 0
     ;JUEGO===========================================================================
         NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
@@ -1324,7 +1328,7 @@ mCapturarStringDoc macro variableAlmacenadora
     pop si 
 endm
 
-mDrawBarra macro x,y,alto,ancho 
+mDrawBarra macro x,y,alto,ancho,color 
     local cicloAncho,cicloAlto
     push ax 
     push dx
@@ -1338,7 +1342,7 @@ mDrawBarra macro x,y,alto,ancho
     push cx 
         mov cx, alto 
         cicloAlto:
-            mDrawPixel x,y,15t 
+            mDrawPixel x,y,color  
             inc x 
         loop cicloAlto
         mov x,ax 
@@ -1349,4 +1353,34 @@ mDrawBarra macro x,y,alto,ancho
     pop cx
     pop dx 
     pop ax 
+endm 
+
+mIncFilaBar macro fila
+    local salir 
+    mEnRangoDw CDatos,12t,20t 
+    inc fila 
+    cmp enrango,1
+    je salir  
+
+    mEnRangoDw CDatos,8t,11t 
+    inc fila 
+    cmp enrango,1
+    je salir 
+
+    mEnRangoDw CDatos,5t,7t
+    inc fila 
+    cmp enrango,1
+    je salir 
+
+    inc fila 
+    cmp CDatos,4t 
+    je salir  
+
+    inc fila 
+    inc fila 
+    cmp CDatos,3t 
+    je salir  
+    mIncVar fila,3t 
+    cmp CDatos,2t
+    salir: 
 endm 
