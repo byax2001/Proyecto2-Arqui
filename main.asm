@@ -23,7 +23,7 @@ pFlujoProyecto2 proc
         ;---------------------------------------------------
         ;call pLimpiarConsola
         ;call pMenuPrincipal
-    call pOrdenamiento
+    call pMenuOrd
     call pRetControl
     ret 
 pFlujoProyecto2 endp 
@@ -2004,7 +2004,8 @@ pConfigIni proc
     mov estEnem,3  ;para que se empiece moviendo el enemigo tipo 3 
     mov mingameN,0 ;minutos desde que se inicio el juego 
     mov seggameN,0 ;segundos desde que se inicio el juego 
-    mov cengameN,0 ;centisegundos desde que se inicio el juego 
+    mov cengameN,-1 ;centisegundos desde que se inicio el juego, COMIENZA CON -1 por que el metodo que imprime el tiempo
+                    ; suma 1 al inicio 
     mov segGameReporte,0 ;segundos para el reporte 
     ;RESET VARIABLES
     mov scoreG,0
@@ -2047,9 +2048,9 @@ pTimeGame proc
     mov seggameN,0t
     inc mingameN
     salir: 
-        mLimpiar cengameS,4,0
-        mLimpiar seggameS,4,0
-        mLimpiar mingameS,4,0
+        mLimpiar cengameS,2,0
+        mLimpiar seggameS,2,0
+        mLimpiar mingameS,2,0
         Num2String cengameN,cengameS
         Num2String seggameN,seggameS
         Num2String mingameN,mingameS
@@ -2171,7 +2172,107 @@ pCargarMatrizVideo endp
 ;ORDENAMIENTOS#########################################################################################
 ;rellenar array de datos con los datos de puntaje del juego 
 
-
+pMenuOrd  proc   
+    cicloAsdec:
+        call pLimpiarConsola
+        mMostrarString MenuDirOrd
+        mov ah,01;atrapa la tecla fn
+        int 21
+        mov ah,01  ;atrapa la tecla escogida  
+        int 21
+        cmp al,59t ;F1=;
+        je ascending
+        cmp al,"<" ;F2="<"
+        je descending
+        cmp al,"C"
+        je salir 
+        mMostrarString opi 
+        call pEspEnter
+        jmp cicloAsdec
+    ascending:
+        mov ascDec,0
+        jmp cicloMetrica
+    descending: 
+        mov ascDec,1 
+    cicloMetrica:
+        call pLimpiarConsola
+        mMostrarString MenuMetricaOrd
+        mov ah,01;atrapa la tecla fn
+        int 21
+        mov ah,01  ;atrapa la tecla escogida  
+        int 21
+        cmp al,59t ;F1=;
+        je mePoints
+        cmp al,"<" ;F2="<"
+        je meTiempo
+        cmp al,"C"
+        je salir 
+        mMostrarString opi 
+        call pEspEnter
+        jmp cicloMetrica
+        mePoints:
+            mov punOtiempo,0
+            jmp cicloVelocidad
+        meTiempo:
+            mov punOtiempo,1 
+    cicloVelocidad:
+        call pLimpiarConsola
+        mMostrarString MenuSpeed
+        mov ah,01;atrapa la tecla fn
+        int 21
+        mov ah,01  ;atrapa la tecla escogida  
+        int 21
+        cmp al,59t
+        je v0
+        cmp al,"<"
+        je v1
+        cmp al,"="
+        je v2
+        cmp al,">"
+        je v3
+        cmp al,"?"
+        je v4
+        cmp al,"@"
+        je v5
+        cmp al,"A"
+        je v6
+        cmp al,"B"
+        je v7
+        cmp al,"C"
+        je salir
+        mMostrarString opi 
+        call pEspEnter
+        jmp cicloVelocidad
+    ;ENTRE MAS GRANDE SEA EL LA VELOCIDAD ESCOGIDA MAYOR SERA EL DELAY
+    v0:
+        mov velocity,1t 
+        jmp ord 
+    v1:
+        mov velocity,2t 
+        jmp ord
+    v2:
+        mov velocity,3t 
+        jmp ord
+    v3:
+        mov velocity,4t 
+        jmp ord
+    v4:
+        mov velocity,5t 
+        jmp ord
+    v5:
+        mov velocity,6t 
+        jmp ord
+    v6:
+        mov velocity,7t 
+        jmp ord
+    v7:
+        mov velocity,8t 
+        jmp ord
+    ord: 
+        call pOrdenamiento
+    salir:
+    ret 
+pMenuOrd endp 
 
 
 pOrdenamiento proc
@@ -2185,9 +2286,7 @@ pOrdenamiento endp
 pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
-        call pRDatosOrdPuntos
-        mDrawRectangulo 10t,1t,319t,1t,3t
-        call pDrawBarras
+        call pConfigInicOrd
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
@@ -2218,6 +2317,10 @@ pRDatosOrdPuntos proc
     je salir 
     mHallarSimbolo 01
     mHallarSimbolo 01 
+    cmp punOtiempo,1 ;SE ESCOGIO LA METRICA DEL TIEMPO? SI ES ASI MOVERSE UNA SEPARACION MAS
+    jne notiempo;SI NO ES ASI NO MOVERSE MAS DE LA POSICION ACTUAL 
+        mHallarSimbolo 01
+    notiempo: 
     mReadFile eleactual
     mLimpiar NumactualDocS,5t,"$"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
@@ -2252,26 +2355,34 @@ pDrawBarras proc
     mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
 
     cicloBarras: 
-    mDrawBarra x_barra,brEspOy,altoBarra,318t,0t
-    push x_barra;se guarda x 
-    ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
-    mDivisionDw x_barra,8t 
-    mov ax,x_barra
-    mov filaLetreroOrd,al
-    mLimpiar DatOrsb,5t, 0
-    Num2String  datosOrd[si],DatOrsb 
-    mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
-    pop x_barra;se recupera el valor inicial de la barra 
+        mDrawBarra x_barra,brEspOy,altoBarra,318t,0t ;BORRA LOS MOVIMIENTOS ANTERIORES DE CADA LINEA 
+        push x_barra;se guarda x 
+        ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
+        mDivisionDw x_barra,8t 
+        mov ax,x_barra
+        mov filaLetreroOrd,al
+        mLimpiar DatOrsb,5t, 0
+        Num2String  datosOrd[si],DatOrsb 
+        mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
+        pop x_barra;se recupera el valor inicial de la barra 
 
-    movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
-    mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
-    
-    
-    mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,15t ;se grafica la barra 
-    mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
-    inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
-    inc si 
-    inc si 
+        movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
+        ;--------------------------------------PUNTAJE O TIEMPO--------------------------------
+        cmp punOtiempo,0
+        je puntaje
+        jne tiempo 
+        puntaje: 
+        mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
+        jmp graficarBarra
+        tiempo: 
+        mMultiplicacionDw anchoBarra,5t 
+        ;-------------------------------------------------------------------------------------
+        graficarBarra: 
+        mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,15t ;se grafica la barra 
+        mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+        inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
+        inc si 
+        inc si 
     dec cx 
     jne cicloBarras 
     
@@ -2292,18 +2403,29 @@ pBurbleSortDesc proc
         push cx 
         mov cx, CDatos
         mov bx,0
-        compEvery: ;comparar dato con cada dato del arreglo 
+        compEvery: ;comparar dato con cada dato del arreglo  
             mov ax, [datosOrd+bx]
-            cmp ax, [datosOrd+bx+2]
-            ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+            cmp ascDec,0
+            je ascendenteG
+            jne descendenteG 
+            ascendenteG: 
+                cmp ax, [datosOrd+bx+2]
+                ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+                jmp swap 
+            descendenteG: 
+                cmp ax, [datosOrd+bx+2]
+                ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+                jmp swap
+            swap:
             ;swap 
-            mDelaytCenti 5t 
             mov dx,[datosOrd+bx+2]
             mov [datosOrd+bx+2],ax
             mov [datosOrd+bx],dx 
+            mDelaytCenti velocity;VELOCIDAD DEL DELAY 
             ;MOVER INDEX 
             call pMoverIndex
             noswap:
+            mDelaytCenti velocity;VELOCIDAD DEL DELAY 
             add bx,2
             call pDrawBarras
             cmp cx,1t 
@@ -2345,14 +2467,6 @@ pDrawFlechasBurble proc
      
     ret 
 pDrawFlechasBurble endp 
-;borra los movimientos anteriores 
-pLimpiaEspacioOrd proc
-    mov brEspOx,16t 
-    mov brEspOy,1t 
-    mDrawBarra brEspOx,brEspOy,156t,20t,0t 
-    ret 
-pLimpiaEspacioOrd endp 
-
 
 pOrdMando proc 
     push ax 
@@ -2373,6 +2487,61 @@ pOrdMando proc
     pop ax 
     ret 
 pOrdMando endp 
+
+pConfigInicOrd proc
+    ;PARTE DE ARRIBA 
+        mov CDatos,0 
+        call pRDatosOrdPuntos ;OBTIENE TODOS LOS PUNTOS DEL ARCHIVO SCORE 
+        mDrawBarra 10t,1t,2t,319t,3t 
+        call pDrawBarras
+        ;tiempo:
+        mov mingameN,0 ;minutos desde que se inicio el ordenamiento
+        mov seggameN,0 ;segundos desde que se inicio el ordenamiento 
+        mov segGameReporte,0
+        mov cengameN,0 ;centisegundos desde que se inicio el ordenamiento 
+        call pDrawTimeOrd
+
+    ;PARTE DE ABAJO
+        mImprimirLetreros msgTimeOrd,22t,17t,9t
+                   ;fila,columna,ancho,largo,color   (ancho:arriba-abajo,largo: izq-der)
+        mDrawBarra 188t,1t,3t,319t,3t 
+        mImprimirLetreros msgPressHome,24t,10t,15t
+    ret 
+pConfigInicOrd endp 
+;aumenta el tiempo con cada centisegundo 
+pTimeOrd proc 
+    inc cengameN
+    cmp cengameN,100t ;cuando llegue a 100 el contador de centisegundos volvera a 0 y se le sumara 1 a los segundos caso contrario solo sumara uno y se saldra 
+    jne salir 
+
+    mov cengameN,0 ;centisegundos vuelve a 0
+    inc seggameN ;se aumenta a uno los segundos 
+    inc segGameReporte; se aumenta en uno los segundos para el reporte 
+    cmp seggameN,60t;cuando llegue a 60 volvera a 0 los segundos y se le sumara uno a los minutos 
+    jne salir 
+
+    mov seggameN,0t
+    inc mingameN
+    salir: 
+        call pDrawTimeOrd 
+    ret 
+pTimeOrd endp 
+;imprimir el tiempo
+pDrawTimeOrd proc 
+    mLimpiar cengameS,2,0
+    mLimpiar seggameS,2,0
+    mLimpiar mingameS,2,0
+    Num2String cengameN,cengameS
+    Num2String seggameN,seggameS
+    Num2String mingameN,mingameS
+    mImprimirLetreros mingameS,0t,32t,15t
+    mImprimirLetreros dospuntosg,0t,34t,15t
+    mImprimirLetreros seggameS,0t,35t,15t
+    mImprimirLetreros dospuntosg,0t,37t,15t
+    mImprimirLetreros cengameS,0t,38t,15t 
+    ret 
+pDrawTimeOrd endp 
+
 ;LOOP 2
 ;mov cx,nvecesRepetir     
 ;ciclo: 

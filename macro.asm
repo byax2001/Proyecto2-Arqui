@@ -6,7 +6,7 @@ mVariables macro
     ;MENU PRINCIPAL 
     Menu db 0A,"Menu",3A,0A,"F1. Login",0A,"F2. Register",0A,"F9. Exit",0A,"$"
     ; Opcion incorrecta
-    opi db 0A,"**No se escogio una opcion entre las que existen**$"
+    opi db 0A,"**No se escogio una opcion entre las que existen**",0A,"$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
     
@@ -51,6 +51,7 @@ mVariables macro
         v2ax db "$"
         auxt db 0
         contadort dw 0
+        contDb db 0
         StringNumT db 4 dup(24)
     ;COMO AUXILIAR PARA LA MACRO NUM2STRING
     contador db 0
@@ -116,28 +117,41 @@ mVariables macro
     asterisco db "*","$"
 
     ;ORDENAMIENTOS Y SCORE==========================================================================
-        MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F3. Go back",0A,"$"
+        MenuDirOrd db "F1. Ascending",0A,"F2. Descending", 0A,"F9. Go back",0A,"$"
+        MenuMetricaOrd db "F1. Points",0A,"F2. Time", 0A,"F9. Go back",0A,"$"
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
         datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
-        filaLetreroOrd db 0 ;fila donde estara cada numero que representa el valor de cada barra 
-        CDatos dw 0 ;cantidad de datos analizados 
-        anchoBarra dw 0 ;ancho de una barra
-        altoBarra dw 0  ;alto de una barra
-        x_barra dw 0 ;posicion x de la barra
-        y_barra dw 0 ;posicion y  de la barra
-        NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
-        auxDWS db "$"
-        NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
-        DatOrsb db 5 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
-        ascDec  db 0  ; si escogio ascending o descending
-        velocity db 10 ;velocidad para delay 
-        EstOrd db 0  ; inicio y fin del ordenamiento 
-        ;FLECHAS ORDENAMIENTO
-        x_f1 db 0
-        flecha dw 175t
-        brEspOx dw 0
-        brEspOy dw 0
+        ;PARA LETREROS 
+            filaLetreroOrd db 0 ;fila donde estara cada numero que representa el valor de cada barra 
+        ;PARA GRAFICACION DE BARRAS 
+            CDatos dw 0 ;cantidad de datos analizados 
+            anchoBarra dw 0 ;ancho de una barra
+            altoBarra dw 0  ;alto de una barra
+            x_barra dw 0 ;posicion x de la barra
+            y_barra dw 0 ;posicion y  de la barra
+            NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
+            auxDWS db "$"
+            NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
+            DatOrsb db 5 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
+            EstOrd db 0  ; inicio y fin del ordenamiento 
+        ;OPCIONES ESCOGIDAS POR EL USUARIO  
+            tOrdenamiento db 0 ;ordenamiento a usar 
+            ascDec  db 0  ; si escogio ascending o descending
+            velocity db 0 ;velocidad para delay 
+            punOtiempo db 0 ;se escogido score o tiempo como metrica 
+        ;FLECHAS ORDENAMIENTO Y BORRADOR DE MOVIMIENTOS DE BARRAS
+            x_f1 db 0
+            flecha dw 175t
+            brEspOx dw 0
+            brEspOy dw 0
+        ;LETREROS
+            msgBubble db "Bubble"
+            arriba db "^"
+            abajo db "v"
+            msgSpped db "Speed"
+            msgTimeOrd db "Time"
+            msgPressHome db "Press HOME to start"
     ;JUEGO===========================================================================
         NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
@@ -209,9 +223,9 @@ mVariables macro
             estD2 db 0
             estD3 db 0
         ;MINUTOS SEGUNDOS Y CENTISEGUNDOS
-            mingameS db 4 dup (0)
-            seggameS db 4 dup (0)
-            cengameS db 4 dup (0)
+            mingameS db 2 dup (0)
+            seggameS db 2 dup (0)
+            cengameS db 2 dup (0)
             segGameReporteS db 5 dup (0)
             dospuntosg db ":"
             mingameN dw 0
@@ -1034,7 +1048,7 @@ mDelayt macro tiempo
     push dx 
     mov valort1,0
     mov auxt, 0 ;borrar
-    mov contadort,0
+    mov contDb,0
 
     mov ah,2Ch
     int 21h
@@ -1047,10 +1061,10 @@ mDelayt macro tiempo
         jne segundo ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 SEGUNDO
         jmp ciclodelay
         segundo:
-            cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
+            cmp contDb,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             je salir  ;SI, SALIR 
             mov valort1,dh ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
-            inc contadort; SE LE SUMA UNO AL CONTADOR 
+            inc contDb; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
         pop dx
@@ -1065,7 +1079,7 @@ mDelaytCenti macro tiempo
     push cx 
     mov valort1,0
     mov auxt, 0 ;borrar
-    mov contadort,0
+    mov contDb,0
 
     mov ah,2Ch
     int 21h
@@ -1078,10 +1092,10 @@ mDelaytCenti macro tiempo
         jne centiSegundo ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 centisegundo
         jmp ciclodelay
         centiSegundo:
-            cmp contadort,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
+            mComparar contDb,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             je salir  ;SI, SALIR 
             mov valort1,dl ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
-            inc contadort; SE LE SUMA UNO AL CONTADOR 
+            inc contDb; SE LE SUMA UNO AL CONTADOR 
             jmp ciclodelay
     salir: 
         pop cx 
@@ -1333,6 +1347,8 @@ mDrawBarra macro x,y,alto,ancho,color
     push ax 
     push dx
     push cx 
+    movVariablesDw cordx,x
+    movVariablesDw cordy,y 
     ;ancho de x1 a x2
     ;alto de y1 a y2
     mov ax,x
@@ -1342,14 +1358,14 @@ mDrawBarra macro x,y,alto,ancho,color
     push cx 
         mov cx, alto 
         cicloAlto:
-            mDrawPixel x,y,color  
-            inc x 
+            mDrawPixel cordx,cordy,color  
+            inc cordx 
         loop cicloAlto
-        mov x,ax 
+        mov cordx,ax 
     pop cx 
-    inc y 
+    inc cordy 
     loop cicloAncho
-    mov y, dx 
+    mov cordy, dx 
     pop cx
     pop dx 
     pop ax 
