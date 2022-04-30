@@ -122,10 +122,12 @@ mVariables macro
         MenuSpeed db "F1. 0",0A,"F2. 1",0A,"F3. 2",0A,"F4. 3",0A,"F5. 4",0A,"F6. 5",0A,"F7. 6",0A,"F8. 7",0A,"F9. Go back",0A,"$"
         datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
+        nRepeticiones dw 0 ;variable para indicarle al programa cuantas veces repetir un ordenamiento 
         ;PARA LETREROS 
             filaLetreroOrd db 0 ;fila donde estara cada numero que representa el valor de cada barra 
         ;PARA GRAFICACION DE BARRAS 
-            CDatos dw 0 ;cantidad de datos analizados 
+            CDatos dw 0 ;cantidad de datos analizados
+           
             anchoBarra dw 0 ;ancho de una barra
             altoBarra dw 0  ;alto de una barra
             x_barra dw 0 ;posicion x de la barra
@@ -139,6 +141,7 @@ mVariables macro
             tOrdenamiento db 0 ;ordenamiento a usar 
             ascDec  db 0  ; si escogio ascending o descending
             velocity db 0 ;velocidad para delay 
+            velString db 0
             punOtiempo db 0 ;se escogido score o tiempo como metrica 
         ;FLECHAS ORDENAMIENTO Y BORRADOR DE MOVIMIENTOS DE BARRAS
             x_f1 db 0
@@ -149,7 +152,7 @@ mVariables macro
             msgBubble db "Bubble"
             arriba db "^"
             abajo db "v"
-            msgSpped db "Speed"
+            msgSpped db "Speed: "
             msgTimeOrd db "Time"
             msgPressHome db "Press HOME to start"
     ;JUEGO===========================================================================
@@ -654,6 +657,8 @@ Num2String macro numero, stringvar  ;stringvar: variable donde se almacenara el 
     push bx
     push dx 
     push si 
+   
+    mov contador,0
     mov bx,0A
     mov ax, numero
     cNumerador:   ;condicion de numerador
@@ -1049,7 +1054,8 @@ mDelayt macro tiempo
     mov valort1,0
     mov auxt, 0 ;borrar
     mov contDb,0
-
+    cmp tiempo,0 ;si el delay es de 0 salir por que indica que no hay delay por hacer
+    je salir
     mov ah,2Ch
     int 21h
     mov valort1,dh  ;VALOR 1 TOMA UN TIEMPO INICIAL
@@ -1080,7 +1086,8 @@ mDelaytCenti macro tiempo
     mov valort1,0
     mov auxt, 0 ;borrar
     mov contDb,0
-
+    cmp tiempo,0 ;si el delay es de 0 salir por que indica que no hay delay por hacer
+    je salir
     mov ah,2Ch
     int 21h
     mov valort1,dl  ;VALOR 1 TOMA UN TIEMPO INICIAL

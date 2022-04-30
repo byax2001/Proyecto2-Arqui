@@ -2245,28 +2245,28 @@ pMenuOrd  proc
         jmp cicloVelocidad
     ;ENTRE MAS GRANDE SEA EL LA VELOCIDAD ESCOGIDA MAYOR SERA EL DELAY
     v0:
-        mov velocity,1t 
+        mov velocity,0t 
         jmp ord 
     v1:
-        mov velocity,2t 
+        mov velocity,1t 
         jmp ord
     v2:
-        mov velocity,3t 
+        mov velocity,2t 
         jmp ord
     v3:
-        mov velocity,4t 
+        mov velocity,3t 
         jmp ord
     v4:
-        mov velocity,5t 
+        mov velocity,4t 
         jmp ord
     v5:
-        mov velocity,6t 
+        mov velocity,5t 
         jmp ord
     v6:
-        mov velocity,7t 
+        mov velocity,6t 
         jmp ord
     v7:
-        mov velocity,8t 
+        mov velocity,7t 
         jmp ord
     ord: 
         call pOrdenamiento
@@ -2287,17 +2287,17 @@ pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
         call pConfigInicOrd
+        call pOrdMando
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
         int 21
         cmp dl, auxfpsT
         je fps
     mov auxfpsT, dl 
-    
-    call pOrdMando
-    cmp EstOrd,0
+    call pTimeOrd
+    cmp EstOrd,0t
     je sinAccion
-        call pBurbleSortDesc
+        call pBubbleSort
     sinAccion:
     jmp fps 
     ret 
@@ -2340,7 +2340,7 @@ pRDatosOrdPuntos proc
     pop si 
     ret 
 pRDatosOrdPuntos endp 
-
+;GRAFICAR BARRAS 
 pDrawBarras proc 
     push cx 
     push si 
@@ -2350,7 +2350,7 @@ pDrawBarras proc
     mov si,0  ; se inicia si 
     mov brEspOy, 0; para el borrado 
     mov x_barra , 16t ;empezara en el pixel 16t y fila 3 de un string 
-    mov y_barra , 50t ;empezara a graficar cada barra desde aqui
+    mov y_barra , 5t ;empezara a graficar cada barra desde aqui
     mov altoBarra, 140t  ; 140t es el espacio de filas de pixeles libres  para graficar sin contar los rotulos 
     mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
 
@@ -2361,8 +2361,8 @@ pDrawBarras proc
         mDivisionDw x_barra,8t 
         mov ax,x_barra
         mov filaLetreroOrd,al
-        mLimpiar DatOrsb,5t, 0
-        Num2String  datosOrd[si],DatOrsb 
+        mLimpiar DatOrsb,6t,0
+        Num2String datosOrd[si],DatOrsb 
         mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
         pop x_barra;se recupera el valor inicial de la barra 
 
@@ -2392,30 +2392,30 @@ pDrawBarras proc
     ret 
 pDrawBarras endp 
 
-pBurbleSortDesc proc
+;METODO DE ORDENAMIENTO BUBBLE 
+pBubbleSort proc
     push ax
     push dx 
     push cx
     push bx
-    mov cx, CDatos
     mov x_f1,2t 
-    ciclo1:
-        push cx 
+    mCompararDw nRepeticiones,CDatos 
+    je StopOrden
         mov cx, CDatos
+        dec cx 
         mov bx,0
         compEvery: ;comparar dato con cada dato del arreglo  
             mov ax, [datosOrd+bx]
             cmp ascDec,0
             je ascendenteG
-            jne descendenteG 
+            jmp descendenteG 
             ascendenteG: 
                 cmp ax, [datosOrd+bx+2]
                 ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
                 jmp swap 
             descendenteG: 
                 cmp ax, [datosOrd+bx+2]
-                ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
-                jmp swap
+                jb noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
             swap:
             ;swap 
             mov dx,[datosOrd+bx+2]
@@ -2427,24 +2427,23 @@ pBurbleSortDesc proc
             noswap:
             mDelaytCenti velocity;VELOCIDAD DEL DELAY 
             add bx,2
-            call pDrawBarras
-            cmp cx,1t 
-            je finbarras
-            call pDrawFlechasBurble
-            finbarras:
+            call pDrawBarras 
+            call pDrawFlechasBurble 
         dec cx 
         jne compEvery
         mov x_f1,2t
-        pop cx 
-    dec cx 
-    jne ciclo1
-    mov EstOrd,0
+    inc nRepeticiones  
+    jmp salir 
+    StopOrden: 
+        call pDrawBarras 
+        mov EstOrd,0
+    salir: 
     pop bx 
     pop cx 
     pop dx 
     pop ax 
     ret 
-pBurbleSortDesc endp 
+pBubbleSort endp 
 ;mueve los indices 
 pMoverIndex proc
     mov ax,[indexDato+bx]
@@ -2455,32 +2454,20 @@ pMoverIndex proc
 pMoverIndex endp 
 ;pinta las flechas 
 pDrawFlechasBurble proc
-    cmp x_f1,21t
-    jae reset
     mImprimirLetreros flecha,x_f1,0t,15t 
     mIncFilaBar x_f1
     mImprimirLetreros flecha,x_f1,0t,15t
-    jmp salir 
-    reset: 
-        mov x_f1,2t
-    salir: 
-     
     ret 
 pDrawFlechasBurble endp 
 
 pOrdMando proc 
     push ax 
-    mov ah,01 ;existe pulsacion o no?
-    int 16h
-    jz salir ; no hay pulsacion, salir 
     mov ah, 00  ;Espera a que se presione una tecla y la lee
     int 16h
     cmp al,"h"
     je ordenamiento 
     jmp salir 
     ordenamiento:
-        cmp EstOrd,1
-        je salir 
         mov EstOrd,1
     jmp salir 
     salir: 
@@ -2490,17 +2477,20 @@ pOrdMando endp
 
 pConfigInicOrd proc
     ;PARTE DE ARRIBA 
-        mov CDatos,0 
+        call pTitlesIniO ;TITULOS DE LA PRIMERA FILA A MOSTRAR 
+        mov CDatos,0  ;resetea la cantidad de datos 
         call pRDatosOrdPuntos ;OBTIENE TODOS LOS PUNTOS DEL ARCHIVO SCORE 
         mDrawBarra 10t,1t,2t,319t,3t 
         call pDrawBarras
+    ;RESETEO DE VARIABLES 
+        mov nRepeticiones,0
         ;tiempo:
         mov mingameN,0 ;minutos desde que se inicio el ordenamiento
         mov seggameN,0 ;segundos desde que se inicio el ordenamiento 
         mov segGameReporte,0
         mov cengameN,0 ;centisegundos desde que se inicio el ordenamiento 
         call pDrawTimeOrd
-
+        
     ;PARTE DE ABAJO
         mImprimirLetreros msgTimeOrd,22t,17t,9t
                    ;fila,columna,ancho,largo,color   (ancho:arriba-abajo,largo: izq-der)
@@ -2508,6 +2498,31 @@ pConfigInicOrd proc
         mImprimirLetreros msgPressHome,24t,10t,15t
     ret 
 pConfigInicOrd endp 
+;TITULOS DE INICIO DE LA VENTANA DE ORDENAMIENTO 
+pTitlesIniO proc
+    ;ORDENAMIENTO 
+    cmp tOrdenamiento,0 ;burbuja
+    burbuja:
+        mImprimirLetreros msgBubble,0t,0t,15t 
+        jmp finTord
+    otro: 
+    finTord: 
+    cmp ascDec,0
+    jne desc ;si no es ascending saltara a descending 
+    asc:
+        mImprimirLetreros arriba,0t,10t,15t 
+        jmp finAscDesc
+    desc:
+        mImprimirLetreros abajo,0t,10t,15t 
+    finAscDesc: 
+        mImprimirLetreros msgSpped,0t,15t,15t 
+        MovVariables velString,velocity
+        mSumardb velString,30h
+        mImprimirLetreros velString,0t,22t,15t 
+    ret 
+pTitlesIniO endp 
+
+
 ;aumenta el tiempo con cada centisegundo 
 pTimeOrd proc 
     inc cengameN
