@@ -568,22 +568,36 @@ pResetFlagsE endp
 ;cx:0 inicio
 ;cx:2 final de archivo
 pInidoc proc
+    push ax 
+    push bx 
+    push cx 
+    push dx 
     mov al,0
     mov bx,handler
     mov cx,0
     mov dx,0
     mov ah,42h
     int 21 
+    pop dx 
+    pop cx 
+    pop bx 
+    pop ax 
     ret
 pInidoc endp 
 
 pFinaldoc proc
+    push ax 
+    push bx
+    push cx 
     mov al,2
     mov bx,handler
     mov cx,-1
     mov dx,-1
     mov ah,42h
     int 21 
+    pop cx 
+    pop bx 
+    pop ax 
     ret
 pFinaldoc endp 
 
@@ -2169,7 +2183,7 @@ pCargarMatrizVideo proc
 pCargarMatrizVideo endp 
 
 
-;ORDENAMIENTOS#########################################################################################
+;===============================================ORDENAMIENTOS===================================================
 ;rellenar array de datos con los datos de puntaje del juego 
 
 pMenuOrd  proc   
@@ -2279,10 +2293,97 @@ pOrdenamiento proc
     call pMemVideoMode
     call pVideoMode 
     call pMoveOrdenamiento
-
+    call pReporteOrden
     call pTextMode
     ret 
 pOrdenamiento endp 
+
+;REPORTE FINAL LUEGO DEL ORDENAMIENTO 
+pReporteOrden proc 
+    push ax 
+    push bx 
+    push cx 
+    push si 
+    mov auxDw,0 ;para el rank 
+    mCrearFile RepOrdName
+    mWriteToFile sepRepOrden
+    mWriteToFile mensajeI
+    mWriteToFile sepRepOrden
+    mWriteToFile msgType
+        cmp tOrdenamiento,0 ;burbuja
+        je burbuja
+        jmp burbuja;CAMBIAR ESTO CUANDO SE AGREGUEN OTROS ORDENAMIENTOS 
+        burbuja:
+            mWriteToFile msgBubble 
+            jmp finTord
+        otro: 
+        finTord: 
+    mWriteToFile msgEspacios
+    mWriteToFile msgSentido
+        cmp ascDec,0
+        jne desc ;si no es ascending saltara a descending 
+        asc:
+            mWriteToFile msgAscen
+            jmp finAscDesc
+        desc:
+            mWriteToFile msgDescen
+        finAscDesc: 
+    mWriteToFile msgEnter 
+    call pFechaTime
+    mWriteToFile msgFecha
+        mWriteToFile dia
+        mWriteToFile slash
+        mWriteToFile mes
+        mWriteToFile slash
+        mWriteToFile anio
+    mWriteToFile msgEspacios
+    mWriteToFile msgHora
+        mWriteToFile hora
+        mWriteToFile dospuntosg
+        mWriteToFile min
+        mWriteToFile dospuntosg
+        mWriteToFile segun
+    mWriteToFile msgEnter
+    mWriteToFile sepRepOrden
+    mWriteToFile sepRepOrden
+        mWriteToFile msgTitleRep
+    mWriteToFile sepRepOrden
+    mWriteToFile espacioL
+    call pCloseFile
+    ;APARTADO PARA EL TOP 10 DE USUARIOS 
+    mov bx,0 
+    mov ax, 0
+    mov cx,CDatos
+    cicloTop10:
+        mOpenFile2Write scoresb
+            mMoverAFila [indexDato+bx]
+            mCapturarFilaDoc filaScore
+        call pCloseFile
+        mOpenFile2Write RepOrdName
+            call pFinaldoc
+            ;rank 
+            mov auxDw,ax 
+            inc auxDw
+            mLimpiar auxString,4t,0
+            Num2String auxDw,auxString
+            mWriteToFile auxString
+            mWriteToFile filaScore
+            mWriteToFile enterg 
+        call pCloseFile 
+        add bx,2
+        inc ax 
+        cmp ax,10t 
+        je finCiclo10
+    dec cx 
+    jne cicloTop10
+    finCiclo10: 
+    call pCloseFile
+    pop si 
+    pop cx 
+    pop bx 
+    pop ax 
+    ret 
+pReporteOrden endp 
 
 ;PRESIONAR TECLA HOME 
 pOrdMando proc 
@@ -2432,7 +2533,6 @@ pDrawBarras proc
     pop cx 
     ret 
 pDrawBarras endp 
-
 ;METODO DE ORDENAMIENTO BUBBLE 
 pBubbleSort proc
     push ax
@@ -2641,6 +2741,8 @@ pResetVarOrd endp
 pTitlesIniO proc
     ;ORDENAMIENTO 
     cmp tOrdenamiento,0 ;burbuja
+    je burbuja
+    jmp burbuja;CAMBIAR ESTO CUANDO SE AGREGUEN OTROS ORDENAMIENTOS 
     burbuja:
         mImprimirLetreros msgBubble,0t,0t,15t 
         jmp finTord
@@ -2696,6 +2798,40 @@ pDrawTimeOrd proc
     ret 
 pDrawTimeOrd endp 
 
+;PROC para rellenar las variables de tiempo
+pFechaTime proc 
+    push bx 
+    push cx 
+    xor bx,bx
+    ;dia,mes,anio,hora,min,segun
+    mov ah,2Ah   
+    int 21h 
+    mov year,cx  ;valor numerico de año
+    mov bl, dh   ;valor numerico de mes
+    mov month,bx  
+    mov bl, dl   ;valor numerico de dia
+    mov day,bx   
+
+    mov ah,2Ch
+    int 21h
+    mov bl, ch  ;valor numerico de horas
+    mov hours,bx 
+    mov bl, cl   ;valor numerico de minutos
+    mov minutes,bx 
+    mov bl, dh   ;valor numerico de segundos
+    mov seconds,bx 
+    
+    ;CONVERSION DE NUMEROS A VARIABLES
+    Num2String year, anio
+    Num2String month, mes
+    Num2String day, dia
+    Num2String hours, hora
+    Num2String minutes,min
+    Num2String seconds,segun 
+    pop cx 
+    pop bx 
+    ret 
+pFechaTime endp 
 ;LOOP 2
 ;mov cx,nvecesRepetir     
 ;ciclo: 

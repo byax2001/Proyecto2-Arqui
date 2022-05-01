@@ -1,6 +1,7 @@
 mVariables macro
     ;Mensaje de Bienvenida
-    mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A,"$";0A ES ENTER
+    mensajeI db 0A,"Universidad de San Carlos de Guatemala",0A,"Facultad de Ingenieria",0A,"Escuela de Ciencias y Sistemas",0A,"Arquitectura de Compiladores y Ensambladores",0A,"Seccion B",0A,"Brandon Oswaldo Yax Campos",0A,"201800534",0A;0A ES ENTER
+    auxMi db "$"
     ;enter para avanzar
     espEnter db 0A,"(Presiona enter para poder continuar): $"
     ;MENU PRINCIPAL 
@@ -135,7 +136,7 @@ mVariables macro
             x_barra dw 0 ;posicion x de la barra
             y_barra dw 0 ;posicion y  de la barra
             NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
-            auxDWS db "$"
+            auxNDS db "$"
             NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
             DatOrsb db 6 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
             EstOrd db 0  ; inicio y fin del ordenamiento 
@@ -241,30 +242,31 @@ mVariables macro
             cengameN dw 0
             segGameReporte dw 0
         ;PAUSA Y EXIT GAME 
-            letGover db "Game over!"
-            letEsp db "(Press Esp to Exit)"
-            letPause db "Pause"
-            letRen db "Continue (Esp)"
-            letExit db "Exit (Esc)"
-            letN1 db "Level 1"
-            letN2 db "Level 2"
-            letN3 db "Level 3"
-            letclear db 7 dup (" ")
+            letGover    db "Game over!"
+            letEsp      db "(Press Esp to Exit)"
+            letPause    db "Pause"
+            letRen      db "Continue (Esp)"
+            letExit     db "Exit (Esc)"
+            letN1       db "Level 1"
+            letN2       db "Level 2"
+            letN3       db "Level 3"
+            letclear    db 7 dup (" ")
             matrizgraph db "matriz.vi",0
-            eleactualG db 0
-            exitGame db 0
-            auxDw dw 0
+            eleactualG  db 0
+            exitGame    db 0
+            auxDw       dw 0
+            auxString   db 4 dup (0)
     ;FECHA ====================================================================================
-        dia db 4 dup (0)
-        mes db 4 dup (0)
-        anio db 4 dup (0)
-        hora db 4 dup (0)
-        min db 4 dup (0)
-        segun db 4 dup (0)
-        year dw 0
-        month dw 0
-        day  dw 0
-        hours dw 0
+        dia     db 4 dup (0)
+        mes     db 4 dup (0)
+        anio    db 4 dup (0)
+        hora    db 4 dup (0)
+        min     db 4 dup (0)
+        segun   db 4 dup (0)
+        year    dw 0
+        month   dw 0
+        day     dw 0
+        hours   dw 0
         minutes dw 0
         seconds dw 0
     ;MANEJO DE UN ARCHIVO EXTERNO ==============================================================
@@ -290,6 +292,20 @@ mVariables macro
         RepOrdName  db  "LASTSORT.REP",0
         auxarchivo  db 0
         aux1 db "$"
+    ;REPORTE DE ORDENAMIENTO ======================================================================
+        sepRepOrden     db  "-------------------------------------------------------",0A
+        filaScore       db  25 dup (0)
+        auxFscore       db  "$"
+        msgEnter        db  0A 
+        msgType         db  "Tipo: "
+        msgSentido      db  "Sentido: "
+        msgFecha        db  "Fecha: "
+        msgHora         db  "Hora: "
+        slash           db  2Fh
+        msgAscen        db  "Ascendente"
+        msgDescen       db  "Descendente"
+        msgTitleRep     db  "Rank   Player           N       Points  Time",0A
+        msgEspacios     db  "            "
     ;CONTADOR DELAY
     cdelay db 0
     ;PARA LA COMPARACION DE CADENAS==================================================
@@ -908,37 +924,6 @@ MovVariablesDw macro var1,var2
     pop dx 
 endm
 
-;macro para rellenar las variables de tiempo
-mFechaTime macro
-    push bx 
-    xor bx,bx
-    ;dia,mes,anio,hora,min,segun
-    mov ah,2Ah   
-    int 21h 
-    mov year,cx  ;valor numerico de año
-    mov bl, dh   ;valor numerico de mes
-    mov month,bx  
-    mov bl, dl   ;valor numerico de dia
-    mov day,bx   
-
-    mov ah,2Ch
-    int 21h
-    mov bl, ch  ;valor numerico de horas
-    mov hours,bx 
-    mov bl, cl   ;valor numerico de minutos
-    mov minutes,bx 
-    mov bl, dh   ;valor numerico de segundos
-    mov seconds,bx 
-    
-    ;CONVERSION DE NUMEROS A VARIABLES
-    Num2String year, anio
-    Num2String month, mes
-    Num2String day, dia
-    Num2String hours, hora
-    Num2String minutes,min
-    Num2String seconds,segun 
-    pop bx 
-endm
 ;ARCHIVOS 
 mCrearFile macro nameFile
     local falloCT,salidaCT,salir 
@@ -966,11 +951,13 @@ mWriteToFile macro palabra
     push ax 
     push bx 
     push cx 
+    push dx 
     mov bx, handler
     mov cx, LENGTHOF palabra 
     mov dx, offset palabra
     mov ah,40
     int 21
+    pop dx 
     pop cx 
     pop bx 
     pop ax 
@@ -1022,6 +1009,8 @@ endm
 
 mOpenFile2Write macro fileName
     local errorOpen,Opencorrecto,salidaOpen
+    push ax
+    push dx 
     mov estadocarga,0
     mov al,2
     lea dx, fileName
@@ -1039,6 +1028,8 @@ mOpenFile2Write macro fileName
         mov estadocarga,1
         jmp salidaOpen
     salidaOpen:
+    pop dx 
+    pop ax 
 endm
 mHallarSimbolo macro simbolo 
     local buscar,salir 
@@ -1421,3 +1412,39 @@ mIncFilaBar macro fila
     cmp CDatos,2t
     salir: 
 endm 
+;MUEVE EL CURSOR DE LA POSICION ACTUAL DEL DOCUMENTO LEIDO A LA FILA DESEADA (empieza desde 0)
+mMoverAFila macro fila 
+    local ciclo,salir 
+    call pInidoc ;POSICIONA EL CURSOR EN EL INICIO DEL DOCUMENTO LEIDO 
+    push cx
+    cmp fila,0
+    je salir 
+    mov cx,fila 
+    ciclo: 
+        mHallarSimbolo 0A
+    loop ciclo
+    salir:     
+    pop cx
+endm 
+;CAPTURA LA FILA ACTUAL DONDE SE ENCUENTRA EL CURSOR EN EL DOCUMENTO LEIDO EN UNA VARIABLE
+mCapturarFilaDoc macro varAlmacenadora 
+    local salir,capturarString,noseparador,separador
+    push si  
+    mov si,0
+        mReadFile eleactual
+    capturarString:
+        cmp eleactual,01 ;separador
+        jne noseparador
+        MovVariables varAlmacenadora[si],09h ;tabulacion
+        jmp separador
+        noseparador: 
+        MovVariables varAlmacenadora[si],eleActual
+        separador:
+        inc si
+        mReadFile eleActual
+        cmp eleActual,0A ;es igual a enter tipo1
+        je salir  ; si, terminar de capturar
+        jmp capturarString
+    salir:
+    pop si 
+endm
