@@ -2279,14 +2279,36 @@ pOrdenamiento proc
     call pMemVideoMode
     call pVideoMode 
     call pMoveOrdenamiento
+
     call pTextMode
     ret 
 pOrdenamiento endp 
 
+;PRESIONAR TECLA HOME 
+pOrdMando proc 
+    push ax 
+    ciclo: 
+    mov ah, 00  ;Espera a que se presione una tecla y la lee
+    int 16h
+    cmp al,"G"
+    je ordenamiento 
+    cmp al,"7"
+    je ordenamiento
+    jmp ciclo
+    ordenamiento:
+        mov EstOrd,1
+        call pResetVarOrd
+    jmp salir 
+    salir: 
+    pop ax 
+    ret 
+pOrdMando endp
+;ENCARGADO DEL MOVIMIENTO DE LOS ORDENAMIENTOS
 pMoveOrdenamiento proc
     mov auxfpsT,0
     reset: 
         call pConfigInicOrd
+        call pDrawBarras 
         call pOrdMando
     fps: ;ciclo que provoca un movimiento cada centisegundo 
         mov ah,2Ch
@@ -2297,12 +2319,27 @@ pMoveOrdenamiento proc
     call pTimeOrd
     cmp EstOrd,0t
     je sinAccion
-        call pBubbleSort
+        mDrawBarra 17t,0t,170t,8t,0t;borrar flechas de pasos anteriores 
+        call pBubbleSort  
+        cmp EstOrd,0t
+        je exit
     sinAccion:
     jmp fps 
+    exit: 
+        mImprimirLetreros msgPressEnd,24t,7t,15t
+        ciclo: ;SALE HASTA QUE SE PRESIONE "FIN"
+        mov ah, 00  ;Espera a que se presione una tecla y la lee
+        int 16h
+        cmp al,"O"
+        je exit2 
+        cmp al,"1"
+        je exit2
+        jmp ciclo
+        exit2:
+
     ret 
 pMoveOrdenamiento endp 
-
+;RECOLECTOR DE DATOS DE BLOC DE NOTAS 
 pRDatosOrdPuntos proc
     push si 
     mov si, 0
@@ -2345,12 +2382,13 @@ pDrawBarras proc
     push cx 
     push si 
     push ax 
-
+    cmp CDatos,0
+    je salir
     mov cx, CDatos ;se repetira el ciclo la n cantidad de datos tomados 
     mov si,0  ; se inicia si 
     mov brEspOy, 0; para el borrado 
     mov x_barra , 16t ;empezara en el pixel 16t y fila 3 de un string 
-    mov y_barra , 5t ;empezara a graficar cada barra desde aqui
+    mov y_barra , 50t ;empezara a graficar cada barra desde aqui
     mov altoBarra, 140t  ; 140t es el espacio de filas de pixeles libres  para graficar sin contar los rotulos 
     mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
 
@@ -2375,7 +2413,10 @@ pDrawBarras proc
         mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
         jmp graficarBarra
         tiempo: 
-        mMultiplicacionDw anchoBarra,5t 
+        cmp anchoBarra,269t
+        jbe NoSobrepasaAncho;<= 
+        mov anchoBarra,267t 
+        NoSobrepasaAncho: 
         ;-------------------------------------------------------------------------------------
         graficarBarra: 
         mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,15t ;se grafica la barra 
@@ -2385,7 +2426,7 @@ pDrawBarras proc
         inc si 
     dec cx 
     jne cicloBarras 
-    
+    salir:
     pop ax 
     pop si 
     pop cx 
@@ -2398,42 +2439,47 @@ pBubbleSort proc
     push dx 
     push cx
     push bx
-    mov x_f1,2t 
+    cmp CDatos,1 
+    jbe StopOrden
     mCompararDw nRepeticiones,CDatos 
     je StopOrden
-        mov cx, CDatos
-        dec cx 
-        mov bx,0
-        compEvery: ;comparar dato con cada dato del arreglo  
+        mCompararDw nRepeticiones2,CDatos
+        je StopCiclo
+            mov bx,indexCiclo 
             mov ax, [datosOrd+bx]
             cmp ascDec,0
             je ascendenteG
             jmp descendenteG 
             ascendenteG: 
                 cmp ax, [datosOrd+bx+2]
-                ja noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+                jae noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
                 jmp swap 
             descendenteG: 
                 cmp ax, [datosOrd+bx+2]
-                jb noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
+                jbe noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primero
             swap:
             ;swap 
             mov dx,[datosOrd+bx+2]
             mov [datosOrd+bx+2],ax
             mov [datosOrd+bx],dx 
             mDelaytCenti velocity;VELOCIDAD DEL DELAY 
+            call pInterCambioB
             ;MOVER INDEX 
             call pMoverIndex
             noswap:
             mDelaytCenti velocity;VELOCIDAD DEL DELAY 
-            add bx,2
-            call pDrawBarras 
-            call pDrawFlechasBurble 
-        dec cx 
-        jne compEvery
-        mov x_f1,2t
-    inc nRepeticiones  
+            call pDrawBarraBubble
+                mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+                inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
+                inc indexCiclo
+                inc indexCiclo
+            call pDrawBarraBubble
+        inc nRepeticiones2 
     jmp salir 
+    StopCiclo:
+        call pResetVarOrd
+        inc nRepeticiones  
+        jmp salir 
     StopOrden: 
         call pDrawBarras 
         mov EstOrd,0
@@ -2444,7 +2490,92 @@ pBubbleSort proc
     pop ax 
     ret 
 pBubbleSort endp 
-;mueve los indices 
+;DIBUJAR UNA UNICA BARRA 
+pDrawBarraBubble proc  
+        push si 
+        mov si,indexCiclo
+        
+        mDrawBarra x_barra,brEspOy,altoBarra,318t,0t ;BORRA LOS MOVIMIENTOS ANTERIORES DE CADA LINEA 
+        push x_barra;se guarda x 
+        ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
+        mDivisionDw x_barra,8t 
+        mov ax,x_barra
+        mov filaLetreroOrd,al
+        mLimpiar DatOrsb,6t,0
+        Num2String datosOrd[si],DatOrsb 
+        
+        mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
+        pop x_barra;se recupera el valor inicial de la barra 
+        movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
+        ;--------------------------------------PUNTAJE O TIEMPO--------------------------------
+        cmp punOtiempo,0
+        je puntaje
+        jne tiempo 
+        puntaje: 
+        mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
+        jmp graficarBarra
+        tiempo: 
+        cmp anchoBarra,269t
+        jbe NoSobrepasaAncho;<= 
+        mov anchoBarra,267t 
+        NoSobrepasaAncho: 
+        ;-------------------------------------------------------------------------------------
+        graficarBarra: 
+        mImprimirLetreros flecha,filaLetreroOrd,0t,15t  ;FLECHA 
+        mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,15t ;se grafica la barra 
+        pop si 
+    ret 
+pDrawBarraBubble endp  
+;DIBUJAR BARRAS ROJAS 
+pDrawBarraBubbleRed proc  
+        push si 
+        mov si,indexCiclo
+        mDrawBarra x_barra,brEspOy,altoBarra,318t,0t ;BORRA LOS MOVIMIENTOS ANTERIORES DE CADA LINEA 
+        push x_barra;se guarda x 
+        ;SE DIVIDE LA POSICION ACTUAL ENTRE 8 PARA IMPRIMIR EL STRING DEL VALOR DE LA BARRA 
+        mDivisionDw x_barra,8t 
+        mov ax,x_barra
+        mov filaLetreroOrd,al
+        mLimpiar DatOrsb,6t,0
+        Num2String datosOrd[si],DatOrsb 
+        mImprimirLetreros DatOrsb,filaLetreroOrd,1t,15t 
+        pop x_barra;se recupera el valor inicial de la barra 
+        movVariablesDw anchoBarra, datosOrd[si] ;se obtiene el ancho de la barra tomando el valor actual del  array de datos 
+        ;--------------------------------------PUNTAJE O TIEMPO--------------------------------
+        cmp punOtiempo,0
+        je puntaje
+        jne tiempo 
+        puntaje: 
+        mDivisionDw anchoBarra,65t  ;se dividira por esto para que la barra se reduzca un 80 veces su valor en decimal y pueda caber en la pantalla
+        jmp graficarBarra
+        tiempo: 
+        cmp anchoBarra,269t
+        jbe NoSobrepasaAncho;<= 
+        mov anchoBarra,267t 
+        NoSobrepasaAncho:  
+        ;-------------------------------------------------------------------------------------
+        graficarBarra: 
+        mDrawBarra x_barra,y_barra,altoBarra,anchoBarra,39t ;se grafica la barra  
+        mImprimirLetreros flecha,filaLetreroOrd,0t,15t  ;FLECHA 
+        pop si 
+    ret 
+pDrawBarraBubbleRed endp 
+;EN EL CASO SE PRODUZCA UN CAMBIO DE POSICIONES 
+pInterCambioB proc
+    mDelaytCenti velocity
+    call pDrawBarraBubbleRed
+        mIncVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+        inc x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
+        inc indexCiclo
+        inc indexCiclo
+    call pDrawBarraBubbleRed
+        mDecVar x_barra, altoBarra ;se desplaza hacia abajo la barra n pixeles iguales al tamaño de cada barra
+        dec x_barra ;se le suma uno para dejar un espacio vacio, EN ESTE MOMENTO YA SE ENCUENTRA EN LA FILA ACTUAL INDICADA SE DIVIDE POR 8  
+        dec indexCiclo
+        dec indexCiclo
+    ret 
+pInterCambioB endp 
+;mueve los indices en orden para saber que lineas van primero en el doc de sores y el lastsort
 pMoverIndex proc
     mov ax,[indexDato+bx]
     mov dx,[indexDato+bx+2]
@@ -2460,21 +2591,8 @@ pDrawFlechasBurble proc
     ret 
 pDrawFlechasBurble endp 
 
-pOrdMando proc 
-    push ax 
-    mov ah, 00  ;Espera a que se presione una tecla y la lee
-    int 16h
-    cmp al,"h"
-    je ordenamiento 
-    jmp salir 
-    ordenamiento:
-        mov EstOrd,1
-    jmp salir 
-    salir: 
-    pop ax 
-    ret 
-pOrdMando endp 
 
+;CONFIGURACIONES 
 pConfigInicOrd proc
     ;PARTE DE ARRIBA 
         call pTitlesIniO ;TITULOS DE LA PRIMERA FILA A MOSTRAR 
@@ -2484,6 +2602,8 @@ pConfigInicOrd proc
         call pDrawBarras
     ;RESETEO DE VARIABLES 
         mov nRepeticiones,0
+        call pResetVarOrd
+        mDivisionDw altoBarra,CDatos  ;se divide entre la cantidad de datos 
         ;tiempo:
         mov mingameN,0 ;minutos desde que se inicio el ordenamiento
         mov seggameN,0 ;segundos desde que se inicio el ordenamiento 
@@ -2491,13 +2611,32 @@ pConfigInicOrd proc
         mov cengameN,0 ;centisegundos desde que se inicio el ordenamiento 
         call pDrawTimeOrd
         
-    ;PARTE DE ABAJO
-        mImprimirLetreros msgTimeOrd,22t,17t,9t
+    ;PARTE DE ABAJO 
+        cmp punOtiempo,0 ;SE ESCOGIO PUNTEO?
+        jne nopunteo ; NO ENTONCES PINTAR EL MENSAJE DE TIEMPO
+        mImprimirLetreros msgPointOrd,22t,17t,9t ;SI ESCRIBIR EL MENSAJE DE PUNTEO 
+        jmp fMtitle ;SALIR DE IMPRIMIR NOMBRES DE METRICA ESCOGIDA 
+        nopunteo:
+        mImprimirLetreros msgTimeOrd,22t,17t,9t ;SE IMPRIME EL MENSAJE DE TIEMPO
+        fMtitle: 
                    ;fila,columna,ancho,largo,color   (ancho:arriba-abajo,largo: izq-der)
         mDrawBarra 188t,1t,3t,319t,3t 
-        mImprimirLetreros msgPressHome,24t,10t,15t
+        mImprimirLetreros msgPressHome,24t,7t,15t
     ret 
 pConfigInicOrd endp 
+
+;AUX PARA RESETEAR VARIABLES 
+pResetVarOrd proc 
+    mov filaLetreroOrd,2t
+    mov nRepeticiones2,1 ; para que termine una posiicon antes del ultimo dato 
+    mov brEspOy, 0; para el borrado 
+    mov x_barra , 16t ;empezara en el pixel 16t y fila 3 de un string 
+    mov y_barra , 50t ;empezara a graficar cada barra desde aqui
+    mov indexCiclo,0
+    ret 
+pResetVarOrd endp 
+
+
 ;TITULOS DE INICIO DE LA VENTANA DE ORDENAMIENTO 
 pTitlesIniO proc
     ;ORDENAMIENTO 

@@ -123,11 +123,13 @@ mVariables macro
         datosOrd dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         indexDato dw 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"$"
         nRepeticiones dw 0 ;variable para indicarle al programa cuantas veces repetir un ordenamiento 
+        
+        indexCiclo dw 0
+        nRepeticiones2 dw 0 ;variable para indicarle al programa cuantas veces repetir un ordenamiento 
         ;PARA LETREROS 
             filaLetreroOrd db 0 ;fila donde estara cada numero que representa el valor de cada barra 
         ;PARA GRAFICACION DE BARRAS 
             CDatos dw 0 ;cantidad de datos analizados
-           
             anchoBarra dw 0 ;ancho de una barra
             altoBarra dw 0  ;alto de una barra
             x_barra dw 0 ;posicion x de la barra
@@ -135,7 +137,7 @@ mVariables macro
             NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
             auxDWS db "$"
             NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
-            DatOrsb db 5 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
+            DatOrsb db 6 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
             EstOrd db 0  ; inicio y fin del ordenamiento 
         ;OPCIONES ESCOGIDAS POR EL USUARIO  
             tOrdenamiento db 0 ;ordenamiento a usar 
@@ -145,16 +147,19 @@ mVariables macro
             punOtiempo db 0 ;se escogido score o tiempo como metrica 
         ;FLECHAS ORDENAMIENTO Y BORRADOR DE MOVIMIENTOS DE BARRAS
             x_f1 db 0
-            flecha dw 175t
+            flecha dw ">"
             brEspOx dw 0
             brEspOy dw 0
         ;LETREROS
-            msgBubble db "Bubble"
-            arriba db "^"
-            abajo db "v"
-            msgSpped db "Speed: "
-            msgTimeOrd db "Time"
-            msgPressHome db "Press HOME to start"
+            msgBubble       db  "Bubble"
+            arriba          db  "^"
+            abajo           db  "v"
+            msgSpped        db  "Speed: "
+            msgTimeOrd      db  "Time"
+            msgPointOrd     db  "Points"
+            msgPressHome    db  "Press HOME(inicio) to start"
+            msgPressEnd     db  "Press END(fin) to print Rep"
+
     ;JUEGO===========================================================================
         NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
@@ -280,9 +285,10 @@ mVariables macro
         idEncontrado db 0 ;SE ENCONTRO LA PALABRA EN ESPECIAL QUE SE REQUERIA?
     
     ;APARTADO PARA LOS ARCHIVOS QUE FUNCIONARAN COMO BASE DE DATOS==================================
-        usersb db "users.gal",0
-        scoresb db "scores.gal",0
-        auxarchivo db 0
+        usersb      db  "users.gal",0
+        scoresb     db  "scores.gal",0
+        RepOrdName  db  "LASTSORT.REP",0
+        auxarchivo  db 0
         aux1 db "$"
     ;CONTADOR DELAY
     cdelay db 0
@@ -1086,8 +1092,6 @@ mDelaytCenti macro tiempo
     mov valort1,0
     mov auxt, 0 ;borrar
     mov contDb,0
-    cmp tiempo,0 ;si el delay es de 0 salir por que indica que no hay delay por hacer
-    je salir
     mov ah,2Ch
     int 21h
     mov valort1,dl  ;VALOR 1 TOMA UN TIEMPO INICIAL
@@ -1099,6 +1103,7 @@ mDelaytCenti macro tiempo
         jne centiSegundo ;SI ESE ES EL CASO PASA A UN APARTADO DE CUANDO PASO 1 centisegundo
         jmp ciclodelay
         centiSegundo:
+            call pTimeOrd ;SI SE QUIERE USAR ESTA MACRO PARA CUALQUIER OTRA COSA, BORRAR ESTA LINEA 
             mComparar contDb,tiempo ;CONTADOR ES IGUAL A EL TIEMPO REQUERIDO?
             je salir  ;SI, SALIR 
             mov valort1,dl ;si no es asi, mover el tiempo actual a la variable tiempo y repetir ciclo
@@ -1350,12 +1355,21 @@ mCapturarStringDoc macro variableAlmacenadora
 endm
 
 mDrawBarra macro x,y,alto,ancho,color 
-    local cicloAncho,cicloAlto
+    local cicloAncho,cicloAlto,no0x,no0y
     push ax 
     push dx
     push cx 
+    
     movVariablesDw cordx,x
     movVariablesDw cordy,y 
+        cmp cordx,0
+        jne no0x
+        mov cordx,1 
+        no0x:
+        cmp cordy,0
+        jne no0y
+        mov cordy,1 
+        no0y:
     ;ancho de x1 a x2
     ;alto de y1 a y2
     mov ax,x
