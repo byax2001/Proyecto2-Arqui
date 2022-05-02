@@ -135,7 +135,7 @@ mVariables macro
             altoBarra dw 0  ;alto de una barra
             x_barra dw 0 ;posicion x de la barra
             y_barra dw 0 ;posicion y  de la barra
-            NumactualDocS db 5 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
+            NumactualDocS db 6 dup ("$") ;string de un numero actual atrapado en el doc externo de scores  
             auxNDS db "$"
             NumactualDoc dw 0 ;como almacenador del valor decimal del numero string atrapado 
             DatOrsb db 6 dup(0) ; contendra el valor limpio de cada barra  a la hora de graficar y que esta a la izquierda de estas 
@@ -654,12 +654,14 @@ endm
 String2Num macro stringToRead,whereToStore,simbol2stop 
     local readStringValue
     push ax 
+    push cx 
     push dx 
     push bx 
     push si 
     xor dx,dx ;limpia dx y la vuelve 0
     mov ax,dx ;ax = 0
     mov si,dx ;si = 0
+    mov cx,dx 
     mov bx, 0A ;bx=10
     ;mov si, offset stringtoRead
     readStringValue:
@@ -673,7 +675,8 @@ String2Num macro stringToRead,whereToStore,simbol2stop
     mov whereToStore,ax 
     pop si 
     pop bx 
-    pop dx 
+    pop dx
+    pop cx  
     pop ax 
 endm 
 
@@ -783,14 +786,15 @@ mLimpiar macro lista,numero,signo
 endm
 ;MUEVE EL CONTENIDO DE UNA VARIABLE A OTRA 
 MovVariables macro var1,var2
-    mov dl,0
+    push dx 
     mov dl,var2
     mov var1, dl ; SE INGRESA A LA NUEVA POSICION EL SIMBOLO ACTUAL
-    mov dl,0
+    pop dx 
 endm
 ;COMPARAR STRINGS 
 mCompararStrings macro var1, var2
     local salir,Iguales,noIguales,comparar,pfvar1,pfvar2
+    push si 
     mov cadIguales,0
     mov si,0
     comparar:   
@@ -813,6 +817,7 @@ mCompararStrings macro var1, var2
         mov cadIguales,0
         jmp salir 
     salir: 
+    pop si 
 endm 
 ;COMPARA VARIABLES
 mComparar macro var1,var2
@@ -895,9 +900,9 @@ mDivisionDw macro var1,var2
     push cx 
     push dx 
     xor ax,ax
-    xor bx, bx  
-    xor cx,cx 
-    xor dx,dx 
+    mov bx,ax  
+    mov cx,ax 
+    mov dx,ax 
     mov ax, var1
     mov bx, var2
     div bx
@@ -987,6 +992,8 @@ endm
 ;ARCHIVO
 mOpenFile macro fileName
     local errorOpen,Opencorrecto,salidaOpen
+    push ax 
+    push dx 
     mov estadocarga,0
     mov al,0
     lea dx, fileName
@@ -1010,6 +1017,8 @@ mOpenFile macro fileName
         int 21 
         jmp salidaOpen
     salidaOpen:
+    pop dx 
+    pop ax 
 endm
 
 mOpenFile2Write macro fileName
@@ -1039,11 +1048,11 @@ endm
 mHallarSimbolo macro simbolo 
     local buscar,salir 
     buscar:
-    mReadFile eleActual 
-    cmp posLectura,0  ;"LLEGO AL FINAL DEL DOCUMENTO?"
-    je salir; si llego, salir del metodo sino seguir comparando 
-    mComparar eleActual,simbolo ;buscando el simbolo buscado, si se hallo ya no se manda al ciclo buscar y se sale
-    jne buscar
+        mReadFile eleActual 
+        cmp posLectura,0  ;"LLEGO AL FINAL DEL DOCUMENTO?"
+        je salir; si llego, salir del metodo sino seguir comparando 
+        mComparar eleActual,simbolo ;buscando el simbolo buscado, si se hallo ya no se manda al ciclo buscar y se sale
+        jne buscar
     salir:
 endm 
 

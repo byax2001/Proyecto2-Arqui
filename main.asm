@@ -15,17 +15,16 @@ start:
 
 pFlujoProyecto2 proc 
     call pAjustarMemoria
-        ;call pBaseDatos
-        ;call pLimpiarConsola
-        ;mMostrarString mensajeI
+        ;call pBaseDatos ;comentar esto si no se quiere borrar la base de datos 
+        call pLimpiarConsola
+        ;call pShowMytop10
+        mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
-            ;call pEspEnter
+            call pEspEnter
         ;---------------------------------------------------
-        ;call pLimpiarConsola
-        ;call pMenuPrincipal
+        call pLimpiarConsola
+        call pMenuPrincipal
     ;call pMenuOrd
-    ;call pShowtop10
-    call pShowMytop10
     call pRetControl
     ret 
 pFlujoProyecto2 endp 
@@ -321,6 +320,7 @@ pRegistrar endp
 ;---------------------------------MENUS PARA LOS DISTINTOS TIPOS DE USUARIOS 
 ;MENU PARA EL ADMIN GENERAL
 pMenuAdmin proc 
+    push ax 
     mOpenFile2Write usersb 
     ciclomenu:
     call pResetFlagsE
@@ -365,9 +365,14 @@ pMenuAdmin proc
         call pLimpiarConsola
         jmp ciclomenu
     Bublesort:
+        call pMenuOrd
+        jmp ciclomenu
     heapsort:
+        jmp Bublesort ;CAMBIAR ESTA LINEA SI DICHO ORDENAMIENTO HUBIERA SIDO TRABAJADO
     Timsort:
+        jmp Bublesort ;CAMBIAR ESTA LINEA SI DICHO ORDENAMIENTO HUBIERA SIDO TRABAJADO
     salir:
+        pop ax 
     ret 
 pMenuAdmin endp 
 
@@ -398,14 +403,15 @@ pMenuUser proc
     mMostrarString opi
     jmp menuUser
     game:
-    call pGame ;llama al juego 
-    call pAlmacenarScore ;almacena el score 
-    jmp menuUser
+        call pGame ;llama al juego 
+        call pAlmacenarScore ;almacena el score 
+        jmp menuUser
     totalscorboard:
-
+        call pShowtop10
+        jmp menuUser
     myscorboards:
-
-
+        call pShowMytop10
+        jmp menuUser
     salir: 
     ret 
 pMenuUser endp 
@@ -448,20 +454,22 @@ pMenuU_admin proc
         call pLimpiarConsola
         jmp ciclomenu
     totalscorboard:
-        call pDarAdmin
-        call pLimpiarConsola
+        call pShowtop10
         jmp ciclomenu
     myscorboards:
-        call pQuitarAdmin
-        call pLimpiarConsola
+        call pShowMytop10
         jmp ciclomenu
     game:
         call pGame ;llama al juego 
         call pAlmacenarScore ;almacena el score
         jmp ciclomenu
     Bublesort:
+        call pMenuOrd
+        jmp ciclomenu
     heapsort:
+        jmp Bublesort ;CAMBIAR ESTA LINEA SI DICHO ORDENAMIENTO HUBIERA SIDO TRABAJADO
     Timsort:
+        jmp Bublesort ;CAMBIAR ESTA LINEA SI DICHO ORDENAMIENTO HUBIERA SIDO TRABAJADO
     salir:
     ret 
 pMenuU_admin endp  
@@ -2188,7 +2196,8 @@ pCargarMatrizVideo endp
 ;===============================================ORDENAMIENTOS===================================================
 ;rellenar array de datos con los datos de puntaje del juego 
 
-pMenuOrd  proc   
+pMenuOrd  proc  
+    push ax 
     cicloAsdec:
         call pLimpiarConsola
         mMostrarString MenuDirOrd
@@ -2287,6 +2296,7 @@ pMenuOrd  proc
     ord: 
         call pOrdenamiento
     salir:
+        pop ax 
     ret 
 pMenuOrd endp 
 
@@ -2379,8 +2389,10 @@ pReporteOrden proc
         je finCiclo10
     dec cx 
     jne cicloTop10
+    jmp salir 
     finCiclo10: 
     call pCloseFile
+    salir: 
     pop si 
     pop cx 
     pop bx 
@@ -2409,6 +2421,8 @@ pOrdMando proc
 pOrdMando endp
 ;ENCARGADO DEL MOVIMIENTO DE LOS ORDENAMIENTOS
 pMoveOrdenamiento proc
+    push ax 
+    push dx 
     mov auxfpsT,0
     reset: 
         call pConfigInicOrd
@@ -2440,18 +2454,21 @@ pMoveOrdenamiento proc
         je exit2
         jmp ciclo
         exit2:
-
+        pop dx 
+        pop ax 
     ret 
 pMoveOrdenamiento endp 
 ;RECOLECTOR DE DATOS DE BLOC DE NOTAS 
 pRDatosOrdPuntos proc
     push si 
-    mov si, 0
+    call pLimpiarArraySort   
     mov auxDw,0
     mov CDatos,0
+    mov NumactualDoc,0
     ;NAMEUSER -01- NIVEL -01- PUNTOS -01- TIEMPO ENTER ESPACIO 
     mOpenFile2Write scoresb 
     call pInidoc
+    mov si, 0
     ciclo:
     mReadFile eleactual
     cmp eleactual," "
@@ -2463,9 +2480,9 @@ pRDatosOrdPuntos proc
         mHallarSimbolo 01
     notiempo: 
     mReadFile eleactual
-    mLimpiar NumactualDocS,5t,"$"
+    mLimpiar NumactualDocS,6t,"$"
     mCapturarStringDoc NumactualDocS ;captura el numero en esta variable
-    String2Num NumactualDocS,NumactualDoc,"$"; convierte el numero string a numero decimal  
+    String2Num NumactualDocS,NumactualDoc,"$"; convierte el numero string a numero decimal 
     MovVariablesDw datosOrd[si], NumactualDoc ;mmueve el numeor a esta posicion de arreglo 
     movVariablesDw indexDato[si],auxDw ; index 
     inc auxDw 
@@ -2481,6 +2498,21 @@ pRDatosOrdPuntos proc
     pop si 
     ret 
 pRDatosOrdPuntos endp 
+;LIMPIAR LOS ARRAY DE INDEX DATO Y DATOS ORD 
+pLimpiarArraySort proc 
+    push cx
+    push bx 
+    mov cx,20t 
+    mov bx,0
+    ciclo:
+        mov [indexDato+bx],0
+        mov [datosOrd+bx],0
+        add bx,2 
+    loop ciclo  
+    pop bx 
+    pop cx 
+    ret 
+pLimpiarArraySort endp 
 ;GRAFICAR BARRAS 
 pDrawBarras proc 
     push cx 
@@ -2702,7 +2734,7 @@ pConfigInicOrd proc
         mov CDatos,0  ;resetea la cantidad de datos 
         call pRDatosOrdPuntos ;OBTIENE TODOS LOS PUNTOS DEL ARCHIVO SCORE 
         mDrawBarra 10t,1t,2t,319t,3t 
-        call pDrawBarras
+        ;call pDrawBarras
     ;RESETEO DE VARIABLES 
         mov nRepeticiones,0
         call pResetVarOrd
@@ -2819,8 +2851,8 @@ pShowtop10 proc
     mov bx,0 
     mov ax, 0
     mov cx,CDatos
+    mOpenFile2Write scoresb
     cicloTop10:
-        mOpenFile2Write scoresb
             mMoverAFila [indexDato+bx]
             mLimpiar filaScore,25t,0
             mCapturarFilaDoc filaScore
@@ -2842,9 +2874,9 @@ pShowtop10 proc
     call pCloseFile
     call pEspEnter
     call pLimpiarConsola
-    push cx
-    push bx 
-    push ax 
+    pop cx
+    pop bx 
+    pop ax 
     ret 
 pShowtop10 endp 
 
@@ -2910,7 +2942,7 @@ pFilaUScore proc
     mov bx,0
     mov cx,15t 
     ciclo:
-        mov ah, [userprueba+bx]
+        mov ah, [NameUserG+bx]
         cmp ah," " ;LLEGO AL FIN DE LA CADENA 1? 
         je fincad1 ;SI 
         cmp ah, [filaScore+bx]
