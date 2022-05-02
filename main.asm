@@ -697,6 +697,8 @@ pQuitarbloqAdmin endp
 ;QUITAR BLOQUEO
 pQuitarbloqueo proc
     call pLimpiarConsola
+    mMostrarString msgUnlockUserT ;IMPRIMIR TITULO DEL APARTADO  
+    call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
     mLimpiar Umoderado,25,24
     mOpenFile2Write usersb 
     call pResetFlagsE
@@ -737,6 +739,8 @@ pQuitarbloqueo endp
 ;DAR ADMIN
 pDarAdmin proc 
     call pLimpiarConsola
+    mMostrarString msgPromoteAdmin;IMPRIMIR TITULO DEL APARTADO  
+    call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
     mLimpiar Umoderado,25,24
     mOpenFile2Write usersb
     call pResetFlagsE
@@ -774,6 +778,8 @@ pDarAdmin endp
 ;QUITAR ADMIN
 pQuitarAdmin proc
     call pLimpiarConsola ;LIMPIA LA CONSOLA 
+    mMostrarString msgDemoteAdmin ;IMPRIMIR TITULO DEL APARTADO  
+    call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
     mLimpiar Umoderado,25,24 ;Limpiar la variable donde se almacenara el usuario a quitar admin 
     mOpenFile2Write usersb ;ABRE EL ARCHIVO DE USUARIOS PARA LEER Y ESCRIBIR 
     call pResetFlagsE ;RESETEA TODAS LAS BANDERAS 
@@ -2220,6 +2226,8 @@ pMenuOrd  proc
     push ax 
     cicloAsdec:
         call pLimpiarConsola
+        mMostrarString msgBubbleTitle ;IMPRIMIR TITULO DEL APARTADO  
+        call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
         mMostrarString MenuDirOrd
         mov ah,01;atrapa la tecla fn
         int 21
@@ -2241,6 +2249,8 @@ pMenuOrd  proc
         mov ascDec,1 
     cicloMetrica:
         call pLimpiarConsola
+        mMostrarString msgMetricTittle ;IMPRIMIR TITULO DEL APARTADO  
+        call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
         mMostrarString MenuMetricaOrd
         mov ah,01;atrapa la tecla fn
         int 21
@@ -2262,6 +2272,8 @@ pMenuOrd  proc
             mov punOtiempo,1 
     cicloVelocidad:
         call pLimpiarConsola
+        mMostrarString msgSpeedTittle;IMPRIMIR TITULO DEL APARTADO  
+        call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
         mMostrarString MenuSpeed
         mov ah,01;atrapa la tecla fn
         int 21
@@ -2859,6 +2871,8 @@ pShowtop10 proc
     push bx 
     push cx 
     call pLimpiarConsola
+    mMostrarString msgTop10 ;IMPRIMIR TITULO DEL APARTADO  
+    call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
     mov punOtiempo,0
     ;capturar Datos 
     call pRDatosOrdPuntos
@@ -2906,6 +2920,8 @@ pShowMytop10 proc
     push cx 
     push dx 
     call pLimpiarConsola
+    mMostrarString msgMyTop10 ;IMPRIMIR TITULO DEL APARTADO  
+    call pImprimirUser ;IMPRIMIR USUARIO ACTUAL 
     mov punOtiempo,0
     ;capturar Datos 
     call pRDatosOrdPuntos
@@ -2962,8 +2978,8 @@ pFilaUScore proc
     mov bx,0
     mov cx,15t 
     ciclo:
-        mov ah, [NameUserG+bx]
-        cmp ah," " ;LLEGO AL FIN DE LA CADENA 1? 
+        mov ah, [UsuarioI+bx]
+        cmp ah,24 ;LLEGO AL FIN DE LA CADENA 1? 
         je fincad1 ;SI 
         cmp ah, [filaScore+bx]
         jne noigual 

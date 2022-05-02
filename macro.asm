@@ -11,9 +11,15 @@ mVariables macro
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
     ;GENERAL LETREROS 
-        msguser db "user: ","$"
-        msgTop10 db "==Top 10 Scorboard==","$"
-        msgMyTop10 db "=="
+        msguser         db "user: ","$"
+        msgTop10        db "==Top 10 Scorboard==","$"
+        msgMyTop10      db "==My Top 10 Scorboard==","$"
+        msgUnlockUserT  db "==Unlock User==","$"
+        msgPromoteAdmin db "==Promote to Admin==","$"
+        msgDemoteAdmin  db "==Demote to Admin==","$"
+        msgBubbleTitle  db "==Bubble Sort==","$"
+        msgMetricTittle db "==Bubble Metric==","$"
+        msgSpeedTittle  db "==Bubble Speed==","$"
     ;LOGIN=====================================================================================
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
     msgexit db "(presione tab y luego 2 enter para salir)",0A,"$"
@@ -31,7 +37,7 @@ mVariables macro
    
         ;MENU USUARIO ADMIN
         msgMuA db "Menu usuario Admin","$"
-        MenuUsuarioAdmin db "F1. Unlock User",0A,"F2. Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard","F4. Play Game",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
+        MenuUsuarioAdmin db "F1. Unlock User",0A,"F2. Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard",0A,"F4. Play Game",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
     
         ;MENU DE ADMIN
         msgMenuAdmin db "Menu de Admin","$"
