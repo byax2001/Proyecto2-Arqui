@@ -162,7 +162,7 @@ mVariables macro
             msgPressEnd     db  "Press END(fin) to print Rep"
 
     ;JUEGO===========================================================================
-        NameUserG db 15t dup(0) ;NICKNAME DEL JUGADOR 
+        NameUserG db 15t dup(" ") ;NICKNAME DEL JUGADOR 
         auxfpsT db 0
         ;MENSAJES
             Usergame db "Username:"

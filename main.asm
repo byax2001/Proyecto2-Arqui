@@ -24,7 +24,8 @@ pFlujoProyecto2 proc
         ;call pLimpiarConsola
         ;call pMenuPrincipal
     ;call pMenuOrd
-    call pShowtop10
+    ;call pShowtop10
+    call pShowMytop10
     call pRetControl
     ret 
 pFlujoProyecto2 endp 
@@ -2033,7 +2034,7 @@ pConfigIni endp
 pNameUser proc 
     push cx 
     push si
-    mLimpiar NameUserG,15t,0 
+    mLimpiar NameUserG,15t," " 
     mov cx,15t 
     mov si,0
     ciclo:
@@ -2846,10 +2847,12 @@ pShowtop10 proc
     push ax 
     ret 
 pShowtop10 endp 
+
 pShowMytop10 proc
     push ax 
     push bx 
     push cx 
+    push dx 
     call pLimpiarConsola
     mov punOtiempo,0
     ;capturar Datos 
@@ -2863,22 +2866,25 @@ pShowMytop10 proc
     mov bx,0 
     mov ax, 0
     mov cx,CDatos
+    mOpenFile2Write scoresb
     cicloTop10:
-        mOpenFile2Write scoresb
             mMoverAFila [indexDato+bx]
             mLimpiar filaScore,25t,0
             mCapturarFilaDoc filaScore
-            call pFilaUScore
-            cmp cadIguales,1
-            jne nofilaUser
-            ;rank 
-            mov auxDw,ax 
-            inc auxDw
-            mLimpiar auxString,4t,0
-            Num2String auxDw,auxString
-            mMostrarString auxString
-            mMostrarString filaScore
-            mMostrarString msgEnter
+            call pFilaUScore  ;procedimiento que compara la variable UserNameG con el principio de la fila
+            cmp cadIguales,1 ;si son iguales se procede a imprimir la fila 
+            jne nofilaUser ; si no son iguales no se imprime nada 
+            ;EL USER EN LA FILA ES IGUAL, SE PROCEDE A IMPRIMIR LA FILA 
+                mov auxDw,ax 
+                inc auxDw
+                mLimpiar auxString,4t,0
+                Num2String auxDw,auxString
+                mMostrarString auxString
+                mMostrarString filaScore
+                mMostrarString msgEnter
+                inc dx 
+                cmp dx,10t  ;si ya se imprimio 10 veces un dato, se deja de imprimir mas escores 
+                je finCiclo10
         nofilaUser: 
         add bx,2
         inc ax 
@@ -2888,14 +2894,15 @@ pShowMytop10 proc
     call pCloseFile
     call pEspEnter
     call pLimpiarConsola
-    push cx
-    push bx 
-    push ax 
+    pop dx 
+    pop cx
+    pop bx 
+    pop ax 
     ret 
 pShowMytop10 endp  
 
 pFilaUScore proc
-    ;CAMBIAR USERPRUEBA POR NAMEUSERG, EL CMP LLEGO AL FIN CADENA 1 DE " " A 0
+    ;CAMBIAR USERPRUEBA POR NAMEUSERG
     push cx 
     push ax 
     push bx 
