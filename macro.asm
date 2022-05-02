@@ -1359,6 +1359,8 @@ mCapturarStringDoc macro variableAlmacenadora
         mReadFile eleActual
         cmp eleActual,1 ;es igual a 1 ASCII (no es igual al 1 decimal no afecta a los numeros)?
         je salir  ; si, terminar de capturar
+        cmp eleactual,00
+        je salir 
         cmp eleActual,0A ;es igual a enter tipo1
         je salir  ; si, terminar de capturar
         cmp eleActual," " ;los 0's impresos en un documento externo se vuelven espacios

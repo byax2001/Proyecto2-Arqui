@@ -190,7 +190,7 @@ pLogin proc
         mReadFile eleActual ;B o N
         cmp eleActual,"B" ;si esta bloqueado a pesar de tener buena la contraseña, no ingresara
         je Ubloqueado
-        mHallarSimbolo 01 ;separador a la par de admin o no admin 
+        mHallarSimbolo 01 ;separador a la par de admin o no admin  (A O N)
         mReadFile eleActual ;A o N
         cmp eleActual,"A"
         je Usuarioadmin
@@ -208,6 +208,20 @@ pLogin proc
         call pMenuU_admin ;MUESTRA MENU CORRESPONDIENTE
         jmp salir        
     Ubloqueado:
+        mHallarSimbolo 01
+        mReadFile eleActual ;A o N (admin o no admin)
+        cmp eleActual,"A"
+        jne noadminU
+            call pPosAnterior ;A/n
+            call pPosAnterior ;separador antes de A/n
+            call pPosAnterior ;B/No bloqueado
+            call pPosAnterior ;separador antes de B/n
+            call pPosAnterior ;N VECES BLOQUEADO
+            call pPosAnterior ;separador
+            call pPosAnterior ;ultimo digito de la contraseña 
+            call pQuitarbloqAdmin
+            jmp Usuarioadmin
+        noadminU: 
         mMostrarString msgUbloqueado
         call pespEnter
         jmp cicloLogin
@@ -687,9 +701,9 @@ pDarbloqueo endp
 ;QUITAR BLOQUEO ADMIN
 pQuitarbloqAdmin proc
     mHallarSimbolo separador
-    mWriteToFile Nequivdef
+    mWriteToFile Nequivdef ;numero de veces que se equivoco, en este caso se le asigna 0
     mHallarSimbolo separador
-    mWriteToFile Bloqdef
+    mWriteToFile Bloqdef ;bloqueado o no bloqueado, en este caso se le asigna Bloqueado 
     ret
 pQuitarbloqAdmin endp 
 
