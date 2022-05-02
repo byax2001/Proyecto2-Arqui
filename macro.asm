@@ -10,7 +10,10 @@ mVariables macro
     opi db 0A,"**No se escogio una opcion entre las que existen**",0A,"$"
     ;MENSAJE LUEGO DE EQUIVOCARSE 3 VECES
     blockUs db ">> Permission denied <<",0A,">> There where 3 failed login attempts <<",0A,">> Please contact the administrator <<",0A,">> Press Enter to go back to menu <<",0A,"$"
-    
+    ;GENERAL LETREROS 
+        msguser db "user: ","$"
+        msgTop10 db "==Top 10 Scorboard==","$"
+        msgMyTop10 db "=="
     ;LOGIN=====================================================================================
     msgLogin db 0A,"============Login",58t,"============",0A,"$"
     msgexit db "(presione tab y luego 2 enter para salir)",0A,"$"
@@ -23,15 +26,15 @@ mVariables macro
     msgUbloqueado db "==Usuario bloqueado==",0A,"$"
     enteraux db 0A,"$"
         ;MENU DE USUARIO
-        msgMenuU db "====Menu de usuario===",10 dup(" "),"user: ","$"
+        msgMenuU db "====Menu de usuario===","$"
         MenuUsuario db "F2. Play game",0A,"F3. Show top 10 scoreboard",0A,"F5. Show my top 10 scoreboard",0A,"F9. Logout",0A,"$"
    
         ;MENU USUARIO ADMIN
-        msgMuA db "Menu usuario Admin",10 dup(" "),"user: ","$"
+        msgMuA db "Menu usuario Admin","$"
         MenuUsuarioAdmin db "F1. Unlock User",0A,"F2. Show top 10 scoreboard",0A,"F3. Show my top 10 scoreboard","F4. Play Game",0A,"F5. Bubble Sort",0A,"F6. Heap Sort",0A,"F7. Tim sort",0A,"F9. Logout",0A,"$"
     
         ;MENU DE ADMIN
-        msgMenuAdmin db "Menu de Admin",10 dup(" "),"user: ","$"
+        msgMenuAdmin db "Menu de Admin","$"
         usDesBloq db "Usuario a desbloquear: $"
         usDarAdmin db "Usuario a dar admin: $"
         usQuitarAdmin db "Usuario a remover admin: $"

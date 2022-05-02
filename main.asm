@@ -77,6 +77,29 @@ pBaseDatos proc
     call pCloseFile
     ret 
 pBaseDatos endp 
+;IMPRIMIR NOMBRE DE USUARIO ACTUAL  ARRIBA A LA DERECHA DE CADA MENU
+pImprimirUser proc
+    push ax 
+    push dx 
+    push bx 
+    mov ah, 02
+    mov bh,0  ;numero de pagina
+    mov dl,30t   ;columna
+    mov dh,0   ;fila 
+    int 10
+    mMostrarString msguser
+    mMostrarString UsuarioI  
+    mov ah, 02
+    mov bh,0  ;numero de pagina
+    mov dl,0   ;columna
+    mov dh,1   ;fila 
+    int 10
+    mMostrarString sepRepOrden;LINEA SEPARADORA ENTRE LOS CABEZALES Y EL MENU
+    pop bx 
+    pop dx 
+    pop ax 
+    ret
+pImprimirUser endp 
 
 ;MENU PRINCIPAL  
 pMenuPrincipal proc    
@@ -325,8 +348,7 @@ pMenuAdmin proc
     ciclomenu:
     call pResetFlagsE
     mMostrarString msgMenuAdmin ;MENU ADMIN
-    mMostrarString UsuarioI ; IMPRIME AL USUARIO ACTUAL
-    mMostrarString enteraux ;ENTER A LA LINEA USADA 
+    call pImprimirUser ;IMPRIMIR NOMBRE DE USUARIO ACTUAL 
     mMostrarString MenuAdmin  ;MUESTRA EL MENU 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
@@ -381,8 +403,7 @@ pMenuUser proc
     menuUser: 
     ;MENU DE USUARIO 
     mMostrarString msgMenuU  ;MENU DE USUARIO NORMAL
-    mMostrarString UsuarioI  ;IMPRESION DEL USUARIO ACTUAL
-    mMostrarString enteraux ;IMPRESION DE UN ENTER 
+    call pImprimirUser ;IMPRIMIR NOMBRE DE USUARIO ACTUAL  
     mMostrarString MenuUsuario ;IMPRESION DE MENU USUARIO 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
@@ -420,8 +441,7 @@ pMenuUser endp
 pMenuU_admin proc  
     ciclomenu:
     mMostrarString msgMuA   ;TITULO: MENU DE USUARIO ADMIN
-    mMostrarString UsuarioI ;IMPRESION DEL NOMBRE DE USUARIO ACTUAL
-    mMostrarString enteraux ;ENTER PARA SALTAR DE LA LINEA ACTUAL
+    call pImprimirUser ;IMPRIMIR NOMBRE DE USUARIO ACTUAL 
     mMostrarString MenuUsuarioAdmin ;OPCIONES DEL MENU DE USUARIO ADMIN 
     mov opcion,0
     ;la laptop que se posee para trabajar esto necesita de presionar una tecla antes de los FN
