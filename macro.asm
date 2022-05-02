@@ -310,6 +310,7 @@ mVariables macro
         msgTitleRep     db  "Rank   Player           N       Points  Time",0A
         auxtitlerep     db "$"
         msgEspacios     db  "            "
+        userprueba      db "brandonyax     "
     ;CONTADOR DELAY
     cdelay db 0
     ;PARA LA COMPARACION DE CADENAS==================================================

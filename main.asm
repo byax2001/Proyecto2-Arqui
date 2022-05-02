@@ -2821,6 +2821,7 @@ pShowtop10 proc
     cicloTop10:
         mOpenFile2Write scoresb
             mMoverAFila [indexDato+bx]
+            mLimpiar filaScore,25t,0
             mCapturarFilaDoc filaScore
             ;rank 
             mov auxDw,ax 
@@ -2845,6 +2846,87 @@ pShowtop10 proc
     push ax 
     ret 
 pShowtop10 endp 
+pShowMytop10 proc
+    push ax 
+    push bx 
+    push cx 
+    call pLimpiarConsola
+    mov punOtiempo,0
+    ;capturar Datos 
+    call pRDatosOrdPuntos
+    ;burble, ORDENAR LOS DATOS 
+    call pBubbleSortAuto
+    ;print 
+    mMostrarString msgTitleRep
+    mMostrarString sepRepOrden
+    mov auxDw,0
+    mov bx,0 
+    mov ax, 0
+    mov cx,CDatos
+    cicloTop10:
+        mOpenFile2Write scoresb
+            mMoverAFila [indexDato+bx]
+            mLimpiar filaScore,25t,0
+            mCapturarFilaDoc filaScore
+            call pFilaUScore
+            cmp cadIguales,1
+            jne nofilaUser
+            ;rank 
+            mov auxDw,ax 
+            inc auxDw
+            mLimpiar auxString,4t,0
+            Num2String auxDw,auxString
+            mMostrarString auxString
+            mMostrarString filaScore
+            mMostrarString msgEnter
+        nofilaUser: 
+        add bx,2
+        inc ax 
+    dec cx 
+    jne cicloTop10
+    finCiclo10: 
+    call pCloseFile
+    call pEspEnter
+    call pLimpiarConsola
+    push cx
+    push bx 
+    push ax 
+    ret 
+pShowMytop10 endp  
+
+pFilaUScore proc
+    ;CAMBIAR USERPRUEBA POR NAMEUSERG, EL CMP LLEGO AL FIN CADENA 1 DE " " A 0
+    push cx 
+    push ax 
+    push bx 
+    mov cadIguales,0 
+    mov bx,0
+    mov cx,15t 
+    ciclo:
+        mov ah, [userprueba+bx]
+        cmp ah," " ;LLEGO AL FIN DE LA CADENA 1? 
+        je fincad1 ;SI 
+        cmp ah, [filaScore+bx]
+        jne noigual 
+        inc bx
+    loop ciclo 
+    jmp igual ;SI SE MOVIO LAS 15 VECES ENTONCES AMBAS CADENAS SON IGUALES 
+    fincad1:
+        cmp [filaScore+bx]," " ;LLEGO AL FIN DE LA CADENA 2? 
+        jne noigual; NO NO ES IGUAL
+    fincad2: ;SI ES IGUAL 
+        jmp igual ;MARCA AL PROGRAMA QUE SI ES IGUAL 
+    noigual:
+        mov cadIguales,0 
+        jmp salir 
+    igual: 
+        mov cadIguales,1 
+    salir: 
+    pop bx 
+    pop ax 
+    pop cx 
+    ret 
+pFilaUScore endp 
 ;ORDENAMIENTO BURBUJA AUTOMATICO SIN PAUSAS
 pBubbleSortAuto proc
     push ax
