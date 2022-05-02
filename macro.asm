@@ -256,6 +256,7 @@ mVariables macro
             exitGame    db 0
             auxDw       dw 0
             auxString   db 4 dup (0)
+            as          db "$"
     ;FECHA ====================================================================================
         dia     db 4 dup (0)
         mes     db 4 dup (0)
@@ -294,9 +295,11 @@ mVariables macro
         aux1 db "$"
     ;REPORTE DE ORDENAMIENTO ======================================================================
         sepRepOrden     db  "-------------------------------------------------------",0A
+        auxseprep            db "$"
         filaScore       db  25 dup (0)
-        auxFscore       db  "$"
+        aux2            db  "$"
         msgEnter        db  0A 
+        aux3            db "$"
         msgType         db  "Tipo: "
         msgSentido      db  "Sentido: "
         msgFecha        db  "Fecha: "
@@ -305,6 +308,7 @@ mVariables macro
         msgAscen        db  "Ascendente"
         msgDescen       db  "Descendente"
         msgTitleRep     db  "Rank   Player           N       Points  Time",0A
+        auxtitlerep     db "$"
         msgEspacios     db  "            "
     ;CONTADOR DELAY
     cdelay db 0
@@ -1443,6 +1447,8 @@ mCapturarFilaDoc macro varAlmacenadora
         inc si
         mReadFile eleActual
         cmp eleActual,0A ;es igual a enter tipo1
+        je salir  ; si, terminar de capturar
+        cmp eleActual,0dh ;es igual a enter tipo1
         je salir  ; si, terminar de capturar
         jmp capturarString
     salir:

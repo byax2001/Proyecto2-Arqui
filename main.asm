@@ -23,7 +23,8 @@ pFlujoProyecto2 proc
         ;---------------------------------------------------
         ;call pLimpiarConsola
         ;call pMenuPrincipal
-    call pMenuOrd
+    ;call pMenuOrd
+    call pShowtop10
     call pRetControl
     ret 
 pFlujoProyecto2 endp 
@@ -2357,6 +2358,7 @@ pReporteOrden proc
     cicloTop10:
         mOpenFile2Write scoresb
             mMoverAFila [indexDato+bx]
+            mLimpiar filaScore,25t,0
             mCapturarFilaDoc filaScore
         call pCloseFile
         mOpenFile2Write RepOrdName
@@ -2797,6 +2799,91 @@ pDrawTimeOrd proc
     mImprimirLetreros cengameS,0t,38t,15t 
     ret 
 pDrawTimeOrd endp 
+
+;top10
+pShowtop10 proc
+    push ax 
+    push bx 
+    push cx 
+    call pLimpiarConsola
+    mov punOtiempo,0
+    ;capturar Datos 
+    call pRDatosOrdPuntos
+    ;burble, ORDENAR LOS DATOS 
+    call pBubbleSortAuto
+    ;print 
+    mMostrarString msgTitleRep
+    mMostrarString sepRepOrden
+    mov auxDw,0
+    mov bx,0 
+    mov ax, 0
+    mov cx,CDatos
+    cicloTop10:
+        mOpenFile2Write scoresb
+            mMoverAFila [indexDato+bx]
+            mCapturarFilaDoc filaScore
+            ;rank 
+            mov auxDw,ax 
+            inc auxDw
+            mLimpiar auxString,4t,0
+            Num2String auxDw,auxString
+            mMostrarString auxString
+            mMostrarString filaScore
+            mMostrarString msgEnter
+        add bx,2
+        inc ax 
+        cmp ax,10t 
+        je finCiclo10
+    dec cx 
+    jne cicloTop10
+    finCiclo10: 
+    call pCloseFile
+    call pEspEnter
+    call pLimpiarConsola
+    push cx
+    push bx 
+    push ax 
+    ret 
+pShowtop10 endp 
+;ORDENAMIENTO BURBUJA AUTOMATICO SIN PAUSAS
+pBubbleSortAuto proc
+    push ax
+    push dx 
+    push cx
+    push bx 
+    cmp CDatos,1t 
+    je salir 
+    mov cx,CDatos
+    nRepeat: 
+        push cx 
+        mov cx, CDatos
+        dec cx 
+        mov bx,0
+        compEvery: ;comparar dato con cada dato del arreglo  
+            mov ax, [datosOrd+bx] 
+            cmp ax, [datosOrd+bx+2]
+            jae noswap ;si el dato 1 es mas grande al dato 2, no se mueve y se queda de primerz
+            ;swap 
+            mov dx,[datosOrd+bx+2]
+            mov [datosOrd+bx+2],ax
+            mov [datosOrd+bx],dx 
+            ;MOVER INDEX 
+            call pMoverIndex
+            noswap:
+            add bx,2
+        dec cx 
+        jne compEvery
+        pop cx 
+    loop nRepeat 
+    salir: 
+    pop bx 
+    pop cx 
+    pop dx 
+    pop ax 
+    ret 
+pBubbleSortAuto endp 
+
+
 
 ;PROC para rellenar las variables de tiempo
 pFechaTime proc 
