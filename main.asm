@@ -17,7 +17,6 @@ pFlujoProyecto2 proc
     call pAjustarMemoria
         ;call pBaseDatos ;comentar esto si no se quiere borrar la base de datos 
         call pLimpiarConsola
-        ;call pShowMytop10
         mMostrarString mensajeI
          ;apartado de espera de un enter----------------------
             call pEspEnter

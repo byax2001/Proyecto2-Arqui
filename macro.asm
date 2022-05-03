@@ -923,7 +923,7 @@ mDivisionDw macro var1,var2
 endm
 ;MOD 
 mModdb macro var1,var2
-;CUANDO SE LEEN ARCHIVOS LOS 4 REGISTROS SON AFECTADOS 
+    ;CUANDO SE LEEN ARCHIVOS LOS 4 REGISTROS SON AFECTADOS 
     push ax
     push bx 
     xor ax,ax
@@ -1162,7 +1162,7 @@ mDrawPixel macro line,column,color
     pop bx 
     pop ax 
 endm 
-
+;MACRO PARA DECREMENTAR N CANTIDAD DE VECES UNA VARIABLE
 mDecVar macro var1,nveces
     local c1 
     push cx 
@@ -1172,6 +1172,7 @@ mDecVar macro var1,nveces
         loop c1 
     pop cx 
 endm 
+;MACRO PARA INCREMENTAR N CANTIDAD DE VECES UNA VARIABLE 
 mIncVar macro var1,nveces
     local c1 
     push cx 
@@ -1181,6 +1182,7 @@ mIncVar macro var1,nveces
         loop c1 
     pop cx 
 endm 
+;MACRO PARA PINTAR UNA FILA DE PIXELES 
 mDrawFila macro fila,column,color,nveces
     local c1 
     push cx 
