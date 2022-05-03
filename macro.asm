@@ -1193,7 +1193,7 @@ mDrawFila macro fila,column,color,nveces
         loop c1 
     pop cx 
 endm 
-
+;MACRO PARA DIBUJAR UN RECTANGULO 
 mDrawRectangulo macro x,y,ancho,alto,color 
     local lineasup,barraslat,lineainf
     push cx 
@@ -1232,7 +1232,7 @@ mDrawRectangulo macro x,y,ancho,alto,color
     pop cx 
 endm 
 
-
+;macro para dibujar espacios en negro para borrar rastros de movimiento 
 mDrawEborrado macro  x,y 
     local figuraB
     push cx
